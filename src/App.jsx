@@ -14,17 +14,19 @@ function AccessScreen({ onAccess }) {
     const clean = code.trim().toUpperCase();
     if (!clean) { setError("Ingresá tu código de acceso"); return; }
     setLoading(true);
+    // Small delay for UX feedback, then validate
     setTimeout(() => {
       if (VALID_CODES.has(clean)) {
-        localStorage.setItem(ACCESS_KEY, clean);
+        try { localStorage.setItem(ACCESS_KEY, clean); } catch(e) {}
+        setLoading(false);
         onAccess();
       } else {
+        setLoading(false);
         setError("Código inválido. Revisá el email que recibiste al comprar.");
         setShake(true);
         setTimeout(() => setShake(false), 600);
       }
-      setLoading(false);
-    }, 800);
+    }, 600);
   };
 
   const C2 = {
@@ -453,7 +455,12 @@ export default function App() {
   const [animKey, setAnimKey]   = useState(0);
   const scrollRef = useRef(null);
 
-  if (!hasAccess) return <AccessScreen onAccess={() => setHasAccess(true)} />;
+  if (!hasAccess) return (
+    <AccessScreen onAccess={() => {
+      setHasAccess(true);
+      setScreen("home");
+    }} />
+  );
 
   const cur    = STEPS[step];
   const isLast = step === STEPS.length - 1;
