@@ -741,33 +741,11 @@ function MainApp() {
         <p style={{ fontSize:15, color:C.sub, lineHeight:1.7, marginBottom:16, maxWidth:320 }}>Vos respondés. Kooki resuelve.</p>
         <div style={{ position:"relative", marginBottom:28, display:"flex", justifyContent:"center", alignItems:"center" }}>
           <div style={{ position:"absolute", width:280, height:280, borderRadius:"50%", background:`radial-gradient(circle, ${C.bluePl} 0%, transparent 70%)`, zIndex:0 }}/>
-          <div style={{
-            width: 220, height: 380, borderRadius: 32,
-            background: "linear-gradient(160deg,#3B6FD4 0%,#1E3A8A 100%)",
-            position: "relative", zIndex: 1,
-            animation: "floatPhone 3s ease-in-out infinite",
-            boxShadow: "0 20px 60px rgba(59,111,212,0.35)",
-            display: "flex", flexDirection: "column",
-            padding: "20px 16px", gap: 10, overflow: "hidden",
-          }}>
-            <div style={{ background:"rgba(255,255,255,0.15)", borderRadius:12, padding:"10px 12px" }}>
-              <div style={{ fontSize:11, color:"rgba(255,255,255,0.7)", fontWeight:700, marginBottom:6 }}>📅 LUNES</div>
-              <div style={{ fontSize:13, color:"#fff", fontWeight:700 }}>🌞 Pollo grillado con quinoa</div>
-              <div style={{ fontSize:13, color:"#fff", fontWeight:700, marginTop:4 }}>🌙 Sopa de lentejas</div>
-            </div>
-            <div style={{ background:"rgba(255,255,255,0.1)", borderRadius:12, padding:"10px 12px" }}>
-              <div style={{ fontSize:11, color:"rgba(255,255,255,0.7)", fontWeight:700, marginBottom:6 }}>🛒 COMPRAS</div>
-              {["Pechuga de pollo 1kg","Quinoa 500g","Lentejas 300g"].map((item,i) => (
-                <div key={i} style={{ fontSize:12, color:"rgba(255,255,255,0.9)", marginBottom:3, display:"flex", gap:6 }}>
-                  <span>✓</span><span>{item}</span>
-                </div>
-              ))}
-            </div>
-            <div style={{ background:"rgba(255,255,255,0.1)", borderRadius:12, padding:"10px 12px", flex:1 }}>
-              <div style={{ fontSize:11, color:"rgba(255,255,255,0.7)", fontWeight:700, marginBottom:6 }}>👨‍🍳 CHEF IA</div>
-              <div style={{ fontSize:12, color:"rgba(255,255,255,0.9)", lineHeight:1.5 }}>"¿Sin quinoa? Usá arroz integral, queda igual de bien 👌"</div>
-            </div>
-          </div>
+          <img
+            src="https://i.imgur.com/ItvV1e7.jpeg"
+            alt="Kooki app"
+            style={{ width:"100%", maxWidth:300, borderRadius:24, position:"relative", zIndex:1, animation:"floatPhone 3s ease-in-out infinite", boxShadow:`0 20px 60px rgba(59,111,212,0.18)` }}
+          />
         </div>
         <div style={{ background:C.bg, borderRadius:20, padding:"24px 24px", marginBottom:28, border:`1px solid ${C.gray2}` }}>
           <div style={{ fontSize:12, fontWeight:800, color:C.gray4, letterSpacing:"1px", textTransform:"uppercase", marginBottom:14 }}>Esto es lo que Kooki hace por vos:</div>
