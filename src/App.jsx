@@ -437,14 +437,9 @@ Respondé siempre de forma breve y útil. Si el usuario pregunta por un sustitut
     }
 
     // Preguntas sobre el menú
-    if (p.includes("menú") || p.includes("semana") || p.includes("lunes") || p.includes("martes") || p.includes("miércoles") || p.includes("jueves") || p.includes("viernes") || p.includes("sábado") || p.includes("domingo")) {
-      const dias = result.menu.map(d => `${d.dia}: ${d.alm} (almuerzo) y ${d.cen} (cena)`).join("
-");
-      return `Tu menú de esta semana es:
-
-${dias}
-
-¿Tenés alguna duda sobre alguna preparación específica? 📅`;
+    if (p.includes("menu") || p.includes("semana") || p.includes("lunes") || p.includes("martes") || p.includes("miercoles") || p.includes("jueves") || p.includes("viernes") || p.includes("sabado") || p.includes("domingo")) {
+      const dias = result.menu.map(d => d.dia + ": " + d.alm + " (almuerzo) y " + d.cen + " (cena)").join("\n");
+      return "Tu menu semanal:\n\n" + dias + "\n\nTenes alguna duda sobre alguna preparacion?";
     }
 
     // Saludos
