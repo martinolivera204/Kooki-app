@@ -448,10 +448,8 @@ function ModalReceta({ nombre, onClose }) {
 }
 
 /* ─── APP ─────────────────────────────────────────────────────────────────── */
-export default function App() {
-  const [hasAccess, setHasAccess] = useState(() => {
-    try { return !!localStorage.getItem(ACCESS_KEY); } catch { return false; }
-  });
+function MainApp() {
+
   const [screen, setScreen]     = useState("home");
   const [step, setStep]         = useState(0);
   const [answers, setAnswers]   = useState({});
@@ -463,12 +461,7 @@ export default function App() {
   const [animKey, setAnimKey]   = useState(0);
   const scrollRef = useRef(null);
 
-  if (!hasAccess) return (
-    <AccessScreen onAccess={() => {
-      setHasAccess(true);
-      setScreen("home");
-    }} />
-  );
+
 
   const cur    = STEPS[step];
   const isLast = step === STEPS.length - 1;
@@ -983,4 +976,15 @@ export default function App() {
   );
 
   return null;
+}
+
+export default function App() {
+  const [hasAccess, setHasAccess] = useState(() => {
+    try { return !!localStorage.getItem(ACCESS_KEY); } catch(e) { return false; }
+  });
+
+  if (!hasAccess) {
+    return <AccessScreen onAccess={() => setHasAccess(true)} />;
+  }
+  return <MainApp />;
 }
