@@ -1,5 +1,109 @@
 import { useState, useEffect, useRef } from "react";
 
+/* ─── CÓDIGOS DE ACCESO ───────────────────────────────────────────────────── */
+const VALID_CODES = new Set(['KOOKI-4Y8R-MPYF-H6PY', 'KOOKI-PL8G-NIY1-QUPC', 'KOOKI-DZ8V-D2P7-6EO7', 'KOOKI-C7PD-3NMM-1GNO', 'KOOKI-Y8X2-3YBA-DFK8', 'KOOKI-HRTG-P9I3-N2LP', 'KOOKI-17LV-J7VR-9F8Q', 'KOOKI-6OUN-4M28-DANK', 'KOOKI-CAS2-XKYD-25C6', 'KOOKI-86JF-KWFJ-9JN1', 'KOOKI-VQ3M-XWDH-L4DB', 'KOOKI-MO0B-AAHG-PT54', 'KOOKI-S093-U3S0-V1TN', 'KOOKI-XK1U-OQEX-M9IU', 'KOOKI-EH84-VUG9-MTWO', 'KOOKI-60KA-AFQR-XS9C', 'KOOKI-AI2B-2X13-62RG', 'KOOKI-J3CG-7WW4-X4MI', 'KOOKI-UNX2-EH4C-4821', 'KOOKI-WYDK-HDLS-U0N2', 'KOOKI-VA69-X9S9-9GHX', 'KOOKI-0TUM-64BV-TP05', 'KOOKI-ZLGI-BGT3-FP7E', 'KOOKI-SSYC-2JOM-E5HZ', 'KOOKI-35MC-0HEE-MXJG', 'KOOKI-IRMD-KCTV-F2QV', 'KOOKI-VYS8-ADE2-DL4L', 'KOOKI-CYEA-3G00-DI95', 'KOOKI-3002-BRVV-0LN8', 'KOOKI-72E8-1IJO-557Z', 'KOOKI-SU0W-TI9R-KQM8', 'KOOKI-X9P5-S82Y-P1XV', 'KOOKI-H1TS-WNLP-A8VM', 'KOOKI-AC7V-YYYP-70GN', 'KOOKI-ZUS2-8COW-V90B', 'KOOKI-6QQ9-0GPV-PYO3', 'KOOKI-CDNG-3ZUY-PFR6', 'KOOKI-KJ97-OO78-DDC9', 'KOOKI-3TWJ-9638-XX2M', 'KOOKI-O7BO-FABQ-OD00', 'KOOKI-R3B1-DYH0-FEO4', 'KOOKI-H01E-BKNX-SJAR', 'KOOKI-WJUF-ITI9-9PTG', 'KOOKI-760Y-38IJ-CFBX', 'KOOKI-NBUC-FW8W-61AK', 'KOOKI-TUQS-OD4V-UYKU', 'KOOKI-PIGV-FDEF-4322', 'KOOKI-QS0T-XQJ3-K66F', 'KOOKI-FIZ9-5R4G-4KJX', 'KOOKI-2NBL-Z6AQ-094H', 'KOOKI-CXDK-QAIN-FAZ6', 'KOOKI-2ZSG-HOA2-FZZD', 'KOOKI-UMDU-ELF6-0P22', 'KOOKI-CR18-V8LS-08O0', 'KOOKI-GFMT-SJJU-VPAN', 'KOOKI-ULGG-IT8W-SWU2', 'KOOKI-O6WL-5MKU-7MZK', 'KOOKI-YPFG-3EY5-HOXN', 'KOOKI-ZPCT-NS6R-GRQN', 'KOOKI-DOY8-4YEA-L49S', 'KOOKI-69WJ-MWRA-YO2Y', 'KOOKI-2Z3A-STFG-PV5L', 'KOOKI-35QA-93GV-WXRN', 'KOOKI-AACG-T6C4-0G1E', 'KOOKI-E9TB-FZ0J-XAIR', 'KOOKI-Q04N-AX6T-WADW', 'KOOKI-7X3Q-4Q2O-6LNA', 'KOOKI-1IN3-O6DY-822Z', 'KOOKI-FGFF-UT6K-A4OQ', 'KOOKI-KK2G-NHQL-6N1U', 'KOOKI-U8B7-RTUG-AIGB', 'KOOKI-MRY0-53GJ-OPHA', 'KOOKI-O7YC-7ZFF-B5DK', 'KOOKI-RO2H-2O9I-X4O6', 'KOOKI-DG68-PPIZ-U6V0', 'KOOKI-EPOZ-ELCG-O0V1', 'KOOKI-L4AB-SMQD-V9ZB', 'KOOKI-D1N4-WRUE-LDCP', 'KOOKI-KGGU-SQVO-APDR', 'KOOKI-X304-TJBA-V8BY', 'KOOKI-PGPA-EGWZ-2ARK', 'KOOKI-YLIV-U0KQ-M98K', 'KOOKI-5XIU-NW02-YAYS', 'KOOKI-PO0M-F9AD-KF8G', 'KOOKI-OFMK-VJE3-76PP', 'KOOKI-8H64-3ELD-6N96', 'KOOKI-M349-HUNH-13W8', 'KOOKI-MZZV-PHCT-F14O', 'KOOKI-TE5P-LGHQ-L45E', 'KOOKI-542B-RUWO-LAZS', 'KOOKI-M3QA-SIXI-VERU', 'KOOKI-VX7H-YMF3-ZP03', 'KOOKI-61RJ-7269-J6VA', 'KOOKI-IBIL-7X5P-3IQ0', 'KOOKI-WG95-R6Q7-W185', 'KOOKI-MJGA-M73C-PXGT', 'KOOKI-WETL-QND7-7XHJ', 'KOOKI-7U0K-FWYO-IND4', 'KOOKI-Z2D4-K7S8-VJJY', 'KOOKI-0LSN-1R19-E5LG']);
+const ACCESS_KEY = "kooki_access_v1";
+
+function AccessScreen({ onAccess }) {
+  const [code, setCode] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [shake, setShake] = useState(false);
+
+  const handleSubmit = () => {
+    const clean = code.trim().toUpperCase();
+    if (!clean) { setError("Ingresá tu código de acceso"); return; }
+    setLoading(true);
+    setTimeout(() => {
+      if (VALID_CODES.has(clean)) {
+        localStorage.setItem(ACCESS_KEY, clean);
+        onAccess();
+      } else {
+        setError("Código inválido. Revisá el email que recibiste al comprar.");
+        setShake(true);
+        setTimeout(() => setShake(false), 600);
+      }
+      setLoading(false);
+    }, 800);
+  };
+
+  const C2 = {
+    blue:"#3B6FD4", blueDk:"#2A52A8", blueLt:"#EEF3FC",
+    white:"#FFFFFF", gray1:"#F0F3FA", gray2:"#E2E8F5",
+    gray4:"#7A8BAD", dark:"#111827", text:"#1E2D4A", sub:"#5A6E8C",
+    danger:"#EF4444", dangerLt:"#FEF2F2",
+  };
+
+  return (
+    <div style={{ minHeight:"100vh", background:C2.white, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"32px 24px", fontFamily:"'DM Sans',sans-serif" }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700;9..40,800&family=Nunito:wght@800;900&display=swap'); *{box-sizing:border-box;margin:0;padding:0;} @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}} @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}`}</style>
+
+      <div style={{ width:"100%", maxWidth:380, animation:"fadeIn 0.4s ease" }}>
+        {/* Logo */}
+        <div style={{ textAlign:"center", marginBottom:40 }}>
+          <span style={{ fontWeight:800, fontSize:36, color:C2.blue, letterSpacing:"-1px", fontFamily:"'Nunito','DM Sans',sans-serif" }}>Kooki</span>
+          <div style={{ fontSize:14, color:C2.sub, marginTop:6 }}>IA que cocina con vos</div>
+        </div>
+
+        {/* Card */}
+        <div style={{ background:C2.white, borderRadius:24, padding:"32px 28px", boxShadow:"0 8px 40px rgba(59,111,212,0.12)", border:`1px solid ${C2.gray2}` }}>
+          <div style={{ fontSize:22, fontWeight:800, color:C2.dark, marginBottom:8, letterSpacing:"-0.5px" }}>Ingresá tu código</div>
+          <div style={{ fontSize:14, color:C2.sub, lineHeight:1.6, marginBottom:28 }}>
+            Encontrás el código en el email que recibiste después de tu compra.
+          </div>
+
+          <div style={{ marginBottom:16, animation:shake?"shake 0.5s ease":"none" }}>
+            <input
+              type="text"
+              value={code}
+              onChange={e => { setCode(e.target.value.toUpperCase()); setError(""); }}
+              onKeyDown={e => e.key === "Enter" && handleSubmit()}
+              placeholder="KOOKI-XXXX-XXXX-XXXX"
+              style={{
+                width:"100%", padding:"16px", borderRadius:14, fontSize:16, fontWeight:600,
+                border:`2px solid ${error ? C2.danger : code ? C2.blue : C2.gray2}`,
+                background:error ? C2.dangerLt : C2.gray1,
+                color:C2.dark, fontFamily:"'DM Sans',sans-serif",
+                letterSpacing:"1px", textAlign:"center", outline:"none",
+                transition:"border 0.2s, background 0.2s",
+              }}
+            />
+            {error && (
+              <div style={{ fontSize:13, color:C2.danger, marginTop:8, textAlign:"center", fontWeight:600 }}>
+                ⚠️ {error}
+              </div>
+            )}
+          </div>
+
+          <button
+            onClick={handleSubmit}
+            disabled={loading || !code.trim()}
+            style={{
+              width:"100%", padding:"18px", borderRadius:16, border:"none",
+              background:loading || !code.trim() ? C2.gray2 : `linear-gradient(135deg,${C2.blue},${C2.blueDk})`,
+              color:loading || !code.trim() ? C2.gray4 : C2.white,
+              fontSize:17, fontWeight:800, cursor:loading || !code.trim() ? "not-allowed" : "pointer",
+              fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s",
+              boxShadow:!loading && code.trim() ? "0 8px 28px rgba(59,111,212,0.38)" : "none",
+            }}
+          >
+            {loading ? "Verificando..." : "Acceder →"}
+          </button>
+        </div>
+
+        <div style={{ textAlign:"center", marginTop:20, fontSize:13, color:C2.sub, lineHeight:1.6 }}>
+          ¿No tenés código? <br/>
+          <a href="https://impulsoebooks.online" style={{ color:C2.blue, fontWeight:700, textDecoration:"none" }}>
+            Comprá tu acceso acá →
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+
 const C = {
   blue:"#3B6FD4", blueDk:"#2A52A8", blueMd:"#5B8AE8", blueLt:"#EEF3FC",
   bluePl:"#D6E4FA", white:"#FFFFFF", bg:"#F4F7FF", gray1:"#F0F3FA",
@@ -335,6 +439,9 @@ function ModalReceta({ nombre, onClose }) {
 
 /* ─── APP ─────────────────────────────────────────────────────────────────── */
 export default function App() {
+  const [hasAccess, setHasAccess] = useState(() => {
+    try { return !!localStorage.getItem(ACCESS_KEY); } catch { return false; }
+  });
   const [screen, setScreen]     = useState("home");
   const [step, setStep]         = useState(0);
   const [answers, setAnswers]   = useState({});
@@ -345,6 +452,8 @@ export default function App() {
   const [loadMsg, setLoadMsg]   = useState(0);
   const [animKey, setAnimKey]   = useState(0);
   const scrollRef = useRef(null);
+
+  if (!hasAccess) return <AccessScreen onAccess={() => setHasAccess(true)} />;
 
   const cur    = STEPS[step];
   const isLast = step === STEPS.length - 1;
