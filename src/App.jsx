@@ -383,6 +383,84 @@ ${recetaInfo}
 Respondé siempre de forma breve y útil. Si el usuario pregunta por un sustituto de ingrediente, dá 1-2 opciones concretas. Si pregunta sobre preparación, sé preciso. Usá emojis con moderación.`;
   };
 
+  const responderChef = (pregunta, result, recetaActual) => {
+    const p = pregunta.toLowerCase();
+    const receta = recetaActual ? R[recetaActual] : null;
+
+    // Sustitutos de ingredientes
+    if (p.includes("reemplazar") || p.includes("sustituir") || p.includes("cambiar") || p.includes("falta") || p.includes("sin ")) {
+      if (p.includes("quinoa")) return "Si no tenés quinoa, podés usar arroz integral, arroz yamaní o trigo burgol. El resultado es muy similar y quedan igual de bien 👌";
+      if (p.includes("salmon") || p.includes("salmón")) return "El salmón se puede reemplazar por atún fresco, caballa o merluza. Para la versión desinflamatoria, la caballa es ideal porque también tiene omega-3 💪";
+      if (p.includes("pollo")) return "Podés reemplazar el pollo por pavo, cerdo magro o tofu firme si querés una opción vegetariana. Las proporciones son iguales 🍗";
+      if (p.includes("palta") || p.includes("aguacate")) return "Si no tenés palta, probá con ricota o queso crema light. También queda bien con huevo duro en rodajas 🥑";
+      if (p.includes("brocoli") || p.includes("brócoli")) return "El brócoli se puede cambiar por coliflor, chauchas o zapallito verde. Mismo tiempo de cocción al vapor 🥦";
+      if (p.includes("lentejas")) return "Las lentejas se pueden reemplazar por porotos, garbanzos o arvejas. El tiempo de cocción varía un poco — los garbanzos tardan un poco más 🫘";
+      if (p.includes("arroz integral")) return "Podés usar arroz blanco común (menos tiempo de cocción, unos 15 min) o fideos integrales como alternativa 🍚";
+      if (p.includes("aceite de oliva")) return "Podés usar aceite de girasol o canola sin problema. Para ensaladas en frío el de oliva es mejor, pero para cocinar cualquiera sirve 🫒";
+      if (p.includes("ricota")) return "La ricota se puede reemplazar por queso cottage, queso crema descremado o tofu suave procesado. Mismas cantidades 🧀";
+      return "Para ese ingrediente, buscá algo de textura y sabor similar. En general: proteínas por proteínas, verduras por verduras de cocción similar. ¿Qué ingrediente específico te falta? 😊";
+    }
+
+    // Tiempos y cocción
+    if (p.includes("cuánto tiempo") || p.includes("cuando") || p.includes("listo") || p.includes("cocido") || p.includes("tiempo")) {
+      if (p.includes("pollo")) return "El pollo está listo cuando al pincharlo con un cuchillo el jugo sale claro (no rosado). A la plancha: 4-5 min por lado a fuego fuerte. Al horno a 200°C: 35-45 min según el tamaño 🍗";
+      if (p.includes("arroz")) return "Arroz blanco: 15-18 min tapado a fuego bajo. Arroz integral: 35-40 min. Truco: cuando se evapora el agua y aparecen agujeritos en la superficie, apagás y dejás reposar 5 min 🍚";
+      if (p.includes("quinoa")) return "La quinoa tarda 15 min a fuego medio. Sabés que está lista cuando aparece el germen (un hilito blanco que rodea el grano). Dejala reposar 5 min tapada antes de servir ✅";
+      if (p.includes("lentejas")) return "Las lentejas rojas: 15-20 min. Las pardas o verdes: 25-30 min. No hace falta remojarlas antes. Están listas cuando se aplastan fácilmente con el tenedor 🫘";
+      if (p.includes("huevo")) return "Huevo duro: 10 min desde que rompe el hervor. Huevo pasado por agua: 6 min. Para revueltos o tortilla: fuego medio-bajo y retirás cuando casi cuajan (se terminan de hacer con el calor residual) 🥚";
+      if (p.includes("vapor") || p.includes("brocoli") || p.includes("brócoli")) return "Las verduras al vapor: brócoli y coliflor 5-6 min, zanahoria 7-8 min, chauchas 4-5 min. Tienen que quedar tiernas pero con un poco de resistencia al morder 🥦";
+      return "El punto justo depende de cada alimento. Regla general: cuando cambia de color y se puede pinchar fácilmente con un tenedor, ya está. ¿Qué alimento específico querés saber? ⏱";
+    }
+
+    // Conservación
+    if (p.includes("dura") || p.includes("guardar") || p.includes("heladera") || p.includes("freezer") || p.includes("conservar")) {
+      if (p.includes("pollo") || p.includes("carne")) return "La carne cocida dura 3-4 días en heladera en recipiente hermético. En freezer hasta 3 meses. Siempre enfriá antes de guardar 🧊";
+      if (p.includes("arroz") || p.includes("quinoa") || p.includes("legumbres") || p.includes("lentejas")) return "Los cereales y legumbres cocidos duran 4-5 días en heladera. Son ideales para batch cooking — cocinás el domingo y tenés toda la semana resuelta 📦";
+      if (p.includes("ensalada")) return "Las ensaladas con aderezo duran pocas horas. Sin aderezo, las verduras cortadas duran 2 días. Lo mejor es condimentar justo antes de comer 🥗";
+      if (p.includes("sopa") || p.includes("guiso")) return "Las sopas y guisos duran 4-5 días en heladera y se pueden freezar perfectamente hasta 3 meses. Son de las preparaciones que más rinden para batch cooking 🍲";
+      return "En general: comidas cocidas duran 3-4 días en heladera en recipiente hermético con tapa. Para freezar, esperá que enfríe bien antes de guardar ❄️";
+    }
+
+    // Cantidades y porciones
+    if (p.includes("cuánto") || p.includes("cantidad") || p.includes("porción") || p.includes("gramos") || p.includes("personas")) {
+      if (p.includes("proteína") || p.includes("pollo") || p.includes("carne")) return "Para una porción normal: 150-200g de proteína cocida por persona. Para ganar músculo: 200-250g. Para bajar de peso: 150g está perfecto para mantenerte satisfecho 💪";
+      if (p.includes("arroz") || p.includes("pasta") || p.includes("fideos")) return "Una taza de arroz crudo rinde 2-3 porciones cocido. Para fideos: 80-100g crudos por persona es una porción normal 🍚";
+      return "Las porciones del menú ya están calculadas para 1 persona. Si cocinás para más, multiplicá todos los ingredientes por la cantidad de comensales 👨‍👩‍👧‍👦";
+    }
+
+    // Técnicas de cocina
+    if (p.includes("grillar") || p.includes("saltear") || p.includes("rehogar") || p.includes("vapor") || p.includes("cómo")) {
+      if (p.includes("grillar") || p.includes("plancha")) return "Para grillar bien: la sartén tiene que estar bien caliente antes de poner la carne. No muevas la carne los primeros 2 min — así se sella y no se pega. Una sola vuelta y listo 🔥";
+      if (p.includes("saltear") || p.includes("wok")) return "Para saltear bien: fuego muy alto, poco aceite, y movimiento constante. Los ingredientes tienen que quedar crocantes, no blandos. Empezá por los que tardan más (zanahoria, morrón) y al final los más tiernos 🥢";
+      if (p.includes("rehogar") || p.includes("cebolla")) return "Rehogar = cocinar a fuego medio-bajo con poco aceite hasta que quede transparente y suave, sin dorar. La cebolla tarda 5-7 min. Si se dora, bajá el fuego 🧅";
+      if (p.includes("vapor")) return "Para cocinar al vapor sin vaporera: ponés 2 dedos de agua en una olla, colocás un colador de metal encima con las verduras, tapás y fuego medio. Simple y efectivo 💨";
+    }
+
+    // Preguntas sobre el menú
+    if (p.includes("menú") || p.includes("semana") || p.includes("lunes") || p.includes("martes") || p.includes("miércoles") || p.includes("jueves") || p.includes("viernes") || p.includes("sábado") || p.includes("domingo")) {
+      const dias = result.menu.map(d => `${d.dia}: ${d.alm} (almuerzo) y ${d.cen} (cena)`).join("
+");
+      return `Tu menú de esta semana es:
+
+${dias}
+
+¿Tenés alguna duda sobre alguna preparación específica? 📅`;
+    }
+
+    // Saludos
+    if (p.includes("hola") || p.includes("buenas") || p.includes("gracias") || p === "ok" || p === "bien") {
+      return "¡Hola! Estoy acá para ayudarte con cualquier duda de cocina 👨‍🍳 Preguntame sobre ingredientes, tiempos, sustitutos o cualquier cosa de tu menú.";
+    }
+
+    // Respuesta genérica
+    return `Buena pregunta 👨‍🍳 Para darte la mejor respuesta necesito un poco más de detalle. ¿Me podés decir:
+
+• ¿Qué receta o ingrediente específico?
+• ¿Qué es lo que no entendés del proceso?
+
+Así te ayudo mejor 😊`;
+  };
+
   const send = async () => {
     const txt = input.trim();
     if (!txt || loading) return;
@@ -390,29 +468,10 @@ Respondé siempre de forma breve y útil. Si el usuario pregunta por un sustitut
     setMsgs(m => [...m, { role:"user", text:txt }]);
     setLoading(true);
 
-    try {
-      const history = msgs.map(m => ({
-        role: m.role === "assistant" ? "assistant" : "user",
-        content: m.text
-      }));
+    await new Promise(r => setTimeout(r, 800)); // pausa natural
 
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({
-          model:"claude-sonnet-4-20250514",
-          max_tokens:1000,
-          system: buildContext(),
-          messages:[...history, { role:"user", content:txt }]
-        })
-      });
-
-      const data = await res.json();
-      const reply = data.content?.[0]?.text || "No pude entender la respuesta. Intentá de nuevo.";
-      setMsgs(m => [...m, { role:"assistant", text:reply }]);
-    } catch(e) {
-      setMsgs(m => [...m, { role:"assistant", text:"Hubo un problema de conexión. Intentá de nuevo 🙏" }]);
-    }
+    const reply = responderChef(txt, result, recetaActual);
+    setMsgs(m => [...m, { role:"assistant", text:reply }]);
     setLoading(false);
     setTimeout(() => inputRef.current?.focus(), 100);
   };
