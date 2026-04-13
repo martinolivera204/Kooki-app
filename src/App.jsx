@@ -14,11 +14,9 @@ function AccessScreen({ onAccess }) {
     const clean = code.trim().toUpperCase();
     if (!clean) { setError("Ingresá tu código de acceso"); return; }
     setLoading(true);
-    // Small delay for UX feedback, then validate
     setTimeout(() => {
       if (VALID_CODES.has(clean)) {
         try { localStorage.setItem(ACCESS_KEY, clean); } catch(e) {}
-        // Registrar uso en Google Sheets (silencioso)
         try {
           const dispositivo = /iPhone|iPad|iPod/.test(navigator.userAgent) ? "iPhone/iPad"
             : /Android/.test(navigator.userAgent) ? "Android"
@@ -49,13 +47,11 @@ function AccessScreen({ onAccess }) {
       <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700;9..40,800&family=Nunito:wght@800;900&display=swap'); *{box-sizing:border-box;margin:0;padding:0;} @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}} @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}`}</style>
 
       <div style={{ width:"100%", maxWidth:380, animation:"fadeIn 0.4s ease" }}>
-        {/* Logo */}
         <div style={{ textAlign:"center", marginBottom:40 }}>
           <span style={{ fontWeight:800, fontSize:36, color:C2.blue, letterSpacing:"-1px", fontFamily:"'Nunito','DM Sans',sans-serif" }}>Kooki</span>
           <div style={{ fontSize:14, color:C2.sub, marginTop:6 }}>IA que cocina con vos</div>
         </div>
 
-        {/* Card */}
         <div style={{ background:C2.white, borderRadius:24, padding:"32px 28px", boxShadow:"0 8px 40px rgba(59,111,212,0.12)", border:`1px solid ${C2.gray2}` }}>
           <div style={{ fontSize:22, fontWeight:800, color:C2.dark, marginBottom:8, letterSpacing:"-0.5px" }}>Ingresá tu código</div>
           <div style={{ fontSize:14, color:C2.sub, lineHeight:1.6, marginBottom:28 }}>
@@ -112,8 +108,6 @@ function AccessScreen({ onAccess }) {
   );
 }
 
-
-
 const C = {
   blue:"#3B6FD4", blueDk:"#2A52A8", blueMd:"#5B8AE8", blueLt:"#EEF3FC",
   bluePl:"#D6E4FA", white:"#FFFFFF", bg:"#F4F7FF", gray1:"#F0F3FA",
@@ -129,7 +123,6 @@ const sh = {
   card:"0 2px 12px rgba(30,45,74,0.08)",
 };
 
-/* ─── LOGO ────────────────────────────────────────────────────────────────── */
 function KookiLogo({ size=28, dark=false }) {
   return (
     <span style={{ fontWeight:800, fontSize:size, color:dark?"#FFF":C.blue,
@@ -139,7 +132,6 @@ function KookiLogo({ size=28, dark=false }) {
   );
 }
 
-/* ─── STEPS CONFIG ────────────────────────────────────────────────────────── */
 const STEPS = [
   { id:"objetivo", type:"objetivo",
     label:"Elegí lo que más te importa hoy",
@@ -201,7 +193,6 @@ const STEPS = [
     subtitle:"Opcional — para un resultado todavía más preciso" },
 ];
 
-/* ─── RECETAS ─────────────────────────────────────────────────────────────── */
 const R = {
   "Ensalada de pollo grillado y quinoa":{t:"20 min",d:"Fácil",k:"380 kcal",p:"35g",e:"🥗",tags:["⚡ Rápido","💪 Alta proteína"],i:["150g pechuga de pollo","½ taza quinoa","Rúcula y lechuga","Tomate cherry x8","Pepino ½","Jugo de limón","Aceite de oliva","Sal y pimienta"],s:["Cocinar la quinoa en agua con sal 15 min. Tapar y apagar.","Grillar la pechuga salpimentada 4 min por lado a fuego fuerte.","Dejar reposar el pollo 3 min antes de cortar en tiras.","Mezclar quinoa, hojas, tomate y pepino. Coronar con el pollo. Condimentar con limón y aceite."]},
   "Sopa de verduras con lentejas":{t:"30 min",d:"Fácil",k:"290 kcal",p:"18g",e:"🥣",tags:["🔥 Bajo en calorías","💚 Desinflamatorio"],i:["1 taza lentejas rojas","1 zanahoria","1 cebolla","2 papas chicas","Caldo en cubo","Comino y sal","Limón"],s:["Picar cebolla y zanahoria. Rehogar 5 min en olla con aceite.","Agregar lentejas enjuagadas y papas en cubos. Cubrir con agua y caldo.","Cocinar 20 min a fuego medio.","Condimentar con comino, sal y limón al servir."]},
@@ -251,7 +242,6 @@ const R = {
   "Batch cooking dominical":{t:"120 min",d:"Media",k:"Variable",p:"Variable",e:"📦",tags:["📦 Batch cooking"],i:["2kg pollo o carne","2kg arroz","1kg legumbres","2kg verduras variadas","Recipientes herméticos"],s:["Cocinar cereal base en cantidad grande.","Cocinar proteínas: pollo al horno o legumbres.","Preparar salsa base de tomate para la semana.","Dividir en porciones y guardar hermético. Duran 4-5 días."]},
 };
 
-/* ─── MENUS ───────────────────────────────────────────────────────────────── */
 const MENUS = {
   bajar_peso:{tag:"Déficit calórico",tip:"Proteínas magras y vegetales de alto volumen. Cada comida ronda las 200-450 kcal.",precio:{bajo:"$35.000–45.000",medio:"$50.000–65.000",alto:"$70.000–90.000"},
     menu:[
@@ -333,7 +323,6 @@ function generar(a) {
   return { ...data, lista_compras: LISTAS[key]||LISTAS.organizar, objetivo:key, precio_estimado:data.precio[a.presupuesto||"medio"], answers:a };
 }
 
-/* ─── MINI COMPONENTS ─────────────────────────────────────────────────────── */
 function Tag({ children, color=C.blue, bg=C.blueLt }) {
   return <span style={{ background:bg, color, borderRadius:20, padding:"2px 9px", fontSize:11, fontWeight:700, display:"inline-block", lineHeight:1.5 }}>{children}</span>;
 }
@@ -355,6 +344,208 @@ function MealTag({ label }) {
   return <Tag bg={s.bg} color={s.color}>{label}</Tag>;
 }
 
+/* ─── CHEF ASISTENTE ─────────────────────────────────────────────────────── */
+function ChefChat({ result, recetaActual, onClose }) {
+  const [msgs, setMsgs] = useState([
+    { role:"assistant", text:"¡Hola! Soy tu chef asistente 👨‍🍳\n\nConozco tu menú completo y todas tus recetas. Podés preguntarme cualquier cosa: si te falta un ingrediente y cómo reemplazarlo, dudas sobre la preparación, tiempos de cocción, o lo que necesites." }
+  ]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const bottomRef = useRef(null);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior:"smooth" });
+  }, [msgs, loading]);
+
+  const buildContext = () => {
+    const menuResumen = result.menu.map(d =>
+      `${d.dia}: Almuerzo = ${d.alm}, Cena = ${d.cen}`
+    ).join("\n");
+
+    const recetaInfo = recetaActual && R[recetaActual]
+      ? `\nReceta que está mirando ahora: "${recetaActual}"\nIngredientes: ${R[recetaActual].i.join(", ")}\nPasos: ${R[recetaActual].s.join(" | ")}`
+      : "";
+
+    const listaCompras = Object.entries(result.lista_compras)
+      .map(([cat, items]) => `${cat}: ${items.join(", ")}`)
+      .join("\n");
+
+    return `Sos el chef asistente de Kooki, una app argentina de planificación de comidas con IA. Tu rol es ayudar al usuario con dudas de cocina de manera cálida, práctica y concisa. Hablás en español rioplatense (vos/te).
+
+MENÚ SEMANAL DEL USUARIO:
+${menuResumen}
+
+LISTA DE COMPRAS:
+${listaCompras}
+${recetaInfo}
+
+Respondé siempre de forma breve y útil. Si el usuario pregunta por un sustituto de ingrediente, dá 1-2 opciones concretas. Si pregunta sobre preparación, sé preciso. Usá emojis con moderación.`;
+  };
+
+  const send = async () => {
+    const txt = input.trim();
+    if (!txt || loading) return;
+    setInput("");
+    setMsgs(m => [...m, { role:"user", text:txt }]);
+    setLoading(true);
+
+    try {
+      const history = msgs.map(m => ({
+        role: m.role === "assistant" ? "assistant" : "user",
+        content: m.text
+      }));
+
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({
+          model:"claude-sonnet-4-20250514",
+          max_tokens:1000,
+          system: buildContext(),
+          messages:[...history, { role:"user", content:txt }]
+        })
+      });
+
+      const data = await res.json();
+      const reply = data.content?.[0]?.text || "No pude entender la respuesta. Intentá de nuevo.";
+      setMsgs(m => [...m, { role:"assistant", text:reply }]);
+    } catch(e) {
+      setMsgs(m => [...m, { role:"assistant", text:"Hubo un problema de conexión. Intentá de nuevo 🙏" }]);
+    }
+    setLoading(false);
+    setTimeout(() => inputRef.current?.focus(), 100);
+  };
+
+  const SUGERENCIAS = [
+    "¿Puedo reemplazar el salmón?",
+    "¿Cómo sé si el pollo está listo?",
+    "Me falta quinoa, ¿qué uso?",
+    "¿Cuánto dura en la heladera?",
+  ];
+
+  return (
+    <div style={{ position:"fixed", inset:0, zIndex:3000, display:"flex", flexDirection:"column", justifyContent:"flex-end" }}>
+      {/* Overlay */}
+      <div onClick={onClose} style={{ position:"absolute", inset:0, background:"rgba(10,15,30,0.5)", backdropFilter:"blur(4px)" }}/>
+
+      {/* Panel */}
+      <div style={{ position:"relative", background:C.white, borderRadius:"24px 24px 0 0", width:"100%", maxWidth:580, margin:"0 auto", maxHeight:"80vh", display:"flex", flexDirection:"column", boxShadow:"0 -8px 40px rgba(59,111,212,0.2)" }}>
+
+        {/* Handle */}
+        <div style={{ display:"flex", justifyContent:"center", padding:"10px 0 0" }}>
+          <div style={{ width:40, height:5, background:C.gray3, borderRadius:4 }}/>
+        </div>
+
+        {/* Header */}
+        <div style={{ padding:"14px 20px 12px", display:"flex", alignItems:"center", justifyContent:"space-between", borderBottom:`1px solid ${C.gray2}` }}>
+          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+            <div style={{ width:40, height:40, borderRadius:14, background:`linear-gradient(135deg,${C.blue},${C.blueDk})`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:20 }}>
+              👨‍🍳
+            </div>
+            <div>
+              <div style={{ fontSize:15, fontWeight:800, color:C.dark }}>Chef Asistente</div>
+              <div style={{ fontSize:12, color:C.success, fontWeight:600 }}>● En línea · Kooki IA</div>
+            </div>
+          </div>
+          <button onClick={onClose} style={{ background:C.gray1, border:"none", borderRadius:10, width:34, height:34, fontSize:18, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", color:C.gray4, fontFamily:"'DM Sans',sans-serif" }}>✕</button>
+        </div>
+
+        {/* Mensajes */}
+        <div style={{ flex:1, overflowY:"auto", padding:"16px 16px 8px", display:"flex", flexDirection:"column", gap:12 }}>
+          {msgs.map((m, i) => (
+            <div key={i} style={{ display:"flex", justifyContent:m.role==="user"?"flex-end":"flex-start" }}>
+              {m.role === "assistant" && (
+                <div style={{ width:30, height:30, borderRadius:10, background:`linear-gradient(135deg,${C.blue},${C.blueDk})`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, flexShrink:0, marginRight:8, marginTop:2 }}>
+                  👨‍🍳
+                </div>
+              )}
+              <div style={{
+                maxWidth:"78%",
+                background: m.role==="user" ? `linear-gradient(135deg,${C.blue},${C.blueDk})` : C.gray1,
+                color: m.role==="user" ? C.white : C.text,
+                borderRadius: m.role==="user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
+                padding:"12px 14px",
+                fontSize:14,
+                lineHeight:1.6,
+                fontFamily:"'DM Sans',sans-serif",
+                whiteSpace:"pre-wrap",
+                boxShadow: m.role==="user" ? sh.blue : sh.sm,
+              }}>
+                {m.text}
+              </div>
+            </div>
+          ))}
+
+          {loading && (
+            <div style={{ display:"flex", alignItems:"flex-start", gap:8 }}>
+              <div style={{ width:30, height:30, borderRadius:10, background:`linear-gradient(135deg,${C.blue},${C.blueDk})`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, flexShrink:0 }}>
+                👨‍🍳
+              </div>
+              <div style={{ background:C.gray1, borderRadius:"18px 18px 18px 4px", padding:"12px 16px", display:"flex", alignItems:"center", gap:5 }}>
+                {[0,1,2].map(i => (
+                  <div key={i} style={{ width:7, height:7, borderRadius:"50%", background:C.gray3, animation:`dotPulse 1.2s ease ${i*0.2}s infinite` }}/>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Sugerencias (solo al principio) */}
+          {msgs.length === 1 && (
+            <div style={{ display:"flex", flexWrap:"wrap", gap:7, marginTop:4 }}>
+              {SUGERENCIAS.map((s, i) => (
+                <button key={i} onClick={() => { setInput(s); setTimeout(() => inputRef.current?.focus(), 50); }}
+                  style={{ background:C.blueLt, color:C.blue, border:`1px solid ${C.bluePl}`, borderRadius:20, padding:"7px 13px", fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>
+                  {s}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <div ref={bottomRef}/>
+        </div>
+
+        {/* Input */}
+        <div style={{ padding:"12px 16px 20px", borderTop:`1px solid ${C.gray2}`, display:"flex", gap:10, alignItems:"flex-end" }}>
+          <textarea
+            ref={inputRef}
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => { if(e.key==="Enter" && !e.shiftKey) { e.preventDefault(); send(); }}}
+            placeholder="Preguntale al chef..."
+            rows={1}
+            style={{
+              flex:1, padding:"12px 14px", borderRadius:14, border:`2px solid ${C.gray2}`,
+              fontSize:14, color:C.text, resize:"none", lineHeight:1.5, background:C.gray1,
+              fontFamily:"'DM Sans',sans-serif", outline:"none", maxHeight:80, overflowY:"auto",
+              transition:"border 0.2s",
+            }}
+            onFocus={e => e.target.style.borderColor=C.blue}
+            onBlur={e => e.target.style.borderColor=C.gray2}
+          />
+          <button
+            onClick={send}
+            disabled={!input.trim() || loading}
+            style={{
+              width:44, height:44, borderRadius:14, border:"none",
+              background:!input.trim()||loading ? C.gray2 : `linear-gradient(135deg,${C.blue},${C.blueDk})`,
+              color:!input.trim()||loading ? C.gray4 : C.white,
+              fontSize:18, cursor:!input.trim()||loading?"not-allowed":"pointer",
+              display:"flex", alignItems:"center", justifyContent:"center",
+              flexShrink:0, transition:"all 0.2s",
+              boxShadow:input.trim()&&!loading ? sh.blue : "none",
+            }}
+          >
+            ↑
+          </button>
+        </div>
+      </div>
+
+      <style>{`@keyframes dotPulse { 0%,80%,100%{opacity:0.3;transform:scale(0.8)} 40%{opacity:1;transform:scale(1)} }`}</style>
+    </div>
+  );
+}
+
 /* ─── MODAL RECETA ────────────────────────────────────────────────────────── */
 function ModalReceta({ nombre, onClose }) {
   const [cookMode, setCookMode] = useState(false);
@@ -369,7 +560,6 @@ function ModalReceta({ nombre, onClose }) {
     </div>
   );
 
-  /* MODO COCINA */
   if (cookMode) return (
     <div style={{ position:"fixed",inset:0,background:C.dark,zIndex:3000,overflowY:"auto",padding:"0 0 60px" }}>
       <div style={{ padding:"20px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",position:"sticky",top:0,background:C.dark,zIndex:10 }}>
@@ -412,7 +602,7 @@ function ModalReceta({ nombre, onClose }) {
           </div>
           {r.tags && (
             <div style={{ display:"flex",flexWrap:"wrap",gap:6 }}>
-              {r.tags.map((t,i) => { const s=TAG_COLORS[t]||{}; return <span key={i} style={{ background:"rgba(255,255,255,0.15)",color:C.white,borderRadius:20,padding:"3px 10px",fontSize:11,fontWeight:700 }}>{t}</span>; })}
+              {r.tags.map((t,i) => <span key={i} style={{ background:"rgba(255,255,255,0.15)",color:C.white,borderRadius:20,padding:"3px 10px",fontSize:11,fontWeight:700 }}>{t}</span>)}
             </div>
           )}
         </div>
@@ -449,19 +639,18 @@ function ModalReceta({ nombre, onClose }) {
 
 /* ─── APP ─────────────────────────────────────────────────────────────────── */
 function MainApp() {
-
-  const [screen, setScreen]     = useState("home");
-  const [step, setStep]         = useState(0);
-  const [answers, setAnswers]   = useState({});
-  const [result, setResult]     = useState(null);
-  const [tab, setTab]           = useState("menu");
-  const [receta, setReceta]     = useState(null);
+  const [screen, setScreen]       = useState("home");
+  const [step, setStep]           = useState(0);
+  const [answers, setAnswers]     = useState({});
+  const [result, setResult]       = useState(null);
+  const [tab, setTab]             = useState("menu");
+  const [receta, setReceta]       = useState(null);
   const [cambiando, setCambiando] = useState(null);
-  const [loadMsg, setLoadMsg]   = useState(0);
-  const [animKey, setAnimKey]   = useState(0);
+  const [loadMsg, setLoadMsg]     = useState(0);
+  const [animKey, setAnimKey]     = useState(0);
+  const [chefOpen, setChefOpen]   = useState(false);
+  const [chefPulse, setChefPulse] = useState(false);
   const scrollRef = useRef(null);
-
-
 
   const cur    = STEPS[step];
   const isLast = step === STEPS.length - 1;
@@ -471,7 +660,6 @@ function MainApp() {
     if (cur?.type === "grid") return answers.dieta || [];
     return answers[cur?.id] ?? "";
   };
-  const val = getVal();
 
   const canNext = () => {
     if (cur?.type === "extras") return true;
@@ -491,6 +679,15 @@ function MainApp() {
     }
   }, [screen]);
 
+  // Pulso de atención al entrar en lista o recetas
+  useEffect(() => {
+    if ((tab === "lista" || tab === "recetas") && screen === "result") {
+      setChefPulse(true);
+      const t = setTimeout(() => setChefPulse(false), 3000);
+      return () => clearTimeout(t);
+    }
+  }, [tab, screen]);
+
   const doGen = () => {
     setResult(generar(answers));
     setScreen("result");
@@ -503,7 +700,7 @@ function MainApp() {
     else { setAnimKey(k=>k+1); setStep(s=>s+1); }
   };
 
-  const resetAll = () => { setScreen("home"); setResult(null); setStep(0); setAnswers({}); };
+  const resetAll = () => { setScreen("home"); setResult(null); setStep(0); setAnswers({}); setChefOpen(false); };
 
   const handleCambiar = (dia, tipo) => {
     const key = `${dia}-${tipo}`;
@@ -524,14 +721,12 @@ function MainApp() {
 
   const OBJ_IC = { bajar_peso:"⚖️", saludable:"🥗", ahorrar:"💰", masa:"💪", organizar:"📅", desinflamatoria:"🫚" };
   const GFONT  = `@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&family=Nunito:wght@700;800;900&display=swap');`;
-  const BASE   = `${GFONT} *{box-sizing:border-box;margin:0;padding:0;} body{margin:0;font-family:'DM Sans',sans-serif;} button:focus,textarea:focus{outline:none;} @keyframes slideIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}} @keyframes spin{to{transform:rotate(360deg)}} @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}} @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.06)}100%{transform:scale(1)}}`;
+  const BASE   = `${GFONT} *{box-sizing:border-box;margin:0;padding:0;} body{margin:0;font-family:'DM Sans',sans-serif;} button:focus,textarea:focus{outline:none;} @keyframes slideIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}} @keyframes spin{to{transform:rotate(360deg)}} @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}} @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.06)}100%{transform:scale(1)}} @keyframes chefPulse{0%,100%{transform:scale(1);box-shadow:0 8px 28px rgba(59,111,212,0.38)}50%{transform:scale(1.12);box-shadow:0 12px 40px rgba(59,111,212,0.6)}} @keyframes chefBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}} @keyframes ripple{0%{transform:scale(0.8);opacity:1}100%{transform:scale(2.2);opacity:0}}`;
 
   /* ── HOME ── */
   if (screen === "home") return (
     <div ref={scrollRef} style={{ minHeight:"100vh", background:C.white, fontFamily:"'DM Sans',sans-serif", overflowY:"auto", display:"flex", flexDirection:"column" }}>
       <style>{`${BASE} @keyframes floatPhone{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}`}</style>
-
-      {/* NAV */}
       <nav style={{ padding:"20px 28px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
         <KookiLogo size={28}/>
         <div style={{ display:"flex", alignItems:"center", gap:6, background:C.blueLt, borderRadius:20, padding:"6px 12px" }}>
@@ -539,33 +734,26 @@ function MainApp() {
           <span style={{ fontSize:12, fontWeight:700, color:C.blue }}>Acceso activo</span>
         </div>
       </nav>
-
       <div style={{ flex:1, display:"flex", flexDirection:"column", padding:"16px 28px 0", maxWidth:480, margin:"0 auto", width:"100%" }}>
         <h1 style={{ fontSize:38, fontWeight:800, color:C.dark, lineHeight:1.1, marginBottom:14, letterSpacing:"-1.5px" }}>
           Tu semana<br/>resuelta en<br/><span style={{ color:C.blue }}>2 minutos.</span>
         </h1>
-        <p style={{ fontSize:15, color:C.sub, lineHeight:1.7, marginBottom:16, maxWidth:320 }}>
-          Vos respondés. Kooki resuelve.
-        </p>
-
-        {/* MOCKUP FOTO REAL */}
+        <p style={{ fontSize:15, color:C.sub, lineHeight:1.7, marginBottom:16, maxWidth:320 }}>Vos respondés. Kooki resuelve.</p>
         <div style={{ position:"relative", marginBottom:28, display:"flex", justifyContent:"center", alignItems:"center" }}>
           <div style={{ position:"absolute", width:280, height:280, borderRadius:"50%", background:`radial-gradient(circle, ${C.bluePl} 0%, transparent 70%)`, zIndex:0 }}/>
           <img
-            src="data:image/jpeg;base64,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"
+            src="data:image/jpeg;base64,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"
             alt="Kooki app"
             style={{ width:"100%", maxWidth:300, borderRadius:24, position:"relative", zIndex:1, animation:"floatPhone 3s ease-in-out infinite", boxShadow:`0 20px 60px rgba(59,111,212,0.18)` }}
           />
         </div>
-
-        {/* BENEFICIOS */}
         <div style={{ background:C.bg, borderRadius:20, padding:"24px 24px", marginBottom:28, border:`1px solid ${C.gray2}` }}>
           <div style={{ fontSize:12, fontWeight:800, color:C.gray4, letterSpacing:"1px", textTransform:"uppercase", marginBottom:14 }}>Esto es lo que Kooki hace por vos:</div>
           {[
             ["✔️","Menú completo de lunes a domingo"],
             ["✔️","Lista de compras organizada por sección"],
             ["✔️","Recetas paso a paso con modo cocina"],
-            ["✔️","Optimizado según tu objetivo y presupuesto"],
+            ["✔️","Chef asistente con IA para tus dudas"],
           ].map(([ic,txt],i) => (
             <div key={i} style={{ display:"flex", alignItems:"center", gap:12, marginBottom:i<3?11:0 }}>
               <span style={{ fontSize:14, flexShrink:0 }}>{ic}</span>
@@ -573,7 +761,6 @@ function MainApp() {
             </div>
           ))}
         </div>
-
         <button onClick={() => { setScreen("onboarding"); setStep(0); setAnswers({}); }} style={{ width:"100%", background:`linear-gradient(135deg,${C.blue},${C.blueDk})`, color:C.white, border:"none", borderRadius:18, padding:"20px", fontSize:18, fontWeight:800, cursor:"pointer", boxShadow:sh.blue, letterSpacing:"-0.3px", fontFamily:"'DM Sans',sans-serif", marginBottom:12 }}>
           Comenzar →
         </button>
@@ -581,52 +768,40 @@ function MainApp() {
       </div>
     </div>
   );
+
   /* ── ONBOARDING ── */
   if (screen === "onboarding") {
     const progMsg = ["Conociendo tu objetivo…","Ajustando tu alimentación…","Calculando tu tiempo…","Optimizando el presupuesto…","Definiendo las porciones…","Personalizando la complejidad…","Un último detalle…"];
     const selDietas = answers.dieta || [];
-
     return (
       <div style={{ minHeight:"100vh", background:C.white, fontFamily:"'DM Sans',sans-serif", display:"flex", flexDirection:"column" }}>
         <style>{BASE}</style>
-
-        {/* NAV */}
         <div style={{ padding:"14px 20px", display:"flex", alignItems:"center", gap:14, borderBottom:`1px solid ${C.gray2}` }}>
           <button onClick={() => step === 0 ? setScreen("home") : setStep(s=>s-1)} style={{ background:C.gray1, border:"none", borderRadius:12, width:38, height:38, cursor:"pointer", fontSize:18, display:"flex", alignItems:"center", justifyContent:"center", color:C.text, fontWeight:700, fontFamily:"'DM Sans',sans-serif" }}>←</button>
           <div style={{ flex:1 }}>
             <div style={{ height:5, background:C.gray2, borderRadius:10, overflow:"hidden" }}>
-              <div style={{ height:"100%", width:`${((step+1)/STEPS.length)*100}%`, background:`linear-gradient(90deg,${C.blue},${C.blueMd||C.blueMd})`, borderRadius:10, transition:"width 0.4s cubic-bezier(.4,0,.2,1)" }}/>
+              <div style={{ height:"100%", width:`${((step+1)/STEPS.length)*100}%`, background:`linear-gradient(90deg,${C.blue},${C.blueMd})`, borderRadius:10, transition:"width 0.4s cubic-bezier(.4,0,.2,1)" }}/>
             </div>
             <div style={{ fontSize:12, color:C.blue, fontWeight:600, marginTop:5 }}>{progMsg[step]}</div>
           </div>
           <span style={{ fontSize:13, fontWeight:700, color:C.sub }}>{step+1}/{STEPS.length}</span>
         </div>
-
         <div key={animKey} style={{ flex:1, padding:"24px 20px 32px", overflowY:"auto", maxWidth:520, margin:"0 auto", width:"100%", animation:"slideIn 0.3s ease" }}>
-
-          {/* Feedback dietas seleccionadas */}
           {cur.type === "grid" && selDietas.length > 0 && (
             <div style={{ background:C.blueLt, borderRadius:12, padding:"10px 14px", marginBottom:16, display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
               <span style={{ fontSize:13, color:C.blue, fontWeight:700 }}>Seleccionaste:</span>
-              {selDietas.map(d => {
-                const opt = STEPS[1].options.find(o=>o.value===d);
-                return opt ? <Tag key={d} color={C.blue} bg={C.bluePl}>{opt.emoji} {opt.label}</Tag> : null;
-              })}
+              {selDietas.map(d => { const opt = STEPS[1].options.find(o=>o.value===d); return opt ? <Tag key={d} color={C.blue} bg={C.bluePl}>{opt.emoji} {opt.label}</Tag> : null; })}
             </div>
           )}
-
-          {/* Cierre emocional en último paso */}
           {cur.type === "extras" && (
             <div style={{ background:`linear-gradient(135deg,${C.blueLt},${C.bluePl})`, borderRadius:16, padding:"16px 18px", marginBottom:20, borderLeft:`4px solid ${C.blue}` }}>
               <div style={{ fontSize:16, fontWeight:800, color:C.dark, marginBottom:4 }}>¡Ya estamos listos! 🎉</div>
               <div style={{ fontSize:14, color:C.sub, lineHeight:1.55 }}>Con esto ya podemos armar tu semana perfecta. Los campos de abajo son opcionales.</div>
             </div>
           )}
-
           <div style={{ fontSize:24, fontWeight:800, color:C.dark, lineHeight:1.25, marginBottom:6, letterSpacing:"-0.5px" }}>{cur.label}</div>
           {cur.subtitle && <div style={{ fontSize:15, color:C.sub, marginBottom:24, lineHeight:1.55 }}>{cur.subtitle}</div>}
 
-          {/* OBJETIVO — hasta 2 opciones */}
           {cur.type === "objetivo" && (
             <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
               {cur.options.map(opt => {
@@ -649,13 +824,10 @@ function MainApp() {
                   </button>
                 );
               })}
-              {(answers.objetivo||[]).length === 2 && (
-                <div style={{ textAlign:"center", fontSize:13, color:C.blue, fontWeight:600, marginTop:4 }}>✓ Máximo 2 objetivos seleccionados</div>
-              )}
+              {(answers.objetivo||[]).length === 2 && <div style={{ textAlign:"center", fontSize:13, color:C.blue, fontWeight:600, marginTop:4 }}>✓ Máximo 2 objetivos seleccionados</div>}
             </div>
           )}
 
-          {/* GRID — dietas */}
           {cur.type === "grid" && (
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
               {cur.options.map(opt => {
@@ -677,7 +849,6 @@ function MainApp() {
             </div>
           )}
 
-          {/* CARDS estándar */}
           {cur.type === "cards" && (
             <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
               {cur.options.map(opt => {
@@ -698,7 +869,6 @@ function MainApp() {
             </div>
           )}
 
-          {/* NIVEL */}
           {cur.type === "nivel" && (
             <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
               {cur.options.map(opt => {
@@ -719,7 +889,6 @@ function MainApp() {
             </div>
           )}
 
-          {/* SEMAFORO presupuesto */}
           {cur.type === "semaforo" && (
             <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
               {cur.options.map(opt => {
@@ -728,7 +897,7 @@ function MainApp() {
                   <button key={opt.value} onClick={() => setAnswers(a=>({...a,presupuesto:opt.value}))} style={{ padding:"18px 20px", borderRadius:16, cursor:"pointer", textAlign:"left", border:`2px solid ${sel?opt.color:C.gray2}`, background:sel?opt.bg:C.white, display:"flex", alignItems:"center", gap:16, transition:"all 0.18s", fontFamily:"'DM Sans',sans-serif", boxShadow:sel?`0 0 0 3px ${opt.color}30,${sh.md}`:sh.sm, animation:sel?"pop 0.25s ease":"none" }}>
                     <div style={{ width:20, height:20, borderRadius:"50%", background:opt.color, boxShadow:`0 0 0 4px ${opt.color}30`, flexShrink:0 }}/>
                     <div style={{ flex:1 }}>
-                      <div style={{ fontSize:16, fontWeight:700, color:sel?C.dark:C.dark }}>{opt.label}</div>
+                      <div style={{ fontSize:16, fontWeight:700, color:C.dark }}>{opt.label}</div>
                       <div style={{ fontSize:13, color:C.sub, marginTop:2 }}>{opt.desc}</div>
                     </div>
                     <div style={{ width:24, height:24, borderRadius:"50%", background:sel?opt.color:C.gray2, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, transition:"all 0.15s" }}>
@@ -740,7 +909,6 @@ function MainApp() {
             </div>
           )}
 
-          {/* EXTRAS */}
           {cur.type === "extras" && (
             <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
               {[{id:"ingredientes",label:"¿Qué tenés en casa ahora?",ph:"Ej: arroz, huevos, pollo, tomates...",e:"🧺"},{id:"no_gusta",label:"¿Algo que no comás?",ph:"Ej: cebolla cruda, mariscos...",e:"🚫"}].map(f => (
@@ -788,192 +956,209 @@ function MainApp() {
   }
 
   /* ── RESULT ── */
-  if (screen === "result" && result) return (
-    <div ref={scrollRef} style={{ minHeight:"100vh", background:C.bg, fontFamily:"'DM Sans',sans-serif", overflowY:"auto" }}>
-      <style>{BASE}</style>
+  if (screen === "result" && result) {
+    const showChefFab = tab === "lista" || tab === "recetas";
 
-      {/* HEADER */}
-      <div style={{ background:`linear-gradient(140deg,${C.blue},${C.blueDk})`, padding:"22px 22px 36px", position:"relative", overflow:"hidden" }}>
-        <div style={{ position:"absolute", top:-50, right:-50, width:180, height:180, borderRadius:"50%", background:"rgba(255,255,255,0.05)" }}/>
-        <div style={{ position:"absolute", bottom:-70, left:-30, width:220, height:220, borderRadius:"50%", background:"rgba(255,255,255,0.04)" }}/>
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:22, position:"relative" }}>
-          <KookiLogo size={26} dark/>
-          <button onClick={resetAll} style={{ background:"rgba(255,255,255,0.15)", border:"1px solid rgba(255,255,255,0.25)", color:C.white, borderRadius:12, padding:"8px 16px", fontSize:13, cursor:"pointer", fontWeight:600, fontFamily:"'DM Sans',sans-serif" }}>↺ Nuevo menú</button>
-        </div>
-        <div style={{ position:"relative" }}>
-          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
-            <span style={{ fontSize:22 }}>{OBJ_IC[result.objetivo]||"✨"}</span>
-            <span style={{ background:"rgba(255,255,255,0.18)", color:C.white, borderRadius:20, padding:"4px 12px", fontSize:12, fontWeight:700 }}>{result.tag}</span>
+    return (
+      <div ref={scrollRef} style={{ minHeight:"100vh", background:C.bg, fontFamily:"'DM Sans',sans-serif", overflowY:"auto" }}>
+        <style>{BASE}</style>
+
+        {/* HEADER */}
+        <div style={{ background:`linear-gradient(140deg,${C.blue},${C.blueDk})`, padding:"22px 22px 36px", position:"relative", overflow:"hidden" }}>
+          <div style={{ position:"absolute", top:-50, right:-50, width:180, height:180, borderRadius:"50%", background:"rgba(255,255,255,0.05)" }}/>
+          <div style={{ position:"absolute", bottom:-70, left:-30, width:220, height:220, borderRadius:"50%", background:"rgba(255,255,255,0.04)" }}/>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:22, position:"relative" }}>
+            <KookiLogo size={26} dark/>
+            <button onClick={resetAll} style={{ background:"rgba(255,255,255,0.15)", border:"1px solid rgba(255,255,255,0.25)", color:C.white, borderRadius:12, padding:"8px 16px", fontSize:13, cursor:"pointer", fontWeight:600, fontFamily:"'DM Sans',sans-serif" }}>↺ Nuevo menú</button>
           </div>
-          <div style={{ fontSize:24, fontWeight:800, color:C.white, marginBottom:8, letterSpacing:"-0.5px" }}>Tu plan está listo 🎉</div>
-          <div style={{ fontSize:14, color:"rgba(255,255,255,0.82)", lineHeight:1.6, marginBottom:18 }}>{result.tip}</div>
-          {result.precio_estimado && (
-            <div style={{ background:"rgba(255,255,255,0.12)", borderRadius:16, padding:"14px 18px", display:"flex", alignItems:"center", gap:12 }}>
-              <span style={{ fontSize:26 }}>🛒</span>
-              <div>
-                <div style={{ fontSize:11, color:"rgba(255,255,255,0.65)", fontWeight:700, letterSpacing:"0.8px", textTransform:"uppercase" }}>Estimado compras semanales</div>
-                <div style={{ fontSize:20, fontWeight:800, color:C.white, marginTop:2 }}>{result.precio_estimado} ARS</div>
+          <div style={{ position:"relative" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
+              <span style={{ fontSize:22 }}>{OBJ_IC[result.objetivo]||"✨"}</span>
+              <span style={{ background:"rgba(255,255,255,0.18)", color:C.white, borderRadius:20, padding:"4px 12px", fontSize:12, fontWeight:700 }}>{result.tag}</span>
+            </div>
+            <div style={{ fontSize:24, fontWeight:800, color:C.white, marginBottom:8, letterSpacing:"-0.5px" }}>Tu plan está listo 🎉</div>
+            <div style={{ fontSize:14, color:"rgba(255,255,255,0.82)", lineHeight:1.6, marginBottom:18 }}>{result.tip}</div>
+            {result.precio_estimado && (
+              <div style={{ background:"rgba(255,255,255,0.12)", borderRadius:16, padding:"14px 18px", display:"flex", alignItems:"center", gap:12 }}>
+                <span style={{ fontSize:26 }}>🛒</span>
+                <div>
+                  <div style={{ fontSize:11, color:"rgba(255,255,255,0.65)", fontWeight:700, letterSpacing:"0.8px", textTransform:"uppercase" }}>Estimado compras semanales</div>
+                  <div style={{ fontSize:20, fontWeight:800, color:C.white, marginTop:2 }}>{result.precio_estimado} ARS</div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* TABS */}
+        <div style={{ background:C.white, margin:"0 16px", borderRadius:18, padding:5, marginTop:-16, boxShadow:sh.lg, position:"relative", zIndex:10 }}>
+          <div style={{ display:"flex", gap:4 }}>
+            {[["menu","📅 Menú"],["lista","🛒 Compras"],["recetas","👨‍🍳 Recetas"]].map(([id,lbl]) => (
+              <button key={id} onClick={()=>setTab(id)} style={{ flex:1, padding:"12px 6px", borderRadius:13, border:"none", fontWeight:700, fontSize:13, cursor:"pointer", transition:"all 0.2s", fontFamily:"'DM Sans',sans-serif", background:tab===id?C.blue:"transparent", color:tab===id?C.white:C.gray4 }}>{lbl}</button>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ padding:"16px 16px 100px", animation:"slideIn 0.35s ease" }}>
+
+          {/* TAB MENÚ */}
+          {tab === "menu" && (
+            <div style={{ background:C.white, borderRadius:18, overflow:"hidden", boxShadow:sh.md }}>
+              {result.menu.map((d,i) => (
+                <div key={i}>
+                  <div style={{ padding:"14px 18px 14px" }}>
+                    <div style={{ fontWeight:800, color:C.blue, fontSize:11, textTransform:"uppercase", letterSpacing:"1px", marginBottom:12 }}>{d.dia}</div>
+                    {[["alm","🌞","Almuerzo","tag_alm"],["cen","🌙","Cena","tag_cen"]].map(([k,ic,lb,tagKey]) => (
+                      <div key={k} style={{ marginBottom:k==="alm"?12:0 }}>
+                        <div style={{ display:"flex", alignItems:"flex-start" }}>
+                          <div style={{ flex:1, minWidth:0 }}>
+                            <div style={{ fontSize:12, color:C.gray4, marginBottom:3 }}>{ic} {lb}</div>
+                            <div style={{ fontSize:14, fontWeight:700, color:C.text, marginBottom:5 }}>{d[k]}</div>
+                            {d[tagKey] && <MealTag label={d[tagKey]}/>}
+                          </div>
+                          <div style={{ display:"flex", gap:6, flexShrink:0, marginLeft:10, paddingTop:2 }}>
+                            <button onClick={()=>setReceta(d[k])} style={{ background:C.blueLt, border:"none", borderRadius:8, padding:"5px 11px", fontSize:12, color:C.blue, cursor:"pointer", fontWeight:700, fontFamily:"'DM Sans',sans-serif" }}>Receta</button>
+                            <button onClick={()=>handleCambiar(d.dia,k)} style={{ background:C.gray1, border:`1px solid ${C.gray2}`, borderRadius:8, padding:"5px 9px", fontSize:13, color:cambiando===`${d.dia}-${k}`?C.blue:C.gray4, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}>
+                              {cambiando===`${d.dia}-${k}`?"⏳":"🔄"}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {i<6 && <div style={{ height:1, background:C.gray2 }}/>}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* TAB LISTA */}
+          {tab === "lista" && (
+            <div style={{ background:C.white, borderRadius:18, overflow:"hidden", boxShadow:sh.md }}>
+              {Object.entries(result.lista_compras).map(([cat,items],i,arr) => (
+                <div key={i}>
+                  <div style={{ padding:"16px 18px" }}>
+                    <div style={{ fontSize:14, fontWeight:800, color:C.dark, marginBottom:12 }}>{cat}</div>
+                    <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                      {items.map((item,j) => (
+                        <label key={j} style={{ display:"flex", alignItems:"center", gap:12, cursor:"pointer" }}>
+                          <div style={{ width:22, height:22, borderRadius:7, border:`2px solid ${C.gray3}`, flexShrink:0 }}/>
+                          <span style={{ fontSize:14, color:C.text, fontWeight:500 }}>{item}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  {i<arr.length-1 && <div style={{ height:1, background:C.gray2 }}/>}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* TAB RECETAS */}
+          {tab === "recetas" && (
+            <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+              {result.menu.flatMap(d=>[d.alm,d.cen]).filter((v,i,a)=>a.indexOf(v)===i).map((plato,i) => {
+                const r = R[plato];
+                return (
+                  <button key={i} onClick={()=>setReceta(plato)} style={{ background:C.white, borderRadius:16, padding:"16px 18px", border:"none", cursor:"pointer", textAlign:"left", display:"flex", alignItems:"center", gap:14, boxShadow:sh.sm, fontFamily:"'DM Sans',sans-serif" }}>
+                    <div style={{ width:52, height:52, borderRadius:14, background:C.blueLt, display:"flex", alignItems:"center", justifyContent:"center", fontSize:26, flexShrink:0 }}>{r?r.e:"🍽️"}</div>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontSize:15, fontWeight:700, color:C.dark, marginBottom:5, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{plato}</div>
+                      {r ? (
+                        <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
+                          <Tag color={C.blue} bg={C.blueLt}>⏱ {r.t}</Tag>
+                          {r.tags?.slice(0,2).map((t,i) => { const s=TAG_COLORS[t]||{}; return <Tag key={i} color={s.color||C.sub} bg={s.bg||C.gray1}>{t}</Tag>; })}
+                        </div>
+                      ) : <Tag color={C.gray4} bg={C.gray1}>Próximamente</Tag>}
+                    </div>
+                    <span style={{ color:C.gray3, fontSize:22, flexShrink:0 }}>›</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* EXPORTAR */}
+          {tab === "menu" && (
+            <div style={{ marginTop:20, background:C.white, borderRadius:18, overflow:"hidden", boxShadow:sh.md }}>
+              <div style={{ padding:"16px 18px 10px" }}>
+                <div style={{ fontSize:12, fontWeight:800, color:C.gray4, letterSpacing:"1px", textTransform:"uppercase", marginBottom:14 }}>Compartir y exportar</div>
+                <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                  <button onClick={()=>{
+                    const menu = result.menu.map(d => `*${d.dia}*\n🌞 ${d.alm}\n🌙 ${d.cen}`).join("\n\n");
+                    const lista = Object.entries(result.lista_compras).map(([cat, items]) => `*${cat}*\n${items.map(i => `• ${i}`).join("\n")}`).join("\n\n");
+                    const texto = `🥦 *Mi menú semanal — Kooki*\n\n${menu}\n\n───────────────\n🛒 *Lista de compras*\n\n${lista}\n\n_Generado con Kooki — IA que cocina con vos_`;
+                    window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, "_blank");
+                  }} style={{ width:"100%", background:"#25D366", color:"white", border:"none", borderRadius:14, padding:"15px 18px", fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", display:"flex", alignItems:"center", justifyContent:"center", gap:10 }}>
+                    <span style={{ fontSize:20 }}>📱</span> Compartir por WhatsApp
+                  </button>
+                  <button onClick={()=>{
+                    const menu = result.menu.map(d => `${d.dia}:\nAlmuerzo: ${d.alm}\nCena: ${d.cen}`).join("\n\n");
+                    const lista = Object.entries(result.lista_compras).map(([cat, items]) => `${cat}:\n${items.map(i => `- ${i}`).join("\n")}`).join("\n\n");
+                    const texto = `MI MENÚ SEMANAL — KOOKI\n\n${menu}\n\n─────────────\nLISTA DE COMPRAS\n\n${lista}`;
+                    navigator.clipboard.writeText(texto).then(()=>{ alert("✓ Copiado al portapapeles"); }).catch(()=>{ alert("No se pudo copiar."); });
+                  }} style={{ width:"100%", background:C.blueLt, color:C.blue, border:`2px solid ${C.bluePl}`, borderRadius:14, padding:"15px 18px", fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", display:"flex", alignItems:"center", justifyContent:"center", gap:10 }}>
+                    <span style={{ fontSize:20 }}>📋</span> Copiar todo al portapapeles
+                  </button>
+                  <button onClick={()=>{
+                    const rows = [["Categoría","Producto"]];
+                    Object.entries(result.lista_compras).forEach(([cat, items]) => { items.forEach(item => rows.push([cat.replace(/[^\w\s]/gi,"").trim(), item])); });
+                    const csv = rows.map(r => r.map(c => `"${c}"`).join(",")).join("\n");
+                    const blob = new Blob([csv], { type:"text/csv;charset=utf-8;" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url; a.download = "lista-compras-kooki.csv";
+                    document.body.appendChild(a); a.click();
+                    document.body.removeChild(a); URL.revokeObjectURL(url);
+                  }} style={{ width:"100%", background:C.gray1, color:C.text, border:`1px solid ${C.gray2}`, borderRadius:14, padding:"15px 18px", fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", display:"flex", alignItems:"center", justifyContent:"center", gap:10 }}>
+                    <span style={{ fontSize:20 }}>📊</span> Exportar lista de compras (.csv)
+                  </button>
+                </div>
               </div>
             </div>
           )}
+
+          <button onClick={()=>{ setScreen("loading"); setLoadMsg(0); setTimeout(doGen,2700); }} style={{ width:"100%", marginTop:12, background:C.white, color:C.blue, border:`2px solid ${C.blue}`, borderRadius:16, padding:"16px", fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>
+            ↺ Regenerar menú completo
+          </button>
         </div>
-      </div>
 
-      {/* TABS */}
-      <div style={{ background:C.white, margin:"0 16px", borderRadius:18, padding:5, marginTop:-16, boxShadow:sh.lg, position:"relative", zIndex:10 }}>
-        <div style={{ display:"flex", gap:4 }}>
-          {[["menu","📅 Menú"],["lista","🛒 Compras"],["recetas","👨‍🍳 Recetas"]].map(([id,lbl]) => (
-            <button key={id} onClick={()=>setTab(id)} style={{ flex:1, padding:"12px 6px", borderRadius:13, border:"none", fontWeight:700, fontSize:13, cursor:"pointer", transition:"all 0.2s", fontFamily:"'DM Sans',sans-serif", background:tab===id?C.blue:"transparent", color:tab===id?C.white:C.gray4 }}>{lbl}</button>
-          ))}
-        </div>
-      </div>
-
-      <div style={{ padding:"16px 16px 44px", animation:"slideIn 0.35s ease" }}>
-
-        {/* TAB MENÚ */}
-        {tab === "menu" && (
-          <div style={{ background:C.white, borderRadius:18, overflow:"hidden", boxShadow:sh.md }}>
-            {result.menu.map((d,i) => (
-              <div key={i}>
-                <div style={{ padding:"14px 18px 14px" }}>
-                  <div style={{ fontWeight:800, color:C.blue, fontSize:11, textTransform:"uppercase", letterSpacing:"1px", marginBottom:12 }}>{d.dia}</div>
-                  {[["alm","🌞","Almuerzo","tag_alm"],["cen","🌙","Cena","tag_cen"]].map(([k,ic,lb,tagKey]) => (
-                    <div key={k} style={{ marginBottom:k==="alm"?12:0 }}>
-                      <div style={{ display:"flex", alignItems:"flex-start" }}>
-                        <div style={{ flex:1, minWidth:0 }}>
-                          <div style={{ fontSize:12, color:C.gray4, marginBottom:3 }}>{ic} {lb}</div>
-                          <div style={{ fontSize:14, fontWeight:700, color:C.text, marginBottom:5 }}>{d[k]}</div>
-                          {d[tagKey] && <MealTag label={d[tagKey]}/>}
-                        </div>
-                        <div style={{ display:"flex", gap:6, flexShrink:0, marginLeft:10, paddingTop:2 }}>
-                          <button onClick={()=>setReceta(d[k])} style={{ background:C.blueLt, border:"none", borderRadius:8, padding:"5px 11px", fontSize:12, color:C.blue, cursor:"pointer", fontWeight:700, fontFamily:"'DM Sans',sans-serif" }}>Receta</button>
-                          <button onClick={()=>handleCambiar(d.dia,k)} style={{ background:C.gray1, border:`1px solid ${C.gray2}`, borderRadius:8, padding:"5px 9px", fontSize:13, color:cambiando===`${d.dia}-${k}`?C.blue:C.gray4, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}>
-                            {cambiando===`${d.dia}-${k}`?"⏳":"🔄"}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                {i<6 && <div style={{ height:1, background:C.gray2 }}/>}
+        {/* ── FAB CHEF ── */}
+        {showChefFab && (
+          <div style={{ position:"fixed", bottom:28, right:22, zIndex:100 }}>
+            {/* Ripple de atención */}
+            {chefPulse && (
+              <div style={{ position:"absolute", inset:0, borderRadius:"50%", background:C.blue, animation:"ripple 1.5s ease infinite", zIndex:-1 }}/>
+            )}
+            {/* Tooltip */}
+            {chefPulse && (
+              <div style={{ position:"absolute", bottom:"110%", right:0, background:C.dark, color:C.white, borderRadius:12, padding:"8px 12px", fontSize:12, fontWeight:700, whiteSpace:"nowrap", boxShadow:sh.md, marginBottom:4 }}>
+                ¿Tenés dudas? ¡Preguntame! 👨‍🍳
+                <div style={{ position:"absolute", bottom:-6, right:18, width:12, height:12, background:C.dark, transform:"rotate(45deg)" }}/>
               </div>
-            ))}
+            )}
+            <button
+              onClick={() => { setChefOpen(true); setChefPulse(false); }}
+              style={{
+                width:60, height:60, borderRadius:"50%", border:"none",
+                background:`linear-gradient(135deg,${C.blue},${C.blueDk})`,
+                color:C.white, fontSize:26, cursor:"pointer",
+                display:"flex", alignItems:"center", justifyContent:"center",
+                boxShadow:sh.blue, fontFamily:"'DM Sans',sans-serif",
+                animation:chefPulse ? "chefPulse 1.5s ease infinite" : "chefBounce 2s ease infinite",
+                transition:"all 0.2s",
+              }}
+            >
+              👨‍🍳
+            </button>
           </div>
         )}
 
-        {/* TAB LISTA */}
-        {tab === "lista" && (
-          <div style={{ background:C.white, borderRadius:18, overflow:"hidden", boxShadow:sh.md }}>
-            {Object.entries(result.lista_compras).map(([cat,items],i,arr) => (
-              <div key={i}>
-                <div style={{ padding:"16px 18px" }}>
-                  <div style={{ fontSize:14, fontWeight:800, color:C.dark, marginBottom:12 }}>{cat}</div>
-                  <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-                    {items.map((item,j) => (
-                      <label key={j} style={{ display:"flex", alignItems:"center", gap:12, cursor:"pointer" }}>
-                        <div style={{ width:22, height:22, borderRadius:7, border:`2px solid ${C.gray3}`, flexShrink:0 }}/>
-                        <span style={{ fontSize:14, color:C.text, fontWeight:500 }}>{item}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-                {i<arr.length-1 && <div style={{ height:1, background:C.gray2 }}/>}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* TAB RECETAS */}
-        {tab === "recetas" && (
-          <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-            {result.menu.flatMap(d=>[d.alm,d.cen]).filter((v,i,a)=>a.indexOf(v)===i).map((plato,i) => {
-              const r = R[plato];
-              return (
-                <button key={i} onClick={()=>setReceta(plato)} style={{ background:C.white, borderRadius:16, padding:"16px 18px", border:"none", cursor:"pointer", textAlign:"left", display:"flex", alignItems:"center", gap:14, boxShadow:sh.sm, fontFamily:"'DM Sans',sans-serif" }}>
-                  <div style={{ width:52, height:52, borderRadius:14, background:C.blueLt, display:"flex", alignItems:"center", justifyContent:"center", fontSize:26, flexShrink:0 }}>{r?r.e:"🍽️"}</div>
-                  <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ fontSize:15, fontWeight:700, color:C.dark, marginBottom:5, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{plato}</div>
-                    {r ? (
-                      <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
-                        <Tag color={C.blue} bg={C.blueLt}>⏱ {r.t}</Tag>
-                        {r.tags?.slice(0,2).map((t,i) => { const s=TAG_COLORS[t]||{}; return <Tag key={i} color={s.color||C.sub} bg={s.bg||C.gray1}>{t}</Tag>; })}
-                      </div>
-                    ) : <Tag color={C.gray4} bg={C.gray1}>Próximamente</Tag>}
-                  </div>
-                  <span style={{ color:C.gray3, fontSize:22, flexShrink:0 }}>›</span>
-                </button>
-              );
-            })}
-          </div>
-        )}
-
-        {/* ── EXPORTAR ── */}
-        <div style={{ marginTop:20, background:C.white, borderRadius:18, overflow:"hidden", boxShadow:sh.md }}>
-          <div style={{ padding:"16px 18px 10px" }}>
-            <div style={{ fontSize:12, fontWeight:800, color:C.gray4, letterSpacing:"1px", textTransform:"uppercase", marginBottom:14 }}>Compartir y exportar</div>
-            <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-
-              {/* WhatsApp */}
-              <button onClick={()=>{
-                const menu = result.menu.map(d =>
-                  `*${d.dia}*\n🌞 ${d.alm}\n🌙 ${d.cen}`
-                ).join("\n\n");
-                const lista = Object.entries(result.lista_compras).map(([cat, items]) =>
-                  `*${cat}*\n${items.map(i => `• ${i}`).join("\n")}`
-                ).join("\n\n");
-                const texto = `🥦 *Mi menú semanal — Kooki*\n\n${menu}\n\n───────────────\n🛒 *Lista de compras*\n\n${lista}\n\n_Generado con Kooki — IA que cocina con vos_`;
-                window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, "_blank");
-              }} style={{ width:"100%", background:"#25D366", color:"white", border:"none", borderRadius:14, padding:"15px 18px", fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", display:"flex", alignItems:"center", justifyContent:"center", gap:10 }}>
-                <span style={{ fontSize:20 }}>📱</span> Compartir por WhatsApp
-              </button>
-
-              {/* Copiar al portapapeles */}
-              <button onClick={()=>{
-                const menu = result.menu.map(d =>
-                  `${d.dia}:\nAlmuerzo: ${d.alm}\nCena: ${d.cen}`
-                ).join("\n\n");
-                const lista = Object.entries(result.lista_compras).map(([cat, items]) =>
-                  `${cat}:\n${items.map(i => `- ${i}`).join("\n")}`
-                ).join("\n\n");
-                const texto = `MI MENÚ SEMANAL — KOOKI\n\n${menu}\n\n─────────────\nLISTA DE COMPRAS\n\n${lista}`;
-                navigator.clipboard.writeText(texto).then(()=>{
-                  alert("✓ Copiado al portapapeles");
-                }).catch(()=>{
-                  alert("No se pudo copiar. Probá con el botón de WhatsApp.");
-                });
-              }} style={{ width:"100%", background:C.blueLt, color:C.blue, border:`2px solid ${C.bluePl}`, borderRadius:14, padding:"15px 18px", fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", display:"flex", alignItems:"center", justifyContent:"center", gap:10 }}>
-                <span style={{ fontSize:20 }}>📋</span> Copiar todo al portapapeles
-              </button>
-
-              {/* Exportar lista de compras CSV */}
-              <button onClick={()=>{
-                const rows = [["Categoría","Producto"]];
-                Object.entries(result.lista_compras).forEach(([cat, items]) => {
-                  items.forEach(item => rows.push([cat.replace(/[^\w\s]/gi,"").trim(), item]));
-                });
-                const csv = rows.map(r => r.map(c => `"${c}"`).join(",")).join("\n");
-                const blob = new Blob([csv], { type:"text/csv;charset=utf-8;" });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url; a.download = "lista-compras-kooki.csv";
-                document.body.appendChild(a); a.click();
-                document.body.removeChild(a); URL.revokeObjectURL(url);
-              }} style={{ width:"100%", background:C.gray1, color:C.text, border:`1px solid ${C.gray2}`, borderRadius:14, padding:"15px 18px", fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", display:"flex", alignItems:"center", justifyContent:"center", gap:10 }}>
-                <span style={{ fontSize:20 }}>📊</span> Exportar lista de compras (.csv)
-              </button>
-
-            </div>
-          </div>
-        </div>
-
-        <button onClick={()=>{ setScreen("loading"); setLoadMsg(0); setTimeout(doGen,2700); }} style={{ width:"100%", marginTop:12, background:C.white, color:C.blue, border:`2px solid ${C.blue}`, borderRadius:16, padding:"16px", fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>
-          ↺ Regenerar menú completo
-        </button>
+        {receta && <ModalReceta nombre={receta} onClose={()=>setReceta(null)}/>}
+        {chefOpen && <ChefChat result={result} recetaActual={receta} onClose={()=>setChefOpen(false)}/>}
       </div>
-
-      {receta && <ModalReceta nombre={receta} onClose={()=>setReceta(null)}/>}
-    </div>
-  );
+    );
+  }
 
   return null;
 }
@@ -982,9 +1167,6 @@ export default function App() {
   const [hasAccess, setHasAccess] = useState(() => {
     try { return !!localStorage.getItem(ACCESS_KEY); } catch(e) { return false; }
   });
-
-  if (!hasAccess) {
-    return <AccessScreen onAccess={() => setHasAccess(true)} />;
-  }
+  if (!hasAccess) return <AccessScreen onAccess={() => setHasAccess(true)} />;
   return <MainApp />;
 }
