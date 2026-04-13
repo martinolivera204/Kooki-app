@@ -727,15 +727,17 @@ function MainApp() {
   if (screen === "home") return (
     <div ref={scrollRef} style={{ minHeight:"100vh", background:C.white, fontFamily:"'DM Sans',sans-serif", overflowY:"auto", display:"flex", flexDirection:"column" }}>
       <style>{`${BASE} @keyframes floatPhone{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}`}</style>
-      <nav style={{ padding:"20px 28px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-        <img src="https://i.imgur.com/A0owlCW.jpeg" alt="Kooki" style={{ width:44, borderRadius:12 }}/>
+      <nav style={{ padding:"16px 28px", display:"flex", alignItems:"center", justifyContent:"flex-end" }}>
         <div style={{ display:"flex", alignItems:"center", gap:6, background:C.blueLt, borderRadius:20, padding:"6px 12px" }}>
           <span style={{ width:7, height:7, borderRadius:"50%", background:C.success, display:"inline-block" }}/>
           <span style={{ fontSize:12, fontWeight:700, color:C.blue }}>Acceso activo</span>
         </div>
       </nav>
-      <div style={{ flex:1, display:"flex", flexDirection:"column", padding:"16px 28px 0", maxWidth:480, margin:"0 auto", width:"100%" }}>
-        <h1 style={{ fontSize:38, fontWeight:800, color:C.dark, lineHeight:1.1, marginBottom:14, letterSpacing:"-1.5px" }}>
+      <div style={{ flex:1, display:"flex", flexDirection:"column", padding:"8px 28px 0", maxWidth:480, margin:"0 auto", width:"100%" }}>
+        <div style={{ display:"flex", justifyContent:"center", marginBottom:20 }}>
+          <img src="https://i.imgur.com/A0owlCW.jpeg" alt="Kooki" style={{ width:110, borderRadius:24, boxShadow:"0 8px 24px rgba(59,111,212,0.18)" }}/>
+        </div>
+        <h1 style={{ fontSize:38, fontWeight:800, color:C.dark, lineHeight:1.1, marginBottom:14, letterSpacing:"-1.5px", textAlign:"center" }}>
           Tu semana<br/>resuelta en<br/><span style={{ color:C.blue }}>2 minutos.</span>
         </h1>
         <p style={{ fontSize:15, color:C.sub, lineHeight:1.7, marginBottom:16, maxWidth:320 }}>Vos respondés. Kooki resuelve.</p>
