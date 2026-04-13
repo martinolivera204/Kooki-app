@@ -48,8 +48,8 @@ function AccessScreen({ onAccess }) {
 
       <div style={{ width:"100%", maxWidth:380, animation:"fadeIn 0.4s ease" }}>
         <div style={{ textAlign:"center", marginBottom:40 }}>
-          <span style={{ fontWeight:800, fontSize:36, color:C2.blue, letterSpacing:"-1px", fontFamily:"'Nunito','DM Sans',sans-serif" }}>Kooki</span>
-          <div style={{ fontSize:14, color:C2.sub, marginTop:6 }}>IA que cocina con vos</div>
+          <img src="https://i.imgur.com/A0owlCW.jpeg" alt="Kooki" style={{ width:120, borderRadius:24, marginBottom:8 }}/>
+          <div style={{ fontSize:14, color:C2.sub, marginTop:2 }}>IA que cocina con vos</div>
         </div>
 
         <div style={{ background:C2.white, borderRadius:24, padding:"32px 28px", boxShadow:"0 8px 40px rgba(59,111,212,0.12)", border:`1px solid ${C2.gray2}` }}>
@@ -728,7 +728,7 @@ function MainApp() {
     <div ref={scrollRef} style={{ minHeight:"100vh", background:C.white, fontFamily:"'DM Sans',sans-serif", overflowY:"auto", display:"flex", flexDirection:"column" }}>
       <style>{`${BASE} @keyframes floatPhone{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}`}</style>
       <nav style={{ padding:"20px 28px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-        <KookiLogo size={28}/>
+        <img src="https://i.imgur.com/A0owlCW.jpeg" alt="Kooki" style={{ width:44, borderRadius:12 }}/>
         <div style={{ display:"flex", alignItems:"center", gap:6, background:C.blueLt, borderRadius:20, padding:"6px 12px" }}>
           <span style={{ width:7, height:7, borderRadius:"50%", background:C.success, display:"inline-block" }}/>
           <span style={{ fontSize:12, fontWeight:700, color:C.blue }}>Acceso activo</span>
