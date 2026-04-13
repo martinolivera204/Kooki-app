@@ -48,7 +48,7 @@ function AccessScreen({ onAccess }) {
 
       <div style={{ width:"100%", maxWidth:380, animation:"fadeIn 0.4s ease" }}>
         <div style={{ textAlign:"center", marginBottom:40 }}>
-          <img src="https://i.imgur.com/owBnIE3.png" alt="Kooki" style={{ width:180, borderRadius:0, marginBottom:8, background:"transparent" }}/>
+          <img src="https://i.imgur.com/IYcv1Vp.jpeg" alt="Kooki" style={{ width:160, borderRadius:0, marginBottom:8, background:"transparent" }}/>
           <div style={{ fontSize:14, color:C2.sub, marginTop:2 }}>IA que cocina con vos</div>
         </div>
 
@@ -735,7 +735,7 @@ function MainApp() {
       </nav>
       <div style={{ flex:1, display:"flex", flexDirection:"column", padding:"8px 28px 0", maxWidth:480, margin:"0 auto", width:"100%" }}>
         <div style={{ display:"flex", justifyContent:"center", marginBottom:4 }}>
-          <img src="https://i.imgur.com/owBnIE3.png" alt="Kooki" style={{ width:"85%", maxWidth:340, borderRadius:0, background:"transparent" }}/>
+          <img src="https://i.imgur.com/IYcv1Vp.jpeg" alt="Kooki" style={{ width:"60%", maxWidth:220, borderRadius:0, background:"transparent" }}/>
         </div>
         <h1 style={{ fontSize:38, fontWeight:800, color:C.dark, lineHeight:1.1, marginBottom:14, letterSpacing:"-1.5px", textAlign:"center" }}>
           Tu semana<br/>resuelta en<br/><span style={{ color:C.blue }}>2 minutos.</span>
