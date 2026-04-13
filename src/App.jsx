@@ -740,7 +740,7 @@ function MainApp() {
         <h1 style={{ fontSize:38, fontWeight:800, color:C.dark, lineHeight:1.1, marginBottom:14, letterSpacing:"-1.5px", textAlign:"center" }}>
           Tu semana<br/>resuelta en<br/><span style={{ color:C.blue }}>2 minutos.</span>
         </h1>
-        <p style={{ fontSize:15, color:C.sub, lineHeight:1.7, marginBottom:16, maxWidth:320 }}>Vos respondés. Kooki resuelve.</p>
+        <p style={{ fontSize:15, color:C.sub, lineHeight:1.7, marginBottom:16, textAlign:"center", width:"100%" }}>Vos respondés. Kooki resuelve.</p>
         <div style={{ position:"relative", marginBottom:28, display:"flex", justifyContent:"center", alignItems:"center" }}>
           <div style={{ position:"absolute", width:280, height:280, borderRadius:"50%", background:`radial-gradient(circle, ${C.bluePl} 0%, transparent 70%)`, zIndex:0 }}/>
           <img
