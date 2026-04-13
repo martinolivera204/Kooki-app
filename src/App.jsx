@@ -18,6 +18,14 @@ function AccessScreen({ onAccess }) {
     setTimeout(() => {
       if (VALID_CODES.has(clean)) {
         try { localStorage.setItem(ACCESS_KEY, clean); } catch(e) {}
+        // Registrar uso en Google Sheets (silencioso)
+        try {
+          const dispositivo = /iPhone|iPad|iPod/.test(navigator.userAgent) ? "iPhone/iPad"
+            : /Android/.test(navigator.userAgent) ? "Android"
+            : /Mac/.test(navigator.userAgent) ? "Mac"
+            : "Otro";
+          fetch("https://script.google.com/macros/s/AKfycbzFrGcUV85aOdGtuJ62BJu2qSa0SHI6vMQxnKs009DuP1v_VOTglEc9lG1-I739bvve/exec?codigo=" + encodeURIComponent(clean) + "&dispositivo=" + encodeURIComponent(dispositivo));
+        } catch(e) {}
         setLoading(false);
         onAccess();
       } else {
