@@ -286,6 +286,15 @@ function generarHoy(cuantas, tipo, ingredientes) {
 function Tag({ children, color=C.blue, bg=C.blueLt }) {
   return <span style={{ background:bg, color, borderRadius:20, padding:"2px 9px", fontSize:11, fontWeight:700, display:"inline-block", lineHeight:1.5 }}>{children}</span>;
 }
+function ChefHat({ size=24, color="#FFFFFF" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M16 38c-5 0-9-4-9-9s4-9 9-9c0-6 5-11 11-11 4 0 7 2 9 5 2-3 5-5 9-5 6 0 11 5 11 11 5 0 9 4 9 9s-4 9-9 9v0H16v0z" fill={color}/>
+      <path d="M16 38h32v12c0 2-2 4-4 4H20c-2 0-4-2-4-4V38z" fill={color}/>
+      <path d="M16 42h32" stroke="#0A0E1A" strokeWidth="1.5" strokeLinecap="round" opacity="0.25"/>
+    </svg>
+  );
+}
 const TAG_COLORS = {
   "💚 Desinflamatorio":{bg:"#F0FDF4",color:"#16A34A"},
   "💪 Alta proteina":{bg:"#FFF7ED",color:"#EA580C"},
@@ -377,7 +386,7 @@ function ChefChat({ result, recetaActual, onClose }) {
         <div style={{ display:"flex", justifyContent:"center", padding:"10px 0 0" }}><div style={{ width:40, height:5, background:C.gray3, borderRadius:4 }}/></div>
         <div style={{ padding:"14px 20px 12px", display:"flex", alignItems:"center", justifyContent:"space-between", borderBottom:`1px solid ${C.gray2}` }}>
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <div style={{ width:40, height:40, borderRadius:14, background:`linear-gradient(135deg,${C.blue},${C.blueDk})`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:20 }}>👨‍🍳</div>
+            <div style={{ width:40, height:40, borderRadius:14, background:`linear-gradient(135deg,${C.blue},${C.blueDk})`, display:"flex", alignItems:"center", justifyContent:"center" }}><ChefHat size={24}/></div>
             <div>
               <div style={{ fontSize:15, fontWeight:800, color:C.dark }}>Chef Asistente</div>
               <div style={{ fontSize:12, color:C.success, fontWeight:600 }}>● En linea · Kooki IA</div>
@@ -388,13 +397,13 @@ function ChefChat({ result, recetaActual, onClose }) {
         <div style={{ flex:1, overflowY:"auto", padding:"16px 16px 8px", display:"flex", flexDirection:"column", gap:12 }}>
           {msgs.map((m,i) => (
             <div key={i} style={{ display:"flex", justifyContent:m.role==="user"?"flex-end":"flex-start" }}>
-              {m.role==="assistant" && <div style={{ width:30, height:30, borderRadius:10, background:`linear-gradient(135deg,${C.blue},${C.blueDk})`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, flexShrink:0, marginRight:8, marginTop:2 }}>👨‍🍳</div>}
+              {m.role==="assistant" && <div style={{ width:30, height:30, borderRadius:10, background:`linear-gradient(135deg,${C.blue},${C.blueDk})`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginRight:8, marginTop:2 }}><ChefHat size={18}/></div>}
               <div style={{ maxWidth:"78%", background:m.role==="user"?`linear-gradient(135deg,${C.blue},${C.blueDk})`:C.gray1, color:m.role==="user"?C.white:C.text, borderRadius:m.role==="user"?"18px 18px 4px 18px":"18px 18px 18px 4px", padding:"12px 14px", fontSize:14, lineHeight:1.6, whiteSpace:"pre-wrap", boxShadow:m.role==="user"?sh.blue:sh.sm }}>{m.text}</div>
             </div>
           ))}
           {loading && (
             <div style={{ display:"flex", alignItems:"flex-start", gap:8 }}>
-              <div style={{ width:30, height:30, borderRadius:10, background:`linear-gradient(135deg,${C.blue},${C.blueDk})`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, flexShrink:0 }}>👨‍🍳</div>
+              <div style={{ width:30, height:30, borderRadius:10, background:`linear-gradient(135deg,${C.blue},${C.blueDk})`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}><ChefHat size={18}/></div>
               <div style={{ background:C.gray1, borderRadius:"18px 18px 18px 4px", padding:"12px 16px", display:"flex", alignItems:"center", gap:5 }}>
                 {[0,1,2].map(i => <div key={i} style={{ width:7, height:7, borderRadius:"50%", background:C.gray3, animation:`dotPulse 1.2s ease ${i*0.2}s infinite` }}/>)}
               </div>
@@ -686,8 +695,8 @@ function MainApp() {
       )}
       {hoyResult && (
         <div style={{ position:"fixed", bottom:28, right:22, zIndex:100 }}>
-          <button onClick={() => setChefOpen(true)} style={{ width:60, height:60, borderRadius:"50%", border:"none", background:`linear-gradient(135deg,${C.blue},${C.blueDk})`, color:C.white, fontSize:26, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:sh.blue, animation:"chefBounce 2s ease infinite" }}>
-            👨‍🍳
+          <button onClick={() => setChefOpen(true)} style={{ width:60, height:60, borderRadius:"50%", border:"none", background:`linear-gradient(135deg,${C.blue},${C.blueDk})`, color:C.white, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:sh.blue, animation:"chefBounce 2s ease infinite" }}>
+            <ChefHat size={32}/>
           </button>
         </div>
       )}
@@ -1004,8 +1013,8 @@ function MainApp() {
                 <div style={{ position:"absolute", bottom:-6, right:18, width:12, height:12, background:C.dark, transform:"rotate(45deg)" }}/>
               </div>
             )}
-            <button onClick={() => { setChefOpen(true); setChefPulse(false); }} style={{ width:60, height:60, borderRadius:"50%", border:"none", background:`linear-gradient(135deg,${C.blue},${C.blueDk})`, color:C.white, fontSize:26, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:sh.blue, animation:chefPulse?"chefPulse 1.5s ease infinite":"chefBounce 2s ease infinite" }}>
-              👨‍🍳
+            <button onClick={() => { setChefOpen(true); setChefPulse(false); }} style={{ width:60, height:60, borderRadius:"50%", border:"none", background:`linear-gradient(135deg,${C.blue},${C.blueDk})`, color:C.white, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:sh.blue, animation:chefPulse?"chefPulse 1.5s ease infinite":"chefBounce 2s ease infinite" }}>
+              <ChefHat size={32}/>
             </button>
           </div>
         )}
