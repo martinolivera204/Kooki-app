@@ -347,10 +347,25 @@ function ChefChat({ result, recetaActual, onClose }) {
     const txt = input.trim();
     if (!txt || loading) return;
     setInput("");
-    setMsgs(m => [...m, { role:"user", text:txt }]);
+    const newUserMsg = { role:"user", text:txt };
+    setMsgs(m => [...m, newUserMsg]);
     setLoading(true);
-    await new Promise(r => setTimeout(r, 700));
-    setMsgs(m => [...m, { role:"assistant", text:responder(txt) }]);
+    try {
+      const response = await fetch("/api/chef", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: txt,
+          history: msgs,
+          menu: result || null
+        })
+      });
+      const data = await response.json();
+      const reply = data.reply || data.error || "El chef no pudo responder ahora. Probá de nuevo.";
+      setMsgs(m => [...m, { role:"assistant", text:reply }]);
+    } catch (err) {
+      setMsgs(m => [...m, { role:"assistant", text:"Hubo un problema de conexión. Probá de nuevo en un momento 🙏" }]);
+    }
     setLoading(false);
     setTimeout(() => inputRef.current?.focus(), 100);
   };
