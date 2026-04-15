@@ -684,6 +684,14 @@ function MainApp() {
           <button onClick={() => setHoyResult(null)} style={{ width:"100%", background:C.gray1, color:C.sub, border:"none", borderRadius:16, padding:"14px", fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"'Inter',sans-serif" }}>← Volver</button>
         </div>
       )}
+      {hoyResult && (
+        <div style={{ position:"fixed", bottom:28, right:22, zIndex:100 }}>
+          <button onClick={() => setChefOpen(true)} style={{ width:60, height:60, borderRadius:"50%", border:"none", background:`linear-gradient(135deg,${C.blue},${C.blueDk})`, color:C.white, fontSize:26, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:sh.blue, animation:"chefBounce 2s ease infinite" }}>
+            👨‍🍳
+          </button>
+        </div>
+      )}
+      {chefOpen && <ChefChat result={null} recetaActual={receta} onClose={()=>setChefOpen(false)}/>}
       {receta && <ModalReceta nombre={receta} onClose={()=>setReceta(null)}/>}
     </div>
   );
