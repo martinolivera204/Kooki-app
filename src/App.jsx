@@ -2,6 +2,9 @@ import { useState, useEffect, useRef } from "react";
 
 const VALID_CODES = new Set(['KOOKI-9K2X-W5NR']);
 const ACCESS_KEY = "kooki_access_v1";
+const HISTORY_KEY = "kooki_history_v1";
+const HISTORY_DAYS = 7;
+const HISTORY_MAX = 20;
 
 function AccessScreen({ onAccess }) {
   const [code, setCode] = useState("");
@@ -177,31 +180,41 @@ const R = {
   "Ensalada tibia de pollo y papa":{t:"25 min",d:"Facil",k:"380 kcal",p:"32g",e:"🥗",tags:["💪 Alta proteina","💰 Economico"],i:["2 pechugas","3 papas medianas","Mostaza 1 cda","Aceite de oliva","Limon","Perejil","Sal y pimienta"],s:["Hervir las papas en cubos hasta tiernas.","Grillar las pechugas y cortar en tiras.","Mezclar mostaza con aceite y limon para el aderezo.","Unir papas, pollo y perejil con el aderezo. Servir tibio."]},
   "Pollo teriyaki con arroz":{t:"25 min",d:"Facil",k:"490 kcal",p:"38g",e:"🍗",tags:["💪 Alta proteina","⚡ Rendidor"],i:["2 pechugas","Soja 3 cdas","Miel 2 cdas","Ajo 1 diente","Jengibre rallado","Arroz 1 taza","Sesamo"],s:["Mezclar soja, miel, ajo y jengibre para la salsa.","Cocinar el pollo en sarten. Verter la salsa y glasear 3 min.","Cocinar el arroz con sal.","Servir el pollo con el arroz y sesamo encima."]},
   "Papas rellenas de atun":{t:"30 min",d:"Facil",k:"410 kcal",p:"24g",e:"🥔",tags:["💰 Economico","⚡ Rendidor"],i:["4 papas grandes","2 latas atun","Mayonesa 2 cdas","1 cebolla chica","Perejil","Sal y pimienta"],s:["Cocinar las papas en el microondas 8-10 min.","Cortar al medio y vaciar la pulpa.","Mezclar la pulpa con atun, mayonesa, cebolla y perejil.","Rellenar las papas. Gratinar en horno 5 min opcional."]},
-};
-
-const POOLS = {
-  bajar_peso:{tag:"Deficit calorico",tip:"Proteinas magras y vegetales de alto volumen. Cada comida ronda las 200-450 kcal.",precio:{bajo:"$35.000-45.000",medio:"$50.000-65.000",alto:"$70.000-90.000"},
-    almuerzos:["Ensalada de pollo grillado y quinoa","Pechuga al horno con vegetales asados","Bowl de arroz integral con pollo","Pechuga al limon con quinoa y brocoli","Wrap de atun con lechuga y tomate","Ensalada completa con atun","Ensalada de garbanzos con pepino","Pollo al horno con ensalada verde","Ensalada tibia de pollo y papa","Salmon con quinoa y vegetales","Espinaca salteada con huevo pochado","Tallarines con atun y tomate cherry"],
-    cenas:["Sopa de verduras con lentejas","Revuelto de claras con espinaca","Sopa crema de zapallo","Omelette de claras con champinones","Sopa minestrone liviana","Tortilla de claras y vegetales","Sopa de tomate con albahaca","Ensalada caprese con rucula","Creme de zanahoria y jengibre"]},
-  saludable:{tag:"Nutricion completa",tip:"Plan balanceado con todos los macronutrientes. Variedad de colores = variedad de nutrientes.",precio:{bajo:"$40.000-55.000",medio:"$60.000-80.000",alto:"$90.000-120.000"},
-    almuerzos:["Bowl de arroz integral con palta","Ensalada mediterranea con garbanzos","Pechuga al limon con quinoa y brocoli","Tarta integral de espinaca y ricota","Salmon con quinoa y vegetales","Wok de pollo con vegetales y arroz","Pollo al horno con ensalada verde","Arroz yamani con huevo y verduras","Bowl de boniato y garbanzos","Pollo con batata al horno","Fideos integrales con pesto","Ensalada de lentejas con vegetales"],
-    cenas:["Sopa de verduras con lentejas","Tortilla de papas y cebolla","Sopa crema de zapallo","Ensalada de garbanzos con pepino","Revuelto de claras con espinaca","Sopa de tomate con albahaca","Ensalada caprese con rucula","Sopa minestrone liviana","Creme de zanahoria y jengibre"]},
-  ahorrar:{tag:"Maximo ahorro",tip:"Priorizamos legumbres, huevos y pollo. Las proteinas mas economicas y rendidoras.",precio:{bajo:"$18.000-28.000",medio:"$28.000-40.000",alto:"$40.000-55.000"},
-    almuerzos:["Guiso de lentejas con arroz","Cazuela de pollo con papas","Arroz con pollo y verduras","Milanesas con pure de papas","Tarta de verduras economica","Pollo al horno con papas","Guiso de arroz con carne","Tarta de jamon y queso","Berenjenas rellenas de carne","Zapallitos rellenos","Papas rellenas de atun","Pollo a la provenzal"],
-    cenas:["Fideos con tuco casero","Sopa de fideos express","Tortilla de papas y cebolla","Revuelto gramajo","Pizza de molde casera","Hamburguesas caseras","Sopa de arvejas con jamon","Milanesas de berenjena","Caldo de pollo con fideos"]},
-  masa:{tag:"Alta proteina",tip:"1.6-2.2g de proteina por kg corporal. Superavit calorico moderado de 300-500 kcal/dia.",precio:{bajo:"$45.000-60.000",medio:"$65.000-85.000",alto:"$90.000-130.000"},
-    almuerzos:["Pechuga con arroz y brocoli","Salmon con quinoa y vegetales","Bowl de arroz integral con pollo","Milanesas con pure de papas","Pechuga al horno con vegetales asados","Pollo al horno con papas","Pechuga al limon con quinoa y brocoli","Lomo salteado con papas","Pollo teriyaki con arroz","Pollo a la crema con arroz","Estofado de pollo con ciruelas","Fideos con pollo y champinones"],
-    cenas:["Omelette proteica con queso","Pollo desmenuzado con arroz","Revuelto de claras con espinaca","Ensalada completa con atun","Pechuga con arroz y brocoli","Wrap de atun con lechuga y tomate","Omelette de claras con champinones","Tortilla de claras y vegetales"]},
-  organizar:{tag:"Batch cooking",tip:"Cocinas 2 veces por semana y resolves todo. El domingo es clave: 2 horas = 7 dias resueltos.",precio:{bajo:"$22.000-32.000",medio:"$35.000-50.000",alto:"$55.000-75.000"},
-    almuerzos:["Arroz con pollo preparado","Ensalada completa con atun","Milanesas con pure de papas","Bowl con legumbres cocidas","Wrap con sobras","Pollo al horno con papas","Batch cooking dominical","Tarta de jamon y queso","Berenjenas rellenas de carne","Zapallitos rellenos","Pollo desmenuzado con arroz","Fideos con pollo y champinones"],
-    cenas:["Sopa de verduras con lentejas","Fideos con salsa preparada","Sopa de fideos express","Guiso de lentejas con arroz","Pizza de molde casera","Hamburguesas caseras","Fideos con tuco casero","Caldo de pollo con fideos"]},
-  desinflamatoria:{tag:"Antiinflamatorio",tip:"Curcuma, jengibre, omega-3 y antioxidantes como base. Eliminamos procesados y azucar refinada.",precio:{bajo:"$45.000-60.000",medio:"$65.000-90.000",alto:"$95.000-130.000"},
-    almuerzos:["Bowl desinflamatorio de quinoa","Salmon al horno con vegetales desinflamatorios","Ensalada mediterranea con garbanzos","Pollo con curcuma y vegetales","Pechuga al limon con quinoa y brocoli","Salmon con quinoa y vegetales","Ensalada de pollo grillado y quinoa","Pollo con batata al horno","Bowl de boniato y garbanzos","Espinaca salteada con huevo pochado","Wok de pollo con vegetales y arroz","Tallarines con atun y tomate cherry"],
-    cenas:["Sopa de tomate con albahaca","Creme de zanahoria y jengibre","Sopa minestrone liviana","Bowl de arroz integral con palta","Ensalada caprese con rucula","Sopa de verduras con lentejas","Revuelto de claras con espinaca","Omelette de claras con champinones"]},
-};
-
-const TAG_MAP = {
-  "Ensalada de pollo grillado y quinoa":"💪 Alta proteina","Sopa de verduras con lentejas":"🔥 Bajo en calorias","Wrap de atun con lechuga y tomate":"⚡ Express","Revuelto de claras con espinaca":"⚡ Express","Pechuga al horno con vegetales asados":"💪 Alta proteina","Sopa crema de zapallo":"🔥 Bajo en calorias","Ensalada de garbanzos con pepino":"💚 Desinflamatorio","Bowl de arroz integral con pollo":"💪 Alta proteina","Ensalada completa con atun":"⚡ Express","Tortilla de claras y vegetales":"🔥 Bajo en calorias","Omelette de claras con champinones":"⚡ Express","Sopa minestrone liviana":"🔥 Bajo en calorias","Pollo al horno con ensalada verde":"💪 Alta proteina","Bowl de arroz integral con palta":"💚 Desinflamatorio","Ensalada mediterranea con garbanzos":"💚 Desinflamatorio","Pechuga al limon con quinoa y brocoli":"💪 Alta proteina","Tarta integral de espinaca y ricota":"🌿 Vegetariana","Wok de pollo con vegetales y arroz":"💪 Alta proteina","Sopa de tomate con albahaca":"💚 Desinflamatorio","Ensalada caprese con rucula":"💚 Desinflamatorio","Guiso de lentejas con arroz":"💰 Economico","Fideos con tuco casero":"💰 Economico","Cazuela de pollo con papas":"💰 Economico","Arroz con pollo y verduras":"💰 Economico","Tortilla de papas y cebolla":"💰 Economico","Milanesas con pure de papas":"💰 Economico","Tarta de verduras economica":"💰 Economico","Pizza de molde casera":"💰 Economico","Pollo al horno con papas":"💰 Economico","Guiso de arroz con carne":"💰 Economico","Sopa de fideos express":"⚡ Express","Revuelto gramajo":"⚡ Rapido","Hamburguesas caseras":"💰 Economico","Pechuga con arroz y brocoli":"💪 Alta proteina","Salmon con quinoa y vegetales":"💚 Desinflamatorio","Omelette proteica con queso":"💪 Alta proteina","Creme de zanahoria y jengibre":"💚 Desinflamatorio","Bowl desinflamatorio de quinoa":"💚 Desinflamatorio","Salmon al horno con vegetales desinflamatorios":"💚 Desinflamatorio","Pollo con curcuma y vegetales":"💚 Desinflamatorio","Pollo desmenuzado con arroz":"💪 Alta proteina","Arroz con pollo preparado":"📦 Batch cooking","Fideos con salsa preparada":"📦 Batch cooking","Bowl con legumbres cocidas":"📦 Batch cooking","Wrap con sobras":"⚡ Express","Batch cooking dominical":"📦 Batch cooking","Pollo a la provenzal":"💪 Alta proteina","Fideos con pollo y champinones":"💪 Alta proteina","Ensalada de lentejas con vegetales":"🌿 Vegetariana","Caldo de pollo con fideos":"💰 Economico","Lomo salteado con papas":"💪 Alta proteina","Tarta de jamon y queso":"💰 Economico","Arroz yamani con huevo y verduras":"🌿 Vegetariana","Pollo con batata al horno":"💚 Desinflamatorio","Fideos integrales con pesto":"🌿 Vegetariana","Sopa de arvejas con jamon":"💰 Economico","Bowl de boniato y garbanzos":"🌿 Vegetariana","Milanesas de berenjena":"🌿 Vegetariana","Pollo a la crema con arroz":"💪 Alta proteina","Tallarines con atun y tomate cherry":"⚡ Express","Estofado de pollo con ciruelas":"💰 Economico","Espinaca salteada con huevo pochado":"🔥 Bajo en calorias","Berenjenas rellenas de carne":"💰 Economico","Zapallitos rellenos":"💰 Economico","Ensalada tibia de pollo y papa":"💪 Alta proteina","Pollo teriyaki con arroz":"💪 Alta proteina","Papas rellenas de atun":"💰 Economico",
+  "Noquis de papa con tuco":{t:"45 min",d:"Media",k:"560 kcal",p:"16g",e:"🥟",tags:["💰 Economico","⚡ Rendidor"],i:["1kg papas","300g harina","1 huevo","Sal y nuez moscada","Salsa de tomate 500ml","Queso rallado","Albahaca"],s:["Hervir las papas con cascara hasta tiernas. Pelar y pisar.","Mezclar pure tibio con harina, huevo, sal y nuez moscada.","Hacer rollitos de masa, cortar noquis de 2cm. Marcar con tenedor.","Hervir 2-3 min hasta que floten. Servir con tuco caliente y queso."]},
+  "Pastel de papa":{t:"60 min",d:"Media",k:"550 kcal",p:"34g",e:"🥧",tags:["💰 Economico","⚡ Rendidor"],i:["1kg papas","500g carne picada","2 cebollas","2 huevos duros","Aceitunas","100ml leche","30g manteca","Pimenton, comino y sal"],s:["Hervir papas hasta tiernas. Pisar con leche, manteca y sal.","Rehogar cebolla. Agregar carne picada y dorar bien.","Sumar pimenton, comino, aceitunas en rodajas y huevo duro picado.","Volcar carne en fuente, cubrir con pure. Hornear 20 min a 200C hasta dorar."]},
+  "Empanadas de carne al horno":{t:"60 min",d:"Media",k:"480 kcal",p:"22g",e:"🥟",tags:["💰 Economico","⚡ Rendidor"],i:["12 tapas para empanadas","500g carne picada","2 cebollas","2 huevos duros","Aceitunas","Pimenton, comino, aji molido y sal","1 huevo para pintar"],s:["Rehogar cebolla bien picada hasta transparente. Agregar carne y desarmar.","Condimentar con pimenton, comino, aji molido y sal. Enfriar la mezcla.","Sumar huevo duro y aceitunas picadas. Rellenar tapas y cerrar con repulgue.","Pintar con huevo batido. Horno 200C por 18-20 min hasta dorar."]},
+  "Suprema napolitana con pure":{t:"40 min",d:"Facil",k:"620 kcal",p:"45g",e:"🍗",tags:["💪 Alta proteina","💰 Economico"],i:["2 supremas de pollo","2 huevos","Pan rallado","Salsa de tomate","Jamon cocido 100g","Mozzarella 200g","Oregano","4 papas","Leche y manteca"],s:["Pasar las supremas por huevo batido y pan rallado. Freir 3 min por lado.","Hervir papas y hacer pure con leche, manteca y sal.","Colocar supremas en asadera. Cubrir con salsa, jamon, mozzarella y oregano.","Gratinar en horno 10 min a 200C hasta que se funda el queso."]},
+  "Polenta con tuco y queso":{t:"30 min",d:"Facil",k:"450 kcal",p:"15g",e:"🌽",tags:["💰 Economico","⚡ Rendidor"],i:["300g polenta","1.2L caldo","Salsa de tomate 400ml","1 cebolla","Queso rallado 100g","Manteca 30g","Sal y oregano"],s:["Hervir el caldo con sal. Volcar la polenta en lluvia revolviendo.","Cocinar 5 min revolviendo hasta espesar. Agregar manteca.","Aparte rehogar cebolla y agregar salsa de tomate. Cocinar 10 min con oregano.","Servir polenta con tuco caliente encima y abundante queso rallado."]},
+  "Locro express":{t:"60 min",d:"Media",k:"580 kcal",p:"32g",e:"🍲",tags:["💰 Economico","⚡ Rendidor"],i:["400g maiz blanco","300g porotos","300g carne para guiso","200g panceta","2 chorizos colorados","2 cebollas","1 zapallo chico","Pimenton, comino y aji molido"],s:["Remojar el maiz y porotos la noche anterior. Hervir 40 min.","Dorar carne, panceta y chorizo cortados. Reservar.","Rehogar cebolla con pimenton y comino. Agregar zapallo en cubos.","Unir todo con el maiz y porotos. Cocinar 20 min mas hasta espesar."]},
+  "Asado al horno con papas":{t:"90 min",d:"Facil",k:"680 kcal",p:"50g",e:"🥩",tags:["💪 Alta proteina","⚡ Rendidor"],i:["1kg tira de asado","6 papas","Sal gruesa","Ajo 4 dientes","Romero y tomillo","Aceite de oliva","Limon"],s:["Salar bien la tira de asado y dejar reposar 15 min.","Cortar papas en gajos. Mezclar con aceite, ajo, sal y hierbas.","Colocar todo en asadera. Asado del lado del hueso para abajo primero.","Horno 200C por 70-80 min, dando vuelta a mitad. Servir con limon."]},
+  "Ravioles con salsa rosa":{t:"20 min",d:"Facil",k:"520 kcal",p:"22g",e:"🍝",tags:["💰 Economico","⚡ Rendidor"],i:["500g ravioles","Salsa de tomate 300ml","Crema de leche 150ml","1 cebolla","Ajo","Queso rallado","Albahaca","Sal y pimienta"],s:["Rehogar cebolla y ajo picados.","Agregar salsa de tomate y cocinar 10 min.","Sumar crema, salpimentar. Cocinar 3 min mas.","Hervir ravioles 3-4 min. Mezclar con salsa rosa y servir con queso."]},
+  "Canelones de verdura":{t:"60 min",d:"Media",k:"500 kcal",p:"24g",e:"🥬",tags:["🌿 Vegetariana","⚡ Rendidor"],i:["12 panqueques o tapas","500g espinaca","300g ricota","100g queso rallado","2 huevos","Salsa blanca 300ml","Salsa de tomate 300ml","Nuez moscada"],s:["Hervir espinaca, escurrir y picar. Mezclar con ricota, queso, huevos y nuez moscada.","Rellenar cada panqueque con la mezcla y enrollar.","Colocar en fuente, cubrir con salsa blanca y salsa de tomate alternadas.","Espolvorear queso rallado. Hornear 25 min a 180C hasta gratinar."]},
+  "Matambre a la pizza":{t:"45 min",d:"Facil",k:"580 kcal",p:"42g",e:"🥩",tags:["💪 Alta proteina","💰 Economico"],i:["1 matambre de 1kg","Salsa de tomate 300ml","Mozzarella 300g","Oregano","Aceitunas","Morron en tiras","Sal y pimienta"],s:["Salar el matambre y cocinar a la plancha 10 min por lado.","Pasarlo a una asadera. Cubrir con salsa de tomate.","Agregar mozzarella, morron y aceitunas. Espolvorear oregano.","Gratinar en horno 10 min hasta que se funda el queso."]},
+  "Milanesa napolitana":{t:"35 min",d:"Facil",k:"620 kcal",p:"40g",e:"🍕",tags:["💪 Alta proteina","💰 Economico"],i:["4 milanesas de ternera","Salsa de tomate 200ml","Jamon cocido 100g","Mozzarella 200g","Oregano","Aceite para freir"],s:["Freir las milanesas 3 min por lado. Escurrir.","Colocar en asadera. Cubrir con salsa de tomate.","Agregar jamon y mozzarella encima. Espolvorear oregano.","Gratinar en horno 10 min a 200C hasta fundir el queso."]},
+  "Bife a caballo":{t:"15 min",d:"Facil",k:"540 kcal",p:"45g",e:"🥩",tags:["💪 Alta proteina","⚡ Rapido"],i:["2 bifes de chorizo o lomo","2 huevos","Sal y pimienta","Aceite","Pure de papas o papas fritas"],s:["Salpimentar los bifes. Calentar plancha bien caliente.","Cocinar bife 3-4 min por lado segun preferencia.","En otra sarten, freir los huevos manteniendo la yema blanda.","Servir el bife con el huevo encima y guarnicion al lado."]},
+  "Sandwich de milanesa":{t:"25 min",d:"Facil",k:"620 kcal",p:"38g",e:"🥪",tags:["💰 Economico","⚡ Rapido"],i:["2 milanesas finas","2 panes de pancho o miga","Lechuga","Tomate","Mayonesa","Mozzarella opcional","Aceite para freir"],s:["Freir las milanesas en aceite caliente 3 min por lado.","Calentar el pan en plancha o tostadora.","Untar con mayonesa. Agregar lechuga y tomate.","Colocar la milanesa caliente. Cerrar y cortar al medio."]},
+  "Salpicon de pollo":{t:"30 min",d:"Facil",k:"380 kcal",p:"32g",e:"🥗",tags:["💪 Alta proteina","⚡ Express"],i:["2 pechugas de pollo","3 papas","2 zanahorias","1 lata arvejas","2 huevos duros","Mayonesa 4 cdas","Sal y limon"],s:["Hervir pechuga, papas y zanahorias por separado hasta tiernas.","Cortar todo en cubos chicos. Hervir y picar los huevos.","Mezclar todo con arvejas escurridas en bowl grande.","Condimentar con mayonesa, sal y un poco de limon. Servir frio."]},
+  "Pollo a la portuguesa":{t:"45 min",d:"Facil",k:"450 kcal",p:"40g",e:"🍗",tags:["💪 Alta proteina","💰 Economico"],i:["4 presas de pollo","1 lata tomates","2 cebollas","2 morrones","Aceitunas","Vino blanco 100ml","Ajo, oregano y laurel"],s:["Dorar las presas de pollo en aceite. Retirar.","Rehogar cebolla y morron en tiras 6 min.","Agregar tomates, vino, laurel y oregano. Cocinar 10 min.","Volver el pollo a la salsa con aceitunas. Cocinar tapado 25 min."]},
+  "Carbonada criolla":{t:"55 min",d:"Media",k:"520 kcal",p:"30g",e:"🥘",tags:["💰 Economico","⚡ Rendidor"],i:["500g carne para guiso","2 papas","2 batatas","2 mazorcas de choclo","2 zapallitos","2 duraznos","Caldo","Pimenton y comino"],s:["Dorar la carne en cubos. Reservar.","Rehogar cebolla con pimenton y comino.","Agregar la carne, papas, batatas y choclo. Cubrir con caldo.","Cocinar 30 min. Sumar zapallito y durazno los ultimos 10 min."]},
+  "Tarta de zapallitos":{t:"50 min",d:"Facil",k:"400 kcal",p:"18g",e:"🥧",tags:["🌿 Vegetariana","💰 Economico"],i:["1 tapa de tarta","4 zapallitos","2 cebollas","3 huevos","200g queso cremoso","Sal, pimienta y oregano","Aceite"],s:["Rehogar cebolla y zapallitos en cubos hasta tiernos. Enfriar.","Mezclar con huevos batidos, queso, sal, pimienta y oregano.","Volcar sobre la tapa de tarta en molde.","Hornear a 180C por 35 min hasta dorar."]},
+  "Calabaza rellena":{t:"60 min",d:"Media",k:"380 kcal",p:"22g",e:"🎃",tags:["🌿 Vegetariana","💚 Desinflamatorio"],i:["1 calabaza mediana","200g quinoa","1 cebolla","Champinones 200g","Espinaca","Queso rallado","Ajo y tomillo"],s:["Cortar la calabaza al medio y vaciar. Hornear 30 min a 200C.","Cocinar la quinoa en agua con sal 15 min.","Saltear cebolla, ajo, champinones y espinaca. Mezclar con quinoa y tomillo.","Rellenar las mitades de calabaza, cubrir con queso. Gratinar 10 min."]},
+  "Risotto de hongos":{t:"35 min",d:"Media",k:"480 kcal",p:"14g",e:"🍚",tags:["🌿 Vegetariana","⚡ Rendidor"],i:["300g arroz arborio","Champinones 300g","1 cebolla","Caldo de verduras 1L","Vino blanco 100ml","Manteca 50g","Parmesano 80g","Tomillo"],s:["Saltear cebolla con manteca. Agregar arroz y tostar 2 min.","Verter el vino y dejar evaporar. Sumar caldo de a poco revolviendo constante.","En sarten aparte saltear champinones laminados con tomillo.","A los 18 min agregar champinones, parmesano y manteca. Servir cremoso."]},
+  "Salmon a la mostaza":{t:"20 min",d:"Facil",k:"460 kcal",p:"42g",e:"🐟",tags:["💚 Desinflamatorio","💪 Alta proteina"],i:["2 filetes de salmon","Mostaza 2 cdas","Miel 1 cda","Limon","Eneldo","Aceite de oliva","Sal y pimienta"],s:["Mezclar mostaza, miel, jugo de limon, eneldo y aceite.","Salpimentar el salmon y untar con la mezcla.","Cocinar en plancha o sarten 3-4 min por lado.","Servir con guarnicion de vegetales o ensalada verde."]},
+  "Quiche lorraine":{t:"55 min",d:"Media",k:"540 kcal",p:"22g",e:"🥧",tags:["💰 Economico","⚡ Rendidor"],i:["1 tapa de tarta","200g panceta","1 cebolla","4 huevos","Crema 200ml","Queso gruyere 100g","Sal, pimienta y nuez moscada"],s:["Horno a 180C. Tapa en molde y pinchar.","Saltear panceta en cubos con cebolla picada hasta dorar.","Batir huevos con crema, queso rallado y condimentos.","Distribuir panceta sobre la base y volcar la mezcla. Hornear 35 min."]},
+  "Wok de tofu y vegetales":{t:"20 min",d:"Facil",k:"340 kcal",p:"22g",e:"🥢",tags:["🌿 Vegetariana","⚡ Rapido"],i:["300g tofu firme","1 brocoli","1 morron","1 zanahoria","Soja 3 cdas","Jengibre y ajo","Sesamo","Aceite"],s:["Cortar tofu en cubos y dorar en wok caliente. Reservar.","Saltear ajo y jengibre rallado 30 seg.","Agregar vegetales en juliana. Saltear 5 min a fuego alto.","Volver el tofu, sumar soja. Servir con sesamo encima."]},
+  "Buddha bowl con falafel":{t:"40 min",d:"Media",k:"520 kcal",p:"22g",e:"🫙",tags:["🌿 Vegetariana","💚 Desinflamatorio"],i:["1 lata garbanzos","Quinoa 1 taza","Espinaca","Palta","Tomate cherry","Pepino","Tahini","Limon, ajo y comino"],s:["Procesar garbanzos con ajo, comino, perejil y harina. Formar bolitas.","Cocinar falafel en sarten con aceite hasta dorar todo.","Cocinar la quinoa. Cortar verduras en cubos.","Armar bowl con quinoa, vegetales, falafel. Salsear con tahini y limon."]},
+  "Pizza de calabaza fit":{t:"40 min",d:"Media",k:"320 kcal",p:"18g",e:"🍕",tags:["🌿 Vegetariana","🔥 Bajo en calorias"],i:["500g calabaza","2 huevos","100g queso rallado","Salsa de tomate","Mozzarella light 150g","Oregano","Albahaca"],s:["Rallar la calabaza cruda. Mezclar con huevos, queso y sal.","Estirar en bandeja con papel manteca. Hornear 20 min a 200C.","Cubrir con salsa, mozzarella y oregano.","Volver al horno 10 min mas hasta gratinar. Decorar con albahaca."]},
+  "Crepes de jamon y queso":{t:"30 min",d:"Facil",k:"450 kcal",p:"24g",e:"🌮",tags:["💰 Economico","⚡ Rendidor"],i:["200g harina","2 huevos","500ml leche","200g jamon cocido","200g queso en fetas","Sal","Manteca"],s:["Batir harina, huevos, leche y sal hasta masa lisa. Reposar 10 min.","Cocinar crepes finos en sarten con manteca, 1 min por lado.","Rellenar cada crepe con jamon y queso. Doblar en triangulo.","Calentar en sarten o gratinar 5 min hasta fundir el queso."]},
+  "Pollo al curry con arroz":{t:"30 min",d:"Facil",k:"520 kcal",p:"40g",e:"🍛",tags:["💪 Alta proteina","⚡ Rendidor"],i:["2 pechugas en cubos","1 cebolla","2 cdas curry en polvo","400ml leche de coco","1 taza arroz basmati","Jengibre","Cilantro y limon"],s:["Saltear cebolla y jengibre. Agregar el pollo en cubos y dorar.","Sumar el curry y mezclar bien 1 min.","Verter leche de coco y cocinar 15 min a fuego bajo.","Cocinar arroz aparte. Servir con cilantro y limon."]},
+  "Ensalada cesar con pollo":{t:"20 min",d:"Facil",k:"450 kcal",p:"38g",e:"🥗",tags:["💪 Alta proteina","⚡ Rapido"],i:["2 pechugas grilladas","Lechuga romana","Pan crutones","Parmesano","Mayonesa 3 cdas","Mostaza, ajo, limon","Anchoa opcional"],s:["Grillar pechugas y cortar en tiras.","Tostar pan en cubos con aceite y ajo para crutones.","Mezclar mayonesa con mostaza, ajo, limon y parmesano para el aderezo.","Mezclar lechuga con aderezo. Coronar con pollo, crutones y parmesano."]},
+  "Sopa china de pollo":{t:"30 min",d:"Facil",k:"260 kcal",p:"22g",e:"🍜",tags:["⚡ Rapido","🔥 Bajo en calorias"],i:["1 pechuga en tiras","100g fideos chinos","Cebolla de verdeo","Champinones","Soja","Jengibre","Caldo 1L","Sesamo"],s:["Hervir caldo con jengibre y soja.","Agregar pollo en tiras, cocinar 8 min.","Sumar champinones y fideos chinos. Cocinar 4 min.","Servir con cebolla de verdeo y sesamo encima."]},
+  "Tacos mexicanos de carne":{t:"25 min",d:"Facil",k:"480 kcal",p:"30g",e:"🌮",tags:["💰 Economico","⚡ Rapido"],i:["8 tortillas de maiz","400g carne picada","1 cebolla","Comino, pimenton, aji","Tomate","Palta","Cilantro","Limon"],s:["Saltear cebolla y carne picada con comino, pimenton y aji.","Calentar las tortillas en sarten seca.","Cortar tomate y palta en cubos chicos.","Armar tacos con carne, vegetales, cilantro y limon."]},
+  "Brochettes de pollo y vegetales":{t:"30 min",d:"Facil",k:"380 kcal",p:"38g",e:"🍢",tags:["💪 Alta proteina","💚 Desinflamatorio"],i:["2 pechugas en cubos","1 morron rojo","1 morron verde","1 cebolla","Champinones","Aceite de oliva","Limon, ajo y oregano","Palitos brochette"],s:["Marinar el pollo con aceite, limon, ajo y oregano 15 min.","Cortar vegetales en cubos del tamano del pollo.","Armar brochettes alternando pollo y vegetales.","Cocinar en plancha o parrilla 4 min por lado."]},
+  "Ensalada de fideos integrales":{t:"15 min",d:"Facil",k:"380 kcal",p:"14g",e:"🥗",tags:["🌿 Vegetariana","⚡ Rapido"],i:["300g fideos integrales","Tomate cherry","Mozzarella en bolitas","Albahaca","Aceitunas","Aceite de oliva","Vinagre balsamico"],s:["Hervir los fideos al dente. Enfriar bajo agua fria.","Cortar tomates al medio y mezclar con mozzarella.","Sumar aceitunas y albahaca picada.","Aderezar con aceite, balsamico, sal y pimienta. Servir frio."]},
+  "Pollo agridulce":{t:"30 min",d:"Facil",k:"480 kcal",p:"38g",e:"🍗",tags:["💪 Alta proteina","⚡ Rendidor"],i:["2 pechugas en cubos","1 morron","Cebolla","Anana en cubos","Salsa de soja","Vinagre","Azucar","Ketchup","Almidon de maiz"],s:["Pasar pollo por almidon y dorar en sarten. Reservar.","Saltear cebolla y morron 4 min.","Mezclar soja, vinagre, azucar y ketchup. Verter en la sarten.","Volver pollo y agregar anana. Cocinar 5 min hasta espesar."]},
+  "Polenta cremosa con queso":{t:"25 min",d:"Facil",k:"380 kcal",p:"12g",e:"🌽",tags:["🌿 Vegetariana","💰 Economico"],i:["250g polenta","1L leche","200ml caldo","Manteca 50g","Parmesano 80g","Sal y pimienta"],s:["Calentar leche y caldo con sal.","Volcar polenta en lluvia revolviendo constante.","Cocinar 5-7 min revolviendo hasta espesar.","Apagar fuego, agregar manteca y parmesano. Mezclar y servir."]},
+  "Albondigas en salsa":{t:"40 min",d:"Facil",k:"480 kcal",p:"32g",e:"🍲",tags:["💰 Economico","⚡ Rendidor"],i:["500g carne picada","1 huevo","Pan rallado 4 cdas","Ajo y perejil","1 lata tomates","1 cebolla","Caldo","Oregano"],s:["Mezclar carne con huevo, pan rallado, ajo y perejil. Formar albondigas.","Dorar las albondigas en aceite. Reservar.","Rehogar cebolla, agregar tomates y caldo. Cocinar 10 min con oregano.","Volver las albondigas a la salsa. Cocinar tapado 20 min."]},
+  "Pollo desmechado a la mexicana":{t:"40 min",d:"Facil",k:"420 kcal",p:"42g",e:"🌮",tags:["💪 Alta proteina","💰 Economico"],i:["2 pechugas grandes","1 cebolla","2 tomates","Comino, pimenton dulce, aji","Cilantro","Limon","Sal"],s:["Hervir pechugas en agua con sal 25 min. Desmechar con tenedores.","Saltear cebolla y tomate picados con comino, pimenton y aji.","Agregar el pollo desmechado y mezclar bien. Cocinar 5 min.","Sumar cilantro picado y jugo de limon. Servir con tortillas o arroz."]},
 };
 
 const LISTAS = {
@@ -215,13 +228,97 @@ const LISTAS = {
 
 const DIAS = ["Lunes","Martes","Miercoles","Jueves","Viernes","Sabado","Domingo"];
 
-function shuffle(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
+const META = {
+  bajar_peso:{tag:"Deficit calorico",tip:"Proteinas magras y vegetales de alto volumen. Cada comida ronda las 200-450 kcal.",precio:{bajo:"$35.000-45.000",medio:"$50.000-65.000",alto:"$70.000-90.000"},kw:["bajo en calorias","alta proteina","express","desinflamatorio"]},
+  saludable:{tag:"Nutricion completa",tip:"Plan balanceado con todos los macronutrientes. Variedad de colores = variedad de nutrientes.",precio:{bajo:"$40.000-55.000",medio:"$60.000-80.000",alto:"$90.000-120.000"},kw:["desinflamatorio","alta proteina","vegetar","rendidor"]},
+  ahorrar:{tag:"Maximo ahorro",tip:"Priorizamos legumbres, huevos y pollo. Las proteinas mas economicas y rendidoras.",precio:{bajo:"$18.000-28.000",medio:"$28.000-40.000",alto:"$40.000-55.000"},kw:["economico","rendidor","express"]},
+  masa:{tag:"Alta proteina",tip:"1.6-2.2g de proteina por kg corporal. Superavit calorico moderado de 300-500 kcal/dia.",precio:{bajo:"$45.000-60.000",medio:"$65.000-85.000",alto:"$90.000-130.000"},kw:["alta proteina","rendidor"]},
+  organizar:{tag:"Batch cooking",tip:"Cocinas 2 veces por semana y resolves todo. El domingo es clave: 2 horas = 7 dias resueltos.",precio:{bajo:"$22.000-32.000",medio:"$35.000-50.000",alto:"$55.000-75.000"},kw:["batch","rendidor","economico"]},
+  desinflamatoria:{tag:"Antiinflamatorio",tip:"Curcuma, jengibre, omega-3 y antioxidantes como base. Eliminamos procesados y azucar refinada.",precio:{bajo:"$45.000-60.000",medio:"$65.000-90.000",alto:"$95.000-130.000"},kw:["desinflamatorio","alta proteina","vegetar"]},
+};
+
+function getHistory() {
+  try {
+    const raw = localStorage.getItem(HISTORY_KEY);
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    const cutoff = Date.now() - HISTORY_DAYS*24*60*60*1000;
+    return arr.filter(h => h.t > cutoff);
+  } catch(e) { return []; }
+}
+
+function saveToHistory(nombres) {
+  try {
+    const cur = getHistory();
+    const now = Date.now();
+    const nuevos = nombres.map(n => ({ n, t: now }));
+    const todos = [...nuevos, ...cur].slice(0, HISTORY_MAX);
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(todos));
+  } catch(e) {}
+}
+
+function parseTime(t) {
+  const m = parseInt(t);
+  return isNaN(m) ? 30 : m;
+}
+
+function isVegetariana(nombre) {
+  const r = R[nombre];
+  if (!r) return false;
+  const tagStr = (r.tags||[]).join(" ").toLowerCase();
+  if (tagStr.includes("vegetar") || tagStr.includes("vegano")) return true;
+  const carnes = ["pollo","carne","jamon","atun","salmon","panceta","milanesa","matambre","asado","lomo","bife","chorizo","albondiga","suprema","brochette","sardina","tofu"];
+  const ingStr = (r.i||[]).join(" ").toLowerCase() + " " + nombre.toLowerCase();
+  if (nombre.toLowerCase().includes("tofu")) return true;
+  return !carnes.some(c => ingStr.includes(c));
+}
+
+function isLiviana(nombre) {
+  const r = R[nombre];
+  if (!r) return false;
+  const k = parseInt(r.k);
+  if (!isNaN(k) && k > 400) return false;
+  const tagStr = (r.tags||[]).join(" ").toLowerCase();
+  return tagStr.includes("bajo") || tagStr.includes("desinflamatorio") || tagStr.includes("express") || (!isNaN(k) && k <= 400);
+}
+
+function isContundente(nombre) {
+  const r = R[nombre];
+  if (!r) return false;
+  const k = parseInt(r.k);
+  return (!isNaN(k) && k >= 450) || (r.tags||[]).some(t => t.includes("Alta proteina") || t.includes("Rendidor"));
+}
+
+function scoreReceta(nombre, objetivo, dietas, tiempo, history) {
+  const r = R[nombre];
+  if (!r) return -999;
+  let score = Math.random() * 5;
+  const meta = META[objetivo] || META.organizar;
+  const tagStr = (r.tags||[]).join(" ").toLowerCase();
+  meta.kw.forEach(k => { if (tagStr.includes(k)) score += 12; });
+
+  if (dietas.includes("vegetariana") || dietas.includes("vegana")) {
+    if (isVegetariana(nombre)) score += 20;
+    else score -= 100;
   }
-  return a;
+  if (dietas.includes("desinflamatoria")) {
+    if (tagStr.includes("desinflamatorio")) score += 15;
+  }
+
+  const mins = parseTime(r.t);
+  if (tiempo === "rapido" && mins <= 20) score += 8;
+  if (tiempo === "rapido" && mins > 30) score -= 10;
+  if (tiempo === "medio" && mins <= 30) score += 4;
+  if (tiempo === "libre" && mins >= 30) score += 3;
+
+  const idx = history.findIndex(h => h.n === nombre);
+  if (idx !== -1) {
+    const ageDays = (Date.now() - history[idx].t) / (24*60*60*1000);
+    const penalty = 50 * (1 - ageDays/HISTORY_DAYS);
+    score -= penalty;
+  }
+
+  return score;
 }
 
 function generar(a) {
@@ -229,58 +326,128 @@ function generar(a) {
   const dietas = a.dieta || [];
   let key = obj;
   if (dietas.includes("desinflamatoria")) key = "desinflamatoria";
-  const pool = POOLS[key] || POOLS.organizar;
-  const alms = shuffle(pool.almuerzos);
-  const cens = shuffle(pool.cenas);
+  const meta = META[key] || META.organizar;
+  const history = getHistory();
+  const todas = Object.keys(R);
+
+  const conScore = todas.map(n => ({ n, s: scoreReceta(n, key, dietas, a.tiempo, history), liviana: isLiviana(n), contundente: isContundente(n) }))
+    .sort((x,y) => y.s - x.s);
+
+  const candidatosAlm = conScore.filter(x => x.contundente || !x.liviana).slice(0, 25);
+  const candidatosCen = conScore.filter(x => x.liviana).slice(0, 20);
+
+  const almsBase = candidatosAlm.length >= 7 ? candidatosAlm : conScore.slice(0, 25);
+  const censBase = candidatosCen.length >= 7 ? candidatosCen : conScore.filter(x => !almsBase.slice(0,7).find(a => a.n === x.n)).slice(0, 20);
+
+  const usadas = new Set();
+  const almsElegidas = [];
+  for (const c of almsBase) {
+    if (almsElegidas.length >= 7) break;
+    if (usadas.has(c.n)) continue;
+    almsElegidas.push(c.n);
+    usadas.add(c.n);
+  }
+  while (almsElegidas.length < 7) almsElegidas.push(almsBase[0]?.n || todas[0]);
+
+  const censElegidas = [];
+  for (const c of censBase) {
+    if (censElegidas.length >= 7) break;
+    if (usadas.has(c.n)) continue;
+    censElegidas.push(c.n);
+    usadas.add(c.n);
+  }
+  while (censElegidas.length < 7) {
+    const fallback = conScore.find(x => !usadas.has(x.n));
+    if (!fallback) break;
+    censElegidas.push(fallback.n);
+    usadas.add(fallback.n);
+  }
+
   const menu = DIAS.map((dia, i) => ({
     dia,
-    alm: alms[i % alms.length],
-    cen: cens[i % cens.length],
-    tag_alm: TAG_MAP[alms[i % alms.length]] || "⚡ Rendidor",
-    tag_cen: TAG_MAP[cens[i % cens.length]] || "🔥 Bajo en calorias",
+    alm: almsElegidas[i],
+    cen: censElegidas[i],
+    tag_alm: (R[almsElegidas[i]]?.tags?.[0]) || "⚡ Rendidor",
+    tag_cen: (R[censElegidas[i]]?.tags?.[0]) || "🔥 Bajo en calorias",
   }));
-  return { ...pool, menu, lista_compras:LISTAS[key]||LISTAS.organizar, objetivo:key, precio_estimado:pool.precio[a.presupuesto||"medio"], answers:a };
+
+  saveToHistory([...almsElegidas, ...censElegidas]);
+
+  return { ...meta, menu, lista_compras: LISTAS[key] || LISTAS.organizar, objetivo: key, precio_estimado: meta.precio[a.presupuesto || "medio"], answers: a, dietas };
+}
+
+function cambiarReceta(menuActual, dia, tipo, objetivo, dietas, tiempo) {
+  const history = getHistory();
+  const todas = Object.keys(R);
+  const enMenu = new Set();
+  menuActual.forEach(d => { enMenu.add(d.alm); enMenu.add(d.cen); });
+  const recetaActual = menuActual.find(d => d.dia === dia)?.[tipo];
+  enMenu.delete(recetaActual);
+
+  const filtro = tipo === "cen" ? (n => isLiviana(n)) : (n => isContundente(n) || !isLiviana(n));
+  let candidatos = todas.filter(n => !enMenu.has(n) && filtro(n));
+  if (candidatos.length < 3) candidatos = todas.filter(n => !enMenu.has(n));
+
+  const conScore = candidatos
+    .filter(n => n !== recetaActual)
+    .map(n => ({ n, s: scoreReceta(n, objetivo, dietas, tiempo, history) + Math.random()*15 }))
+    .sort((x,y) => y.s - x.s);
+
+  const nueva = conScore[0]?.n || candidatos[0] || recetaActual;
+  saveToHistory([nueva]);
+  return nueva;
 }
 
 function generarHoy(cuantas, tipo, ingredientes) {
   const todas = Object.keys(R);
-  let filtradas = todas;
-  if (tipo === "vegetariana") {
-    filtradas = todas.filter(n => {
-      const tags = R[n]?.tags || [];
-      const tagStr = tags.join(" ").toLowerCase();
-      return tagStr.includes("vegetar") || tagStr.includes("vegano");
-    });
-    if (filtradas.length < 4) filtradas = todas.filter(n => !["lomo","milanesa","pollo","salmon","atun","carne","jamon"].some(p => n.toLowerCase().includes(p)));
-  } else if (tipo === "liviana") {
-    filtradas = todas.filter(n => {
-      const tags = R[n]?.tags || [];
-      return tags.some(t => t.includes("Bajo en calorias") || t.includes("Express") || t.includes("Desinflamatorio"));
-    });
-  } else if (tipo === "rapida") {
-    filtradas = todas.filter(n => {
-      const t = R[n]?.t || "";
-      const mins = parseInt(t);
-      return !isNaN(mins) && mins <= 20;
-    });
-  } else if (tipo === "contundente") {
-    filtradas = todas.filter(n => {
-      const tags = R[n]?.tags || [];
-      return tags.some(t => t.includes("Alta proteina") || t.includes("Rendidor") || t.includes("Economico"));
-    });
+  const history = getHistory();
+  let candidatos = [...todas];
+
+  if (tipo === "vegetariana") candidatos = candidatos.filter(isVegetariana);
+  else if (tipo === "liviana") candidatos = candidatos.filter(isLiviana);
+  else if (tipo === "rapida") candidatos = candidatos.filter(n => parseTime(R[n]?.t) <= 20);
+  else if (tipo === "contundente") candidatos = candidatos.filter(isContundente);
+
+  if (candidatos.length === 0) candidatos = [...todas];
+
+  const ings = (ingredientes || "").toLowerCase().split(/[,\s]+/).filter(i => i.length > 2);
+
+  const conScore = candidatos.map(n => {
+    let score = Math.random() * 10;
+    const recetaIngs = (R[n]?.i || []).join(" ").toLowerCase() + " " + n.toLowerCase();
+    if (ings.length > 0) {
+      const matches = ings.filter(ing => recetaIngs.includes(ing)).length;
+      const pct = matches / ings.length;
+      score += pct * 60;
+      if (matches === 0) score -= 20;
+    }
+    const idx = history.findIndex(h => h.n === n);
+    if (idx !== -1) {
+      const ageDays = (Date.now() - history[idx].t) / (24*60*60*1000);
+      score -= 30 * (1 - ageDays/HISTORY_DAYS);
+    }
+    return { n, score };
+  }).sort((a,b) => b.score - a.score);
+
+  const top = conScore.slice(0, Math.min(5, conScore.length));
+  const elegidas = [];
+  const usadas = new Set();
+  for (const c of top) {
+    if (usadas.has(c.n)) continue;
+    elegidas.push(c.n);
+    usadas.add(c.n);
+    if (elegidas.length >= 2) break;
   }
-  if (ingredientes && ingredientes.trim()) {
-    const ings = ingredientes.toLowerCase().split(/[,\s]+/).filter(i => i.length > 2);
-    const conIngredientes = filtradas.filter(n => {
-      const recetaIngs = (R[n]?.i || []).join(" ").toLowerCase();
-      return ings.some(ing => recetaIngs.includes(ing));
-    });
-    if (conIngredientes.length >= 2) filtradas = conIngredientes;
+  while (elegidas.length < 2 && conScore.length > elegidas.length) {
+    const next = conScore[elegidas.length];
+    if (next && !usadas.has(next.n)) { elegidas.push(next.n); usadas.add(next.n); }
+    else break;
   }
-  if (filtradas.length === 0) filtradas = todas;
-  const shuffled = shuffle(filtradas);
-  if (cuantas === "1") return [{ tipo:"Tu comida de hoy", nombre:shuffled[0] }];
-  return [{ tipo:"Almuerzo", nombre:shuffled[0] }, { tipo:"Cena", nombre:shuffled[1] || shuffled[0] }];
+
+  saveToHistory(elegidas);
+
+  if (cuantas === "1") return [{ tipo:"Tu comida de hoy", nombre: elegidas[0] }];
+  return [{ tipo:"Almuerzo", nombre: elegidas[0] }, { tipo:"Cena", nombre: elegidas[1] || elegidas[0] }];
 }
 
 function Tag({ children, color=C.blue, bg=C.blueLt }) {
@@ -319,38 +486,6 @@ function ChefChat({ result, recetaActual, onClose }) {
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior:"smooth" }); }, [msgs, loading]);
-
-  const responder = (p) => {
-    const q = p.toLowerCase();
-    if (q.includes("reemplazar")||q.includes("sustituir")||q.includes("falta")||q.includes("sin ")) {
-      if (q.includes("quinoa")) return "Si no tenes quinoa, podes usar arroz integral, arroz yamani o trigo burgol 👌";
-      if (q.includes("salmon")) return "El salmon se puede reemplazar por atun fresco, caballa o merluza 💪";
-      if (q.includes("pollo")) return "Podes reemplazar el pollo por pavo, cerdo magro o tofu firme 🍗";
-      if (q.includes("palta")||q.includes("aguacate")) return "Si no tenes palta, proba con ricota o queso crema light 🥑";
-      if (q.includes("brocoli")) return "El brocoli se puede cambiar por coliflor, chauchas o zapallito verde 🥦";
-      if (q.includes("lentejas")) return "Las lentejas se pueden reemplazar por porotos, garbanzos o arvejas 🫘";
-      if (q.includes("arroz")) return "Podes usar arroz blanco comun (15 min) o fideos integrales 🍚";
-      if (q.includes("aceite")) return "Podes usar aceite de girasol o canola sin problema 🫒";
-      if (q.includes("ricota")) return "La ricota se puede reemplazar por queso cottage o queso crema descremado 🧀";
-      return "Que ingrediente especifico te falta? Te doy alternativas concretas 😊";
-    }
-    if (q.includes("tiempo")||q.includes("listo")||q.includes("cocido")||q.includes("cuando")) {
-      if (q.includes("pollo")) return "El pollo esta listo cuando al pincharlo el jugo sale claro. Plancha: 4-5 min por lado. Horno 200C: 35-45 min 🍗";
-      if (q.includes("arroz")) return "Arroz blanco: 15-18 min tapado. Arroz integral: 35-40 min. Apagar cuando aparecen agujeritos y reposar 5 min 🍚";
-      if (q.includes("quinoa")) return "La quinoa tarda 15 min. Lista cuando aparece el hilito blanco (germen). Reposar 5 min tapada ✅";
-      if (q.includes("lentejas")) return "Lentejas rojas: 15-20 min. Pardas o verdes: 25-30 min. Listas cuando se aplastan con el tenedor 🫘";
-      if (q.includes("huevo")) return "Huevo duro: 10 min. Pasado por agua: 6 min. Revuelto: fuego bajo, retirar cuando casi cuajan 🥚";
-      return "El punto justo es cuando cambia de color y se puede pinchar facilmente. Que alimento especifico? ⏱";
-    }
-    if (q.includes("dura")||q.includes("guardar")||q.includes("heladera")||q.includes("freezer")) {
-      if (q.includes("pollo")||q.includes("carne")) return "La carne cocida dura 3-4 dias en heladera. En freezer hasta 3 meses 🧊";
-      if (q.includes("arroz")||q.includes("quinoa")||q.includes("lentejas")) return "Cereales y legumbres cocidos duran 4-5 dias en heladera. Ideales para batch cooking 📦";
-      if (q.includes("sopa")||q.includes("guiso")) return "Sopas y guisos duran 4-5 dias en heladera y se pueden freezar hasta 3 meses 🍲";
-      return "Comidas cocidas duran 3-4 dias en heladera en recipiente hermetico ❄️";
-    }
-    if (q.includes("hola")||q.includes("gracias")||q==="ok"||q==="bien") return "Hola! Estoy aca para ayudarte con cualquier duda de cocina 👨‍🍳";
-    return "Buena pregunta 👨‍🍳 Contame mas sobre que receta o ingrediente tenes dudas y te ayudo mejor 😊";
-  };
 
   const send = async () => {
     const txt = input.trim();
@@ -565,13 +700,9 @@ function MainApp() {
     setCambiando(key);
     setTimeout(() => {
       setResult(prev => {
-        const pool = POOLS[prev.objetivo];
-        if (!pool) return prev;
-        const lista = tipo === "alm" ? pool.almuerzos : pool.cenas;
-        const actual = prev.menu.find(d => d.dia === dia)?.[tipo];
-        const otras = lista.filter(r => r !== actual);
-        const nueva = otras[Math.floor(Math.random() * otras.length)] || lista[0];
-        return { ...prev, menu: prev.menu.map(d => d.dia !== dia ? d : { ...d, [tipo]:nueva, [`tag_${tipo}`]:TAG_MAP[nueva]||"⚡ Rendidor" }) };
+        if (!prev) return prev;
+        const nueva = cambiarReceta(prev.menu, dia, tipo, prev.objetivo, prev.dietas || [], prev.answers?.tiempo);
+        return { ...prev, menu: prev.menu.map(d => d.dia !== dia ? d : { ...d, [tipo]:nueva, [`tag_${tipo}`]:(R[nueva]?.tags?.[0]) || "⚡ Rendidor" }) };
       });
       setCambiando(null);
     }, 700);
@@ -670,7 +801,7 @@ function MainApp() {
       ) : (
         <div style={{ flex:1, padding:"28px 24px", maxWidth:520, margin:"0 auto", width:"100%" }}>
           <div style={{ fontSize:24, fontWeight:800, color:C.dark, marginBottom:6, letterSpacing:"-0.025em", fontFamily:"'Epilogue',sans-serif" }}>Tu menu de hoy 🎉</div>
-          <div style={{ fontSize:14, color:C.sub, marginBottom:24 }}>Elegido al azar del banco de recetas</div>
+          <div style={{ fontSize:14, color:C.sub, marginBottom:24 }}>Elegido para vos del banco de recetas</div>
           <div style={{ display:"flex", flexDirection:"column", gap:14, marginBottom:28 }}>
             {hoyResult.map((item,i) => {
               const r = R[item.nombre];
