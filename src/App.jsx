@@ -52,7 +52,7 @@ function AccessScreen({ onAccess }) {
           </button>
         </div>
         <div style={{ textAlign:"center", marginTop:20, fontSize:13, color:C2.sub, lineHeight:1.6 }}>
-          No tenes codigo? <br/><a href="https://impulsoebooks.online" style={{ color:C2.blue, fontWeight:700, textDecoration:"none" }}>Compra tu acceso aca →</a>
+          No tenes codigo? <br/><a href="https://impulsoebooks.online/pages/kooki-1" style={{ color:C2.blue, fontWeight:700, textDecoration:"none" }}>Compra tu acceso aca →</a>
         </div>
       </div>
     </div>
