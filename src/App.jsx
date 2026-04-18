@@ -6,6 +6,75 @@ const HISTORY_KEY = "kooki_history_v1";
 const HISTORY_DAYS = 7;
 const HISTORY_MAX = 20;
 
+// ============================================
+// SISTEMA DE DISEÑO (alineado con landing v3.9)
+// ============================================
+const C = {
+  blue: "#3B6FD4", blueDk: "#0066CC", blueMd: "#5B8AE8",
+  blueLt: "#EEF3FC", bluePl: "#D6E4FA", blueGlow: "#8BA8E0",
+  white: "#FFFFFF", bg: "#F5F5F7", bgSoft: "#EAEAEE",
+  gray1: "#F0F3FA", gray2: "#E2E8F5", gray3: "#B8C5DE", gray4: "#7A8BAD",
+  line: "#E5E7EB", dark: "#0A0E1A", ink: "#0A0E1A",
+  text: "#1F2937", sub: "#6B7280", muted: "#6B7280",
+  success: "#10B981", danger: "#EF4444", dangerLt: "#FEF2F2",
+};
+const sh = {
+  sm: "0 1px 4px rgba(59,111,212,0.08)",
+  md: "0 4px 16px rgba(59,111,212,0.12)",
+  lg: "0 8px 32px rgba(59,111,212,0.16)",
+  blue: "0 8px 28px rgba(59,111,212,0.38)",
+  ink: "0 20px 40px rgba(10,14,26,0.25)",
+};
+const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Epilogue:wght@500;600;700;800;900&family=Manrope:wght@400;500;600;700;800&family=Inter:wght@500;600;700&display=swap');`;
+const ANIMS = `@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}@keyframes slideIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}@keyframes spin{to{transform:rotate(360deg)}}@keyframes chefBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}@keyframes chefPulse{0%,100%{transform:scale(1);box-shadow:0 8px 28px rgba(59,111,212,0.38)}50%{transform:scale(1.12);box-shadow:0 12px 40px rgba(59,111,212,0.6)}}@keyframes ripple{0%{transform:scale(0.8);opacity:1}100%{transform:scale(2.2);opacity:0}}@keyframes dotPulse{0%,80%,100%{opacity:0.3;transform:scale(0.8)}40%{opacity:1;transform:scale(1)}}@keyframes pulseDot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(1.4)}}@keyframes floatPhone{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}`;
+const BASE = `${FONTS} *{box-sizing:border-box;margin:0;padding:0;} body{margin:0;font-family:'Manrope',sans-serif;-webkit-font-smoothing:antialiased;} button:focus,textarea:focus,input:focus{outline:none;} ${ANIMS}`;
+
+// ============================================
+// COMPONENTES VISUALES BASE
+// ============================================
+function BgGrid({ dark = false }) {
+  const lc = dark ? "rgba(255,255,255,0.04)" : "rgba(10,14,26,0.04)";
+  return (<div style={{ position:"absolute", inset:0, zIndex:0, pointerEvents:"none", backgroundImage:`linear-gradient(to right,${lc} 1px,transparent 1px),linear-gradient(to bottom,${lc} 1px,transparent 1px)`, backgroundSize:"60px 60px" }} />);
+}
+function Blob({ pos = "tr", color = "rgba(59,111,212,0.18)", size = 500 }) {
+  const positions = { tr:{top:-180,right:-150}, tl:{top:-180,left:-150}, br:{bottom:-180,right:-150}, bl:{bottom:-180,left:-150} };
+  return (<div style={{ position:"absolute", zIndex:0, pointerEvents:"none", width:size, height:size, borderRadius:"50%", background:`radial-gradient(circle at center,${color},transparent 70%)`, filter:"blur(50px)", ...positions[pos] }} />);
+}
+function Eyebrow({ children, dark = false, center = false }) {
+  const color = dark ? C.blueGlow : C.blue;
+  return (<span style={{ display:"inline-flex", alignItems:"center", gap:10, fontSize:12, fontWeight:600, color, textTransform:"uppercase", letterSpacing:"0.14em", fontFamily:"'Inter',sans-serif", ...(center?{justifyContent:"center"}:{}) }}>
+    <span style={{ width:24, height:2, background:color, display:"inline-block", flexShrink:0 }} />{children}
+  </span>);
+}
+function KookiLogo({ size = 28, dark = false }) {
+  return (<span style={{ fontWeight:900, fontSize:size, color:dark?C.white:C.blue, letterSpacing:"-0.035em", lineHeight:1, fontFamily:"'Epilogue',sans-serif" }}>Kooki</span>);
+}
+function Tag({ children, color=C.blue, bg=C.blueLt }) {
+  return <span style={{ background:bg, color, borderRadius:20, padding:"3px 10px", fontSize:11, fontWeight:700, display:"inline-block", lineHeight:1.5, fontFamily:"'Inter',sans-serif" }}>{children}</span>;
+}
+function ChefHat({ size=24, color="#FFFFFF" }) {
+  return (<svg width={size} height={size} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 38c-5 0-9-4-9-9s4-9 9-9c0-6 5-11 11-11 4 0 7 2 9 5 2-3 5-5 9-5 6 0 11 5 11 11 5 0 9 4 9 9s-4 9-9 9v0H16v0z" fill={color}/><path d="M16 38h32v12c0 2-2 4-4 4H20c-2 0-4-2-4-4V38z" fill={color}/><path d="M16 42h32" stroke="#0A0E1A" strokeWidth="1.5" strokeLinecap="round" opacity="0.25"/></svg>);
+}
+const TAG_COLORS = {
+  "💚 Desinflamatorio":{bg:"#F0FDF4",color:"#16A34A"},
+  "💪 Alta proteina":{bg:"#FFF7ED",color:"#EA580C"},
+  "⚡ Express":{bg:"#FFFBEB",color:"#D97706"},
+  "⚡ Rapido":{bg:"#FFFBEB",color:"#D97706"},
+  "⚡ Rendidor":{bg:"#EFF6FF",color:C.blue},
+  "🔥 Bajo en calorias":{bg:"#FEF2F2",color:"#DC2626"},
+  "💰 Economico":{bg:"#F0FDF4",color:"#15803D"},
+  "🌿 Vegetariana":{bg:"#F0FDF4",color:"#16A34A"},
+  "🌿 Vegetariano":{bg:"#F0FDF4",color:"#16A34A"},
+  "📦 Batch cooking":{bg:"#F5F3FF",color:"#7C3AED"},
+};
+function MealTag({ label }) {
+  const s = TAG_COLORS[label] || { bg:C.blueLt, color:C.blue };
+  return <Tag bg={s.bg} color={s.color}>{label}</Tag>;
+}
+
+// ============================================
+// PANTALLA DE ACCESO
+// ============================================
 function AccessScreen({ onAccess }) {
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
@@ -30,51 +99,55 @@ function AccessScreen({ onAccess }) {
       }
     }, 600);
   };
-  const C2 = { blue:"#3B6FD4", blueDk:"#0066CC", blueLt:"#EEF3FC", white:"#FFFFFF", gray1:"#F0F3FA", gray2:"#E2E8F5", gray4:"#7A8BAD", dark:"#0A0E1A", text:"#1F2937", sub:"#6B7280", danger:"#EF4444", dangerLt:"#FEF2F2" };
+
   return (
-    <div style={{ minHeight:"100vh", background:C2.white, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"32px 24px", fontFamily:"'Manrope',sans-serif" }}>
-      <style>{"@import url('https://fonts.googleapis.com/css2?family=Epilogue:wght@500;600;700;800;900&family=Manrope:wght@400;500;600;700;800&family=Inter:wght@500;600;700&display=swap'); *{box-sizing:border-box;margin:0;padding:0;} @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}} @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}"}</style>
-      <div style={{ width:"100%", maxWidth:380, animation:"fadeIn 0.4s ease" }}>
-        <div style={{ textAlign:"center", marginBottom:40 }}>
-          <img src="https://i.imgur.com/IYcv1Vp.jpeg" alt="Kooki" style={{ width:160, borderRadius:0, marginBottom:8 }}/>
-          <div style={{ fontSize:14, color:C2.sub, marginTop:2 }}>IA que cocina con vos</div>
+    <div style={{ minHeight:"100vh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"32px 24px", fontFamily:"'Manrope',sans-serif", position:"relative", overflow:"hidden" }}>
+      <style>{BASE}</style>
+      <BgGrid /><Blob pos="tr" /><Blob pos="bl" color="rgba(0,102,204,0.13)" />
+      <div style={{ width:"100%", maxWidth:400, animation:"fadeIn 0.4s ease", position:"relative", zIndex:1 }}>
+        <div style={{ textAlign:"center", marginBottom:36 }}>
+          <img src="https://i.imgur.com/IYcv1Vp.jpeg" alt="Kooki" style={{ width:160, marginBottom:12 }}/>
+          <div style={{ display:"flex", justifyContent:"center" }}><Eyebrow>Acceso Privado</Eyebrow></div>
         </div>
-        <div style={{ background:C2.white, borderRadius:24, padding:"32px 28px", boxShadow:"0 8px 40px rgba(59,111,212,0.12)", border:`1px solid ${C2.gray2}` }}>
-          <div style={{ fontSize:22, fontWeight:800, color:C2.dark, marginBottom:8, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.025em" }}>Ingresa tu codigo</div>
-          <div style={{ fontSize:14, color:C2.sub, lineHeight:1.6, marginBottom:28 }}>Encontras el codigo en el email que recibiste despues de tu compra.</div>
-          <div style={{ marginBottom:16, animation:shake?"shake 0.5s ease":"none" }}>
+        <div style={{ background:C.white, borderRadius:28, padding:"36px 32px", boxShadow:"0 20px 60px rgba(10,14,26,0.08)", border:`1px solid ${C.line}` }}>
+          <h2 style={{ fontSize:28, fontWeight:900, color:C.ink, marginBottom:10, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.035em", lineHeight:1.05 }}>
+            Ingresá tu <span style={{ color:C.blue, fontStyle:"italic", fontWeight:800 }}>código</span>.
+          </h2>
+          <div style={{ fontSize:15, color:C.sub, lineHeight:1.55, marginBottom:28, fontWeight:500 }}>Lo recibiste por email después de tu compra.</div>
+          <div style={{ marginBottom:18, animation:shake?"shake 0.5s ease":"none" }}>
             <input type="text" value={code} onChange={e => { setCode(e.target.value.toUpperCase()); setError(""); }} onKeyDown={e => e.key === "Enter" && handleSubmit()} placeholder="KOOKI-XXXX-XXXX-XXXX"
-              style={{ width:"100%", padding:"16px", borderRadius:14, fontSize:16, fontWeight:600, border:`2px solid ${error ? C2.danger : code ? C2.blue : C2.gray2}`, background:error ? C2.dangerLt : C2.gray1, color:C2.dark, fontFamily:"'Inter',sans-serif", letterSpacing:"1px", textAlign:"center", outline:"none" }}/>
-            {error && <div style={{ fontSize:13, color:C2.danger, marginTop:8, textAlign:"center", fontWeight:600 }}>⚠️ {error}</div>}
+              style={{ width:"100%", padding:"18px", borderRadius:14, fontSize:16, fontWeight:700, border:`2px solid ${error?C.danger:code?C.blue:C.line}`, background:error?C.dangerLt:C.bg, color:C.ink, fontFamily:"'Inter',sans-serif", letterSpacing:"1.5px", textAlign:"center", outline:"none", transition:"border-color 0.2s, background 0.2s" }}/>
+            {error && <div style={{ fontSize:13, color:C.danger, marginTop:10, textAlign:"center", fontWeight:600 }}>{error}</div>}
           </div>
-          <button onClick={handleSubmit} disabled={loading || !code.trim()} style={{ width:"100%", padding:"18px", borderRadius:16, border:"none", background:loading||!code.trim()?C2.gray2:`linear-gradient(135deg,${C2.blue},${C2.blueDk})`, color:loading||!code.trim()?C2.gray4:C2.white, fontSize:17, fontWeight:800, cursor:loading||!code.trim()?"not-allowed":"pointer", fontFamily:"'Inter',sans-serif", boxShadow:!loading&&code.trim()?"0 8px 28px rgba(59,111,212,0.38)":"none" }}>
-            {loading ? "Verificando..." : "Acceder →"}
+          <button onClick={handleSubmit} disabled={loading || !code.trim()}
+            style={{ width:"100%", padding:"20px", borderRadius:16, border:"none", background:loading||!code.trim()?C.gray2:C.ink, color:loading||!code.trim()?C.gray4:C.white, fontSize:16, fontWeight:700, cursor:loading||!code.trim()?"not-allowed":"pointer", fontFamily:"'Inter',sans-serif", boxShadow:!loading&&code.trim()?sh.ink:"none", display:"flex", alignItems:"center", justifyContent:"center", gap:12, transition:"background 0.2s, transform 0.2s" }}
+            onMouseEnter={e => { if (!loading && code.trim()) { e.currentTarget.style.background = C.blue; e.currentTarget.style.transform = "translateY(-2px)"; } }}
+            onMouseLeave={e => { if (!loading && code.trim()) { e.currentTarget.style.background = C.ink; e.currentTarget.style.transform = "translateY(0)"; } }}>
+            <span>{loading ? "Verificando..." : "Acceder"}</span>
+            {!loading && code.trim() && (<span style={{ width:28, height:28, borderRadius:"50%", background:C.white, color:C.ink, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:15, fontWeight:700 }}>→</span>)}
           </button>
         </div>
-        <div style={{ textAlign:"center", marginTop:20, fontSize:13, color:C2.sub, lineHeight:1.6 }}>
-          No tenes codigo? <br/><a href="https://impulsoebooks.online/pages/kooki-1" style={{ color:C2.blue, fontWeight:700, textDecoration:"none" }}>Compra tu acceso aca →</a>
+        <div style={{ textAlign:"center", marginTop:24, fontSize:14, color:C.sub, lineHeight:1.6, fontWeight:500 }}>
+          ¿No tenés código?<br/><a href="https://impulsoebooks.online/pages/kooki-1" style={{ color:C.blue, fontWeight:700, textDecoration:"none" }}>Conseguilo acá →</a>
         </div>
       </div>
     </div>
   );
 }
 
-const C = { blue:"#3B6FD4", blueDk:"#0066CC", blueMd:"#5B8AE8", blueLt:"#EEF3FC", bluePl:"#D6E4FA", white:"#FFFFFF", bg:"#F5F5F7", gray1:"#F0F3FA", gray2:"#E2E8F5", gray3:"#B8C5DE", gray4:"#7A8BAD", dark:"#0A0E1A", text:"#1F2937", sub:"#6B7280", success:"#10B981" };
-const sh = { sm:"0 1px 4px rgba(59,111,212,0.08)", md:"0 4px 16px rgba(59,111,212,0.12)", lg:"0 8px 32px rgba(59,111,212,0.16)", blue:"0 8px 28px rgba(59,111,212,0.38)" };
-function KookiLogo({ size=28, dark=false }) {
-  return <span style={{ fontWeight:800, fontSize:size, color:dark?"#FFF":C.blue, letterSpacing:"-0.025em", lineHeight:1, fontFamily:"'Epilogue',sans-serif" }}>Kooki</span>;
-}
-
+// ============================================
+// DATA: STEPS (con num en lugar de emoji para tiempo/personas/nivel/presupuesto)
+// ============================================
 const STEPS = [
-  { id:"objetivo", type:"objetivo", label:"Elegi lo que mas te importa hoy", subtitle:"Podes seleccionar hasta 2 prioridades",
+  { id:"objetivo", type:"objetivo", label:"Elegí lo que más te importa hoy", subtitle:"Podés seleccionar hasta 2 prioridades",
     options:[
-      {value:"bajar_peso",emoji:"⚖️",label:"Bajar de peso",desc:"Deficit calorico inteligente",color:"#EFF6FF"},
-      {value:"saludable",emoji:"🥗",label:"Comer saludable",desc:"Nutricion completa y balanceada",color:"#F0FDF4"},
-      {value:"ahorrar",emoji:"💰",label:"Ahorrar dinero",desc:"Maximo rendimiento por peso",color:"#FFFBEB"},
-      {value:"masa",emoji:"💪",label:"Ganar masa muscular",desc:"Alta proteina y superavit",color:"#FFF7ED"},
-      {value:"organizar",emoji:"📅",label:"Organizarme mejor",desc:"Batch cooking sin estres",color:"#F5F3FF"},
+      {value:"bajar_peso",emoji:"⚖️",label:"Bajar de peso",desc:"Déficit calórico inteligente"},
+      {value:"saludable",emoji:"🥗",label:"Comer saludable",desc:"Nutrición completa y balanceada"},
+      {value:"ahorrar",emoji:"💰",label:"Ahorrar dinero",desc:"Máximo rendimiento por peso"},
+      {value:"masa",emoji:"💪",label:"Ganar masa muscular",desc:"Alta proteína y superávit"},
+      {value:"organizar",emoji:"📅",label:"Organizarme mejor",desc:"Batch cooking sin estrés"},
     ]},
-  { id:"dieta", type:"grid", label:"Seguis alguna dieta?", subtitle:"Podes combinar varias opciones",
+  { id:"dieta", type:"grid", label:"¿Seguís alguna dieta?", subtitle:"Podés combinar varias opciones",
     options:[
       {value:"libre",emoji:"🍽️",label:"Sin restricciones"},
       {value:"keto",emoji:"🥑",label:"Keto"},
@@ -85,33 +158,36 @@ const STEPS = [
       {value:"sinlactosa",emoji:"🥛",label:"Sin Lactosa"},
       {value:"desinflamatoria",emoji:"🫚",label:"Desinflamatoria"},
     ]},
-  { id:"tiempo", type:"cards", label:"Cuanto tiempo tenes para cocinar?", subtitle:"Por comida, en promedio durante la semana",
+  { id:"tiempo", type:"cards", label:"¿Cuánto tiempo tenés para cocinar?", subtitle:"Por comida, en promedio durante la semana",
     options:[
-      {value:"rapido",emoji:"⚡",label:"Rapido",desc:"Menos de 15 minutos",accent:"#FFF7ED"},
-      {value:"medio",emoji:"🕐",label:"Normal",desc:"Entre 15 y 30 minutos",accent:"#EFF6FF"},
-      {value:"libre",emoji:"🧑‍🍳",label:"Sin limite",desc:"Me gusta cocinar con calma",accent:"#F0FDF4"},
+      {value:"rapido",num:"01",label:"Rápido",desc:"Menos de 15 minutos"},
+      {value:"medio",num:"02",label:"Normal",desc:"Entre 15 y 30 minutos"},
+      {value:"libre",num:"03",label:"Sin límite",desc:"Me gusta cocinar con calma"},
     ]},
-  { id:"presupuesto", type:"semaforo", label:"Cuanto queres gastar en el super?", subtitle:"Por semana, en pesos argentinos",
+  { id:"presupuesto", type:"semaforo", label:"¿Cuánto querés gastar en el súper?", subtitle:"Por semana, en pesos argentinos",
     options:[
-      {value:"bajo",emoji:"🟢",label:"Ajustado",desc:"Maximo rendimiento por peso",color:"#10B981",bg:"#F0FDF4"},
-      {value:"medio",emoji:"🟡",label:"Moderado",desc:"Balance entre precio y calidad",color:"#F59E0B",bg:"#FFFBEB"},
-      {value:"alto",emoji:"🔵",label:"Sin limite",desc:"Prefiero calidad ante todo",color:"#3B6FD4",bg:"#EEF3FC"},
+      {value:"bajo",num:"$",label:"Ajustado",desc:"Máximo rendimiento por peso",color:"#10B981"},
+      {value:"medio",num:"$$",label:"Moderado",desc:"Balance entre precio y calidad",color:"#F59E0B"},
+      {value:"alto",num:"$$$",label:"Sin límite",desc:"Prefiero calidad ante todo",color:C.blue},
     ]},
-  { id:"personas", type:"cards", label:"Para cuantas personas cocinas?", subtitle:"Ajustamos porciones e ingredientes automaticamente",
+  { id:"personas", type:"cards", label:"¿Para cuántas personas cocinás?", subtitle:"Ajustamos porciones e ingredientes automáticamente",
     options:[
-      {value:"1",emoji:"🙋",label:"Solo/a",desc:"1 persona"},
-      {value:"2",emoji:"👫",label:"De a dos",desc:"2 personas"},
-      {value:"familiar",emoji:"👨‍👩‍👧‍👦",label:"Familia",desc:"3 o mas personas"},
+      {value:"1",num:"01",label:"Solo/a",desc:"1 persona"},
+      {value:"2",num:"02",label:"De a dos",desc:"2 personas"},
+      {value:"familiar",num:"03+",label:"Familia",desc:"3 o más personas"},
     ]},
-  { id:"nivel", type:"nivel", label:"Como te manejas en la cocina?", subtitle:"Adaptamos la complejidad de las recetas para vos",
+  { id:"nivel", type:"nivel", label:"¿Cómo te manejás en la cocina?", subtitle:"Adaptamos la complejidad de las recetas para vos",
     options:[
-      {value:"basico",emoji:"🌱",label:"Basico",desc:"Recetas simples, paso a paso"},
-      {value:"intermedio",emoji:"🍳",label:"Intermedio",desc:"Mas variedad y tecnicas"},
-      {value:"avanzado",emoji:"🧑‍🍳",label:"Avanzado",desc:"Creatividad y desafios"},
+      {value:"basico",num:"01",label:"Básico",desc:"Recetas simples, paso a paso"},
+      {value:"intermedio",num:"02",label:"Intermedio",desc:"Más variedad y técnicas"},
+      {value:"avanzado",num:"03",label:"Avanzado",desc:"Creatividad y desafíos"},
     ]},
-  { id:"extra", type:"extras", label:"Ultimo paso", subtitle:"Opcional — para un resultado todavia mas preciso" },
+  { id:"extra", type:"extras", label:"Último paso", subtitle:"Opcional — para un resultado todavía más preciso" },
 ];
 
+// ============================================
+// DATA: RECETAS (idéntico al original)
+// ============================================
 const R = {
   "Ensalada de pollo grillado y quinoa":{t:"20 min",d:"Facil",k:"380 kcal",p:"35g",e:"🥗",tags:["⚡ Rapido","💪 Alta proteina"],i:["150g pechuga de pollo","1/2 taza quinoa","Rucula y lechuga","Tomate cherry x8","Pepino 1/2","Jugo de limon","Aceite de oliva","Sal y pimienta"],s:["Cocinar la quinoa en agua con sal 15 min. Tapar y apagar.","Grillar la pechuga salpimentada 4 min por lado a fuego fuerte.","Dejar reposar el pollo 3 min antes de cortar en tiras.","Mezclar quinoa, hojas, tomate y pepino. Coronar con el pollo. Condimentar con limon y aceite."]},
   "Sopa de verduras con lentejas":{t:"30 min",d:"Facil",k:"290 kcal",p:"18g",e:"🥣",tags:["🔥 Bajo en calorias","💚 Desinflamatorio"],i:["1 taza lentejas rojas","1 zanahoria","1 cebolla","2 papas chicas","Caldo en cubo","Comino y sal","Limon"],s:["Picar cebolla y zanahoria. Rehogar 5 min en olla con aceite.","Agregar lentejas enjuagadas y papas en cubos. Cubrir con agua y caldo.","Cocinar 20 min a fuego medio.","Condimentar con comino, sal y limon al servir."]},
@@ -237,6 +313,9 @@ const META = {
   desinflamatoria:{tag:"Antiinflamatorio",tip:"Curcuma, jengibre, omega-3 y antioxidantes como base. Eliminamos procesados y azucar refinada.",precio:{bajo:"$45.000-60.000",medio:"$65.000-90.000",alto:"$95.000-130.000"},kw:["desinflamatorio","alta proteina","vegetar"]},
 };
 
+// ============================================
+// LÓGICA DE HISTORIA Y GENERACIÓN (idéntico)
+// ============================================
 function getHistory() {
   try {
     const raw = localStorage.getItem(HISTORY_KEY);
@@ -246,7 +325,6 @@ function getHistory() {
     return arr.filter(h => h.t > cutoff);
   } catch(e) { return []; }
 }
-
 function saveToHistory(nombres) {
   try {
     const cur = getHistory();
@@ -256,12 +334,7 @@ function saveToHistory(nombres) {
     localStorage.setItem(HISTORY_KEY, JSON.stringify(todos));
   } catch(e) {}
 }
-
-function parseTime(t) {
-  const m = parseInt(t);
-  return isNaN(m) ? 30 : m;
-}
-
+function parseTime(t) { const m = parseInt(t); return isNaN(m) ? 30 : m; }
 function isVegetariana(nombre) {
   const r = R[nombre];
   if (!r) return false;
@@ -272,7 +345,6 @@ function isVegetariana(nombre) {
   if (nombre.toLowerCase().includes("tofu")) return true;
   return !carnes.some(c => ingStr.includes(c));
 }
-
 function isLiviana(nombre) {
   const r = R[nombre];
   if (!r) return false;
@@ -281,14 +353,12 @@ function isLiviana(nombre) {
   const tagStr = (r.tags||[]).join(" ").toLowerCase();
   return tagStr.includes("bajo") || tagStr.includes("desinflamatorio") || tagStr.includes("express") || (!isNaN(k) && k <= 400);
 }
-
 function isContundente(nombre) {
   const r = R[nombre];
   if (!r) return false;
   const k = parseInt(r.k);
   return (!isNaN(k) && k >= 450) || (r.tags||[]).some(t => t.includes("Alta proteina") || t.includes("Rendidor"));
 }
-
 function scoreReceta(nombre, objetivo, dietas, tiempo, history) {
   const r = R[nombre];
   if (!r) return -999;
@@ -296,31 +366,24 @@ function scoreReceta(nombre, objetivo, dietas, tiempo, history) {
   const meta = META[objetivo] || META.organizar;
   const tagStr = (r.tags||[]).join(" ").toLowerCase();
   meta.kw.forEach(k => { if (tagStr.includes(k)) score += 12; });
-
   if (dietas.includes("vegetariana") || dietas.includes("vegana")) {
-    if (isVegetariana(nombre)) score += 20;
-    else score -= 100;
+    if (isVegetariana(nombre)) score += 20; else score -= 100;
   }
   if (dietas.includes("desinflamatoria")) {
     if (tagStr.includes("desinflamatorio")) score += 15;
   }
-
   const mins = parseTime(r.t);
   if (tiempo === "rapido" && mins <= 20) score += 8;
   if (tiempo === "rapido" && mins > 30) score -= 10;
   if (tiempo === "medio" && mins <= 30) score += 4;
   if (tiempo === "libre" && mins >= 30) score += 3;
-
   const idx = history.findIndex(h => h.n === nombre);
   if (idx !== -1) {
     const ageDays = (Date.now() - history[idx].t) / (24*60*60*1000);
-    const penalty = 50 * (1 - ageDays/HISTORY_DAYS);
-    score -= penalty;
+    score -= 50 * (1 - ageDays/HISTORY_DAYS);
   }
-
   return score;
 }
-
 function generar(a) {
   const obj = a.objetivo?.[0] || "organizar";
   const dietas = a.dieta || [];
@@ -329,53 +392,29 @@ function generar(a) {
   const meta = META[key] || META.organizar;
   const history = getHistory();
   const todas = Object.keys(R);
-
-  const conScore = todas.map(n => ({ n, s: scoreReceta(n, key, dietas, a.tiempo, history), liviana: isLiviana(n), contundente: isContundente(n) }))
-    .sort((x,y) => y.s - x.s);
-
+  const conScore = todas.map(n => ({ n, s: scoreReceta(n, key, dietas, a.tiempo, history), liviana: isLiviana(n), contundente: isContundente(n) })).sort((x,y) => y.s - x.s);
   const candidatosAlm = conScore.filter(x => x.contundente || !x.liviana).slice(0, 25);
   const candidatosCen = conScore.filter(x => x.liviana).slice(0, 20);
-
   const almsBase = candidatosAlm.length >= 7 ? candidatosAlm : conScore.slice(0, 25);
   const censBase = candidatosCen.length >= 7 ? candidatosCen : conScore.filter(x => !almsBase.slice(0,7).find(a => a.n === x.n)).slice(0, 20);
-
   const usadas = new Set();
   const almsElegidas = [];
-  for (const c of almsBase) {
-    if (almsElegidas.length >= 7) break;
-    if (usadas.has(c.n)) continue;
-    almsElegidas.push(c.n);
-    usadas.add(c.n);
-  }
+  for (const c of almsBase) { if (almsElegidas.length >= 7) break; if (usadas.has(c.n)) continue; almsElegidas.push(c.n); usadas.add(c.n); }
   while (almsElegidas.length < 7) almsElegidas.push(almsBase[0]?.n || todas[0]);
-
   const censElegidas = [];
-  for (const c of censBase) {
-    if (censElegidas.length >= 7) break;
-    if (usadas.has(c.n)) continue;
-    censElegidas.push(c.n);
-    usadas.add(c.n);
-  }
+  for (const c of censBase) { if (censElegidas.length >= 7) break; if (usadas.has(c.n)) continue; censElegidas.push(c.n); usadas.add(c.n); }
   while (censElegidas.length < 7) {
     const fallback = conScore.find(x => !usadas.has(x.n));
-    if (!fallback) break;
-    censElegidas.push(fallback.n);
-    usadas.add(fallback.n);
+    if (!fallback) break; censElegidas.push(fallback.n); usadas.add(fallback.n);
   }
-
   const menu = DIAS.map((dia, i) => ({
-    dia,
-    alm: almsElegidas[i],
-    cen: censElegidas[i],
+    dia, alm: almsElegidas[i], cen: censElegidas[i],
     tag_alm: (R[almsElegidas[i]]?.tags?.[0]) || "⚡ Rendidor",
     tag_cen: (R[censElegidas[i]]?.tags?.[0]) || "🔥 Bajo en calorias",
   }));
-
   saveToHistory([...almsElegidas, ...censElegidas]);
-
   return { ...meta, menu, lista_compras: LISTAS[key] || LISTAS.organizar, objetivo: key, precio_estimado: meta.precio[a.presupuesto || "medio"], answers: a, dietas };
 }
-
 function cambiarReceta(menuActual, dia, tipo, objetivo, dietas, tiempo) {
   const history = getHistory();
   const todas = Object.keys(R);
@@ -383,35 +422,24 @@ function cambiarReceta(menuActual, dia, tipo, objetivo, dietas, tiempo) {
   menuActual.forEach(d => { enMenu.add(d.alm); enMenu.add(d.cen); });
   const recetaActual = menuActual.find(d => d.dia === dia)?.[tipo];
   enMenu.delete(recetaActual);
-
   const filtro = tipo === "cen" ? (n => isLiviana(n)) : (n => isContundente(n) || !isLiviana(n));
   let candidatos = todas.filter(n => !enMenu.has(n) && filtro(n));
   if (candidatos.length < 3) candidatos = todas.filter(n => !enMenu.has(n));
-
-  const conScore = candidatos
-    .filter(n => n !== recetaActual)
-    .map(n => ({ n, s: scoreReceta(n, objetivo, dietas, tiempo, history) + Math.random()*15 }))
-    .sort((x,y) => y.s - x.s);
-
+  const conScore = candidatos.filter(n => n !== recetaActual).map(n => ({ n, s: scoreReceta(n, objetivo, dietas, tiempo, history) + Math.random()*15 })).sort((x,y) => y.s - x.s);
   const nueva = conScore[0]?.n || candidatos[0] || recetaActual;
   saveToHistory([nueva]);
   return nueva;
 }
-
 function generarHoy(cuantas, tipo, ingredientes) {
   const todas = Object.keys(R);
   const history = getHistory();
   let candidatos = [...todas];
-
   if (tipo === "vegetariana") candidatos = candidatos.filter(isVegetariana);
   else if (tipo === "liviana") candidatos = candidatos.filter(isLiviana);
   else if (tipo === "rapida") candidatos = candidatos.filter(n => parseTime(R[n]?.t) <= 20);
   else if (tipo === "contundente") candidatos = candidatos.filter(isContundente);
-
   if (candidatos.length === 0) candidatos = [...todas];
-
   const ings = (ingredientes || "").toLowerCase().split(/[,\s]+/).filter(i => i.length > 2);
-
   const conScore = candidatos.map(n => {
     let score = Math.random() * 10;
     const recetaIngs = (R[n]?.i || []).join(" ").toLowerCase() + " " + n.toLowerCase();
@@ -428,59 +456,23 @@ function generarHoy(cuantas, tipo, ingredientes) {
     }
     return { n, score };
   }).sort((a,b) => b.score - a.score);
-
   const top = conScore.slice(0, Math.min(5, conScore.length));
-  const elegidas = [];
-  const usadas = new Set();
-  for (const c of top) {
-    if (usadas.has(c.n)) continue;
-    elegidas.push(c.n);
-    usadas.add(c.n);
-    if (elegidas.length >= 2) break;
-  }
+  const elegidas = []; const usadas = new Set();
+  for (const c of top) { if (usadas.has(c.n)) continue; elegidas.push(c.n); usadas.add(c.n); if (elegidas.length >= 2) break; }
   while (elegidas.length < 2 && conScore.length > elegidas.length) {
     const next = conScore[elegidas.length];
-    if (next && !usadas.has(next.n)) { elegidas.push(next.n); usadas.add(next.n); }
-    else break;
+    if (next && !usadas.has(next.n)) { elegidas.push(next.n); usadas.add(next.n); } else break;
   }
-
   saveToHistory(elegidas);
-
   if (cuantas === "1") return [{ tipo:"Tu comida de hoy", nombre: elegidas[0] }];
   return [{ tipo:"Almuerzo", nombre: elegidas[0] }, { tipo:"Cena", nombre: elegidas[1] || elegidas[0] }];
 }
 
-function Tag({ children, color=C.blue, bg=C.blueLt }) {
-  return <span style={{ background:bg, color, borderRadius:20, padding:"2px 9px", fontSize:11, fontWeight:700, display:"inline-block", lineHeight:1.5 }}>{children}</span>;
-}
-function ChefHat({ size=24, color="#FFFFFF" }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M16 38c-5 0-9-4-9-9s4-9 9-9c0-6 5-11 11-11 4 0 7 2 9 5 2-3 5-5 9-5 6 0 11 5 11 11 5 0 9 4 9 9s-4 9-9 9v0H16v0z" fill={color}/>
-      <path d="M16 38h32v12c0 2-2 4-4 4H20c-2 0-4-2-4-4V38z" fill={color}/>
-      <path d="M16 42h32" stroke="#0A0E1A" strokeWidth="1.5" strokeLinecap="round" opacity="0.25"/>
-    </svg>
-  );
-}
-const TAG_COLORS = {
-  "💚 Desinflamatorio":{bg:"#F0FDF4",color:"#16A34A"},
-  "💪 Alta proteina":{bg:"#FFF7ED",color:"#EA580C"},
-  "⚡ Express":{bg:"#FFFBEB",color:"#D97706"},
-  "⚡ Rapido":{bg:"#FFFBEB",color:"#D97706"},
-  "⚡ Rendidor":{bg:"#EFF6FF",color:C.blue},
-  "🔥 Bajo en calorias":{bg:"#FEF2F2",color:"#DC2626"},
-  "💰 Economico":{bg:"#F0FDF4",color:"#15803D"},
-  "🌿 Vegetariana":{bg:"#F0FDF4",color:"#16A34A"},
-  "🌿 Vegetariano":{bg:"#F0FDF4",color:"#16A34A"},
-  "📦 Batch cooking":{bg:"#F5F3FF",color:"#7C3AED"},
-};
-function MealTag({ label }) {
-  const s = TAG_COLORS[label] || { bg:C.blueLt, color:C.blue };
-  return <Tag bg={s.bg} color={s.color}>{label}</Tag>;
-}
-
+// ============================================
+// CHEF CHAT (burbuja user en negro)
+// ============================================
 function ChefChat({ result, recetaActual, onClose }) {
-  const [msgs, setMsgs] = useState([{ role:"assistant", text:"Hola! Soy tu chef asistente 👨‍🍳\n\nConozco tu menu completo y todas tus recetas. Podes preguntarme cualquier cosa: si te falta un ingrediente y como reemplazarlo, dudas sobre la preparacion, tiempos de coccion, o lo que necesites." }]);
+  const [msgs, setMsgs] = useState([{ role:"assistant", text:"¡Hola! Soy tu chef asistente.\n\nConozco tu menú completo y todas tus recetas. Podés preguntarme cualquier cosa: si te falta un ingrediente y cómo reemplazarlo, dudas sobre la preparación, tiempos de cocción, o lo que necesites." }]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef(null);
@@ -491,24 +483,19 @@ function ChefChat({ result, recetaActual, onClose }) {
     const txt = input.trim();
     if (!txt || loading) return;
     setInput("");
-    const newUserMsg = { role:"user", text:txt };
-    setMsgs(m => [...m, newUserMsg]);
+    setMsgs(m => [...m, { role:"user", text:txt }]);
     setLoading(true);
     try {
       const response = await fetch("/api/chef", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: txt,
-          history: msgs,
-          menu: result || null
-        })
+        body: JSON.stringify({ message: txt, history: msgs, menu: result || null })
       });
       const data = await response.json();
       const reply = data.reply || data.error || "El chef no pudo responder ahora. Probá de nuevo.";
       setMsgs(m => [...m, { role:"assistant", text:reply }]);
     } catch (err) {
-      setMsgs(m => [...m, { role:"assistant", text:"Hubo un problema de conexión. Probá de nuevo en un momento 🙏" }]);
+      setMsgs(m => [...m, { role:"assistant", text:"Hubo un problema de conexión. Probá de nuevo en un momento." }]);
     }
     setLoading(false);
     setTimeout(() => inputRef.current?.focus(), 100);
@@ -516,126 +503,192 @@ function ChefChat({ result, recetaActual, onClose }) {
 
   return (
     <div style={{ position:"fixed", inset:0, zIndex:3000, display:"flex", flexDirection:"column", justifyContent:"flex-end" }}>
-      <div onClick={onClose} style={{ position:"absolute", inset:0, background:"rgba(10,15,30,0.5)", backdropFilter:"blur(4px)" }}/>
-      <div style={{ position:"relative", background:C.white, borderRadius:"24px 24px 0 0", width:"100%", maxWidth:580, margin:"0 auto", maxHeight:"80vh", display:"flex", flexDirection:"column", boxShadow:"0 -8px 40px rgba(59,111,212,0.2)" }}>
-        <div style={{ display:"flex", justifyContent:"center", padding:"10px 0 0" }}><div style={{ width:40, height:5, background:C.gray3, borderRadius:4 }}/></div>
-        <div style={{ padding:"14px 20px 12px", display:"flex", alignItems:"center", justifyContent:"space-between", borderBottom:`1px solid ${C.gray2}` }}>
-          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <div style={{ width:40, height:40, borderRadius:14, background:`linear-gradient(135deg,${C.blue},${C.blueDk})`, display:"flex", alignItems:"center", justifyContent:"center" }}><ChefHat size={24}/></div>
-            <div>
-              <div style={{ fontSize:15, fontWeight:800, color:C.dark }}>Chef Asistente</div>
-              <div style={{ fontSize:12, color:C.success, fontWeight:600 }}>● En linea · Kooki IA</div>
-            </div>
-          </div>
-          <button onClick={onClose} style={{ background:C.gray1, border:"none", borderRadius:10, width:34, height:34, fontSize:18, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", color:C.gray4 }}>✕</button>
+      <div onClick={onClose} style={{ position:"absolute", inset:0, background:"rgba(10,14,26,0.5)", backdropFilter:"blur(4px)" }}/>
+      <div style={{ position:"relative", background:C.white, borderRadius:"28px 28px 0 0", width:"100%", maxWidth:580, margin:"0 auto", maxHeight:"85vh", display:"flex", flexDirection:"column", boxShadow:"0 -10px 50px rgba(10,14,26,0.25)", overflow:"hidden" }}>
+        <div style={{ display:"flex", justifyContent:"center", padding:"10px 0 0" }}>
+          <div style={{ width:40, height:5, background:C.gray3, borderRadius:4 }}/>
         </div>
-        <div style={{ flex:1, overflowY:"auto", padding:"16px 16px 8px", display:"flex", flexDirection:"column", gap:12 }}>
-          {msgs.map((m,i) => (
-            <div key={i} style={{ display:"flex", justifyContent:m.role==="user"?"flex-end":"flex-start" }}>
-              {m.role==="assistant" && <div style={{ width:30, height:30, borderRadius:10, background:`linear-gradient(135deg,${C.blue},${C.blueDk})`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginRight:8, marginTop:2 }}><ChefHat size={18}/></div>}
-              <div style={{ maxWidth:"78%", background:m.role==="user"?`linear-gradient(135deg,${C.blue},${C.blueDk})`:C.gray1, color:m.role==="user"?C.white:C.text, borderRadius:m.role==="user"?"18px 18px 4px 18px":"18px 18px 18px 4px", padding:"12px 14px", fontSize:14, lineHeight:1.6, whiteSpace:"pre-wrap", boxShadow:m.role==="user"?sh.blue:sh.sm }}>{m.text}</div>
+        <div style={{ padding:"16px 22px 14px", display:"flex", alignItems:"center", justifyContent:"space-between", borderBottom:`1px solid ${C.line}` }}>
+          <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+            <div style={{ width:44, height:44, borderRadius:14, background:C.blue, display:"flex", alignItems:"center", justifyContent:"center", boxShadow:sh.blue }}>
+              <ChefHat size={26}/>
             </div>
-          ))}
-          {loading && (
-            <div style={{ display:"flex", alignItems:"flex-start", gap:8 }}>
-              <div style={{ width:30, height:30, borderRadius:10, background:`linear-gradient(135deg,${C.blue},${C.blueDk})`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}><ChefHat size={18}/></div>
-              <div style={{ background:C.gray1, borderRadius:"18px 18px 18px 4px", padding:"12px 16px", display:"flex", alignItems:"center", gap:5 }}>
-                {[0,1,2].map(i => <div key={i} style={{ width:7, height:7, borderRadius:"50%", background:C.gray3, animation:`dotPulse 1.2s ease ${i*0.2}s infinite` }}/>)}
+            <div>
+              <div style={{ fontSize:16, fontWeight:800, color:C.ink, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.02em" }}>Chef Asistente</div>
+              <div style={{ fontSize:12, color:C.success, fontWeight:600, fontFamily:"'Inter',sans-serif", display:"flex", alignItems:"center", gap:5 }}>
+                <span style={{ width:6, height:6, borderRadius:"50%", background:C.success, display:"inline-block" }}/>
+                En línea · Kooki IA
               </div>
             </div>
-          )}
-          {msgs.length === 1 && (
-            <div style={{ display:"flex", flexWrap:"wrap", gap:7, marginTop:4 }}>
-              {["Puedo reemplazar el salmon?","Como se si el pollo esta listo?","Me falta quinoa, que uso?","Cuanto dura en la heladera?"].map((s,i) => (
-                <button key={i} onClick={() => { setInput(s); setTimeout(() => inputRef.current?.focus(), 50); }} style={{ background:C.blueLt, color:C.blue, border:`1px solid ${C.bluePl}`, borderRadius:20, padding:"7px 13px", fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"'Inter',sans-serif" }}>{s}</button>
-              ))}
-            </div>
-          )}
-          <div ref={bottomRef}/>
+          </div>
+          <button onClick={onClose} style={{ background:C.bg, border:"none", borderRadius:12, width:36, height:36, fontSize:18, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", color:C.gray4 }}>✕</button>
         </div>
-        <div style={{ padding:"12px 16px 20px", borderTop:`1px solid ${C.gray2}`, display:"flex", gap:10, alignItems:"flex-end" }}>
+        <div style={{ flex:1, overflowY:"auto", padding:"18px 18px 8px", display:"flex", flexDirection:"column", gap:14, background:C.bg, position:"relative" }}>
+          <BgGrid />
+          <div style={{ position:"relative", zIndex:1, display:"flex", flexDirection:"column", gap:14 }}>
+            {msgs.map((m,i) => (
+              <div key={i} style={{ display:"flex", justifyContent:m.role==="user"?"flex-end":"flex-start" }}>
+                {m.role==="assistant" && (
+                  <div style={{ width:32, height:32, borderRadius:10, background:C.blue, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginRight:10, marginTop:2 }}>
+                    <ChefHat size={20}/>
+                  </div>
+                )}
+                <div style={{
+                  maxWidth:"78%",
+                  background: m.role==="user" ? C.ink : C.white,
+                  color: m.role==="user" ? C.white : C.text,
+                  borderRadius: m.role==="user" ? "20px 20px 4px 20px" : "20px 20px 20px 4px",
+                  padding:"13px 16px", fontSize:14.5, lineHeight:1.55, whiteSpace:"pre-wrap",
+                  boxShadow: m.role==="user" ? sh.ink : sh.sm,
+                  fontFamily: "'Manrope',sans-serif", fontWeight: 500,
+                }}>{m.text}</div>
+              </div>
+            ))}
+            {loading && (
+              <div style={{ display:"flex", alignItems:"flex-start", gap:10 }}>
+                <div style={{ width:32, height:32, borderRadius:10, background:C.blue, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                  <ChefHat size={20}/>
+                </div>
+                <div style={{ background:C.white, borderRadius:"20px 20px 20px 4px", padding:"14px 18px", display:"flex", alignItems:"center", gap:6, boxShadow:sh.sm }}>
+                  {[0,1,2].map(i => <div key={i} style={{ width:7, height:7, borderRadius:"50%", background:C.gray3, animation:`dotPulse 1.2s ease ${i*0.2}s infinite` }}/>)}
+                </div>
+              </div>
+            )}
+            {msgs.length === 1 && (
+              <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginTop:6 }}>
+                {["¿Puedo reemplazar el salmón?","¿Cómo sé si el pollo está listo?","Me falta quinoa, ¿qué uso?","¿Cuánto dura en la heladera?"].map((s,i) => (
+                  <button key={i} onClick={() => { setInput(s); setTimeout(() => inputRef.current?.focus(), 50); }} style={{ background:C.white, color:C.ink, border:`1px solid ${C.line}`, borderRadius:20, padding:"8px 14px", fontSize:12.5, fontWeight:600, cursor:"pointer", fontFamily:"'Inter',sans-serif" }}>{s}</button>
+                ))}
+              </div>
+            )}
+            <div ref={bottomRef}/>
+          </div>
+        </div>
+        <div style={{ padding:"14px 18px 22px", borderTop:`1px solid ${C.line}`, display:"flex", gap:10, alignItems:"flex-end", background:C.white }}>
           <textarea ref={inputRef} value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send();}}} placeholder="Preguntale al chef..." rows={1}
-            style={{ flex:1, padding:"12px 14px", borderRadius:14, border:`2px solid ${C.gray2}`, fontSize:14, color:C.text, resize:"none", lineHeight:1.5, background:C.gray1, fontFamily:"'Manrope',sans-serif", outline:"none", maxHeight:80, overflowY:"auto", transition:"border 0.2s" }}
-            onFocus={e=>e.target.style.borderColor=C.blue} onBlur={e=>e.target.style.borderColor=C.gray2}/>
-          <button onClick={send} disabled={!input.trim()||loading} style={{ width:44, height:44, borderRadius:14, border:"none", background:!input.trim()||loading?C.gray2:`linear-gradient(135deg,${C.blue},${C.blueDk})`, color:!input.trim()||loading?C.gray4:C.white, fontSize:18, cursor:!input.trim()||loading?"not-allowed":"pointer", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, transition:"all 0.2s", boxShadow:input.trim()&&!loading?sh.blue:"none" }}>↑</button>
+            style={{ flex:1, padding:"14px 16px", borderRadius:14, border:`1.5px solid ${C.line}`, fontSize:14.5, color:C.text, resize:"none", lineHeight:1.5, background:C.bg, fontFamily:"'Manrope',sans-serif", outline:"none", maxHeight:100, overflowY:"auto", transition:"border 0.2s" }}
+            onFocus={e=>e.target.style.borderColor=C.blue} onBlur={e=>e.target.style.borderColor=C.line}/>
+          <button onClick={send} disabled={!input.trim()||loading} style={{ width:46, height:46, borderRadius:14, border:"none", background:!input.trim()||loading?C.gray2:C.ink, color:!input.trim()||loading?C.gray4:C.white, fontSize:18, cursor:!input.trim()||loading?"not-allowed":"pointer", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, transition:"all 0.2s", boxShadow:input.trim()&&!loading?sh.ink:"none" }}>↑</button>
         </div>
       </div>
-      <style>{"@keyframes dotPulse{0%,80%,100%{opacity:0.3;transform:scale(0.8)}40%{opacity:1;transform:scale(1)}}"}</style>
     </div>
   );
 }
 
+// ============================================
+// MODAL RECETA (header oscuro estilo slide + modo cocina con números gigantes)
+// ============================================
 function ModalReceta({ nombre, onClose }) {
   const [cookMode, setCookMode] = useState(false);
   const r = R[nombre];
   if (!r) return (
-    <div onClick={onClose} style={{ position:"fixed",inset:0,background:"rgba(10,15,30,0.7)",zIndex:2000,display:"flex",alignItems:"flex-end",justifyContent:"center",backdropFilter:"blur(6px)" }}>
-      <div onClick={e=>e.stopPropagation()} style={{ background:C.white,borderRadius:"24px 24px 0 0",width:"100%",maxWidth:580,padding:"28px 24px 40px" }}>
-        <div style={{ fontSize:22,fontWeight:800,color:C.dark,marginBottom:12,fontFamily:"'Epilogue',sans-serif",letterSpacing:"-0.025em" }}>{nombre}</div>
-        <p style={{ color:C.sub,fontSize:15,lineHeight:1.65 }}>Receta detallada proximamente.</p>
-        <button onClick={onClose} style={{ marginTop:20,width:"100%",background:C.blue,color:C.white,border:"none",borderRadius:16,padding:"15px",fontSize:16,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif" }}>Cerrar</button>
+    <div onClick={onClose} style={{ position:"fixed",inset:0,background:"rgba(10,14,26,0.7)",zIndex:2000,display:"flex",alignItems:"flex-end",justifyContent:"center",backdropFilter:"blur(6px)" }}>
+      <div onClick={e=>e.stopPropagation()} style={{ background:C.white,borderRadius:"28px 28px 0 0",width:"100%",maxWidth:580,padding:"32px 28px 44px" }}>
+        <h3 style={{ fontSize:24,fontWeight:900,color:C.ink,marginBottom:14,fontFamily:"'Epilogue',sans-serif",letterSpacing:"-0.035em",lineHeight:1.05 }}>{nombre}</h3>
+        <p style={{ color:C.sub,fontSize:15,lineHeight:1.65 }}>Receta detallada próximamente.</p>
+        <button onClick={onClose} style={{ marginTop:24,width:"100%",background:C.ink,color:C.white,border:"none",borderRadius:16,padding:"17px",fontSize:16,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif" }}>Cerrar</button>
       </div>
     </div>
   );
+
+  // MODO COCINA — pantalla negra con grid + números gigantes azules
   if (cookMode) return (
-    <div style={{ position:"fixed",inset:0,background:C.dark,zIndex:3000,overflowY:"auto",padding:"0 0 60px" }}>
-      <div style={{ padding:"20px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",position:"sticky",top:0,background:C.dark,zIndex:10 }}>
-        <span style={{ color:C.white,fontSize:18,fontWeight:800,fontFamily:"'Epilogue',sans-serif" }}>Modo Cocina 🍳</span>
-        <button onClick={()=>setCookMode(false)} style={{ background:"rgba(255,255,255,0.12)",border:"none",borderRadius:10,padding:"8px 16px",color:C.white,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"'Inter',sans-serif" }}>Salir</button>
+    <div style={{ position:"fixed",inset:0,background:C.ink,zIndex:3000,overflowY:"auto",padding:"0 0 80px" }}>
+      <BgGrid dark />
+      <div style={{ padding:"22px 26px",display:"flex",alignItems:"center",justifyContent:"space-between",position:"sticky",top:0,background:C.ink,zIndex:10,borderBottom:`1px solid rgba(255,255,255,0.06)` }}>
+        <div style={{ position:"relative", zIndex:1 }}>
+          <Eyebrow dark>Modo Cocina</Eyebrow>
+        </div>
+        <button onClick={()=>setCookMode(false)} style={{ background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.12)",borderRadius:12,padding:"10px 18px",color:C.white,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"'Inter',sans-serif",position:"relative",zIndex:1 }}>Salir</button>
       </div>
-      <div style={{ padding:"8px 24px 0" }}>
-        <div style={{ fontSize:28,marginBottom:8 }}>{r.e}</div>
-        <div style={{ fontSize:24,fontWeight:800,color:C.white,lineHeight:1.2,marginBottom:24,fontFamily:"'Epilogue',sans-serif",letterSpacing:"-0.025em" }}>{nombre}</div>
+      <div style={{ padding:"24px 26px 0", position:"relative", zIndex:1 }}>
+        <h2 style={{ fontSize:"clamp(26px, 7vw, 38px)",fontWeight:900,color:C.white,lineHeight:1.0,marginBottom:36,fontFamily:"'Epilogue',sans-serif",letterSpacing:"-0.04em" }}>{nombre}</h2>
         {r.s.map((paso,i) => (
-          <div key={i} style={{ marginBottom:28 }}>
-            <div style={{ display:"flex",alignItems:"center",gap:14,marginBottom:12 }}>
-              <div style={{ width:44,height:44,borderRadius:"50%",background:C.blue,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,fontWeight:800,color:C.white,flexShrink:0 }}>{i+1}</div>
-              <div style={{ height:2,flex:1,background:"rgba(255,255,255,0.1)",borderRadius:2 }}/>
+          <div key={i} style={{ marginBottom:36 }}>
+            <div style={{ display:"flex",alignItems:"center",gap:16,marginBottom:14 }}>
+              <div style={{ fontSize:64,fontWeight:900,color:C.blue,lineHeight:1,letterSpacing:"-0.05em",fontFamily:"'Epilogue',sans-serif",flexShrink:0 }}>
+                {String(i+1).padStart(2,"0")}
+              </div>
+              <div style={{ height:2,flex:1,background:"rgba(255,255,255,0.08)",borderRadius:2 }}/>
             </div>
-            <div style={{ fontSize:22,lineHeight:1.65,color:C.white,fontFamily:"'Manrope',sans-serif",paddingLeft:4 }}>{paso}</div>
+            <div style={{ fontSize:22,lineHeight:1.55,color:C.white,fontFamily:"'Manrope',sans-serif",fontWeight:500 }}>{paso}</div>
           </div>
         ))}
-        <button onClick={()=>{ setCookMode(false); onClose(); }} style={{ width:"100%",background:C.blue,color:C.white,border:"none",borderRadius:16,padding:"18px",fontSize:17,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif",marginTop:8 }}>✓ Listo, termine de cocinar</button>
+        <button onClick={()=>{ setCookMode(false); onClose(); }} style={{ width:"100%",background:C.blue,color:C.white,border:"none",borderRadius:16,padding:"20px",fontSize:17,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif",marginTop:16,boxShadow:sh.blue }}>✓ Listo, terminé de cocinar</button>
       </div>
     </div>
   );
+
   return (
-    <div onClick={onClose} style={{ position:"fixed",inset:0,background:"rgba(10,15,30,0.7)",zIndex:2000,display:"flex",alignItems:"flex-end",justifyContent:"center",backdropFilter:"blur(6px)" }}>
-      <div onClick={e=>e.stopPropagation()} style={{ background:C.white,borderRadius:"24px 24px 0 0",width:"100%",maxWidth:580,maxHeight:"90vh",overflowY:"auto",paddingBottom:40 }}>
-        <div style={{ display:"flex",justifyContent:"center",padding:"10px 0 6px" }}><div style={{ width:40,height:5,background:C.gray3,borderRadius:4 }}/></div>
-        <div style={{ background:`linear-gradient(140deg,${C.blue},${C.blueDk})`,padding:"22px 24px 26px",position:"relative",overflow:"hidden" }}>
-          <div style={{ position:"absolute",top:-30,right:-30,width:120,height:120,borderRadius:"50%",background:"rgba(255,255,255,0.06)" }}/>
-          <div style={{ fontSize:44,marginBottom:10 }}>{r.e}</div>
-          <div style={{ fontSize:20,fontWeight:800,color:C.white,lineHeight:1.25,marginBottom:12,fontFamily:"'Epilogue',sans-serif",letterSpacing:"-0.025em" }}>{nombre}</div>
-          <div style={{ display:"flex",flexWrap:"wrap",gap:7,marginBottom:12 }}>
-            {[["⏱",r.t],["👨‍🍳",r.d],r.k&&["🔥",r.k],r.p&&["💪",r.p]].filter(Boolean).map(([ic,val],i) => (
-              <span key={i} style={{ background:"rgba(255,255,255,0.18)",color:C.white,borderRadius:20,padding:"5px 12px",fontSize:13,fontWeight:600 }}>{ic} {val}</span>
-            ))}
-          </div>
-          {r.tags && <div style={{ display:"flex",flexWrap:"wrap",gap:6 }}>{r.tags.map((t,i) => <span key={i} style={{ background:"rgba(255,255,255,0.15)",color:C.white,borderRadius:20,padding:"3px 10px",fontSize:11,fontWeight:700 }}>{t}</span>)}</div>}
+    <div onClick={onClose} style={{ position:"fixed",inset:0,background:"rgba(10,14,26,0.7)",zIndex:2000,display:"flex",alignItems:"flex-end",justifyContent:"center",backdropFilter:"blur(6px)" }}>
+      <div onClick={e=>e.stopPropagation()} style={{ background:C.white,borderRadius:"28px 28px 0 0",width:"100%",maxWidth:580,maxHeight:"92vh",overflowY:"auto",paddingBottom:44 }}>
+        <div style={{ display:"flex",justifyContent:"center",padding:"10px 0 6px" }}>
+          <div style={{ width:40,height:5,background:C.gray3,borderRadius:4 }}/>
         </div>
-        <div style={{ padding:"20px 24px 0" }}>
-          <div style={{ fontSize:12,fontWeight:800,color:C.blue,letterSpacing:"1px",textTransform:"uppercase",marginBottom:12,fontFamily:"'Inter',sans-serif" }}>Ingredientes</div>
-          <div style={{ display:"flex",flexDirection:"column",gap:10,marginBottom:24 }}>
-            {r.i.map((ing,i) => <div key={i} style={{ display:"flex",alignItems:"center",gap:12 }}><div style={{ width:8,height:8,borderRadius:"50%",background:C.blue,flexShrink:0 }}/><span style={{ fontSize:15,color:C.text }}>{ing}</span></div>)}
+
+        {/* Header OSCURO estilo slide */}
+        <div style={{ background:C.ink,padding:"26px 28px 30px",position:"relative",overflow:"hidden" }}>
+          <BgGrid dark />
+          <Blob pos="tr" color="rgba(59,111,212,0.35)" size={350} />
+          <div style={{ position:"relative", zIndex:1 }}>
+            <div style={{ marginBottom:14 }}>
+              <Eyebrow dark>Receta</Eyebrow>
+            </div>
+            <div style={{ fontSize:36,marginBottom:12 }}>{r.e}</div>
+            <h2 style={{ fontSize:"clamp(22px, 5.5vw, 30px)",fontWeight:900,color:C.white,lineHeight:1.05,marginBottom:16,fontFamily:"'Epilogue',sans-serif",letterSpacing:"-0.035em" }}>{nombre}</h2>
+            <div style={{ display:"flex",flexWrap:"wrap",gap:8,marginBottom:r.tags?14:0 }}>
+              {[["⏱",r.t],["📊",r.d],r.k&&["🔥",r.k],r.p&&["💪",r.p]].filter(Boolean).map(([ic,val],i) => (
+                <span key={i} style={{ background:"rgba(255,255,255,0.1)",border:"1px solid rgba(255,255,255,0.15)",color:C.white,borderRadius:20,padding:"6px 13px",fontSize:13,fontWeight:600,fontFamily:"'Inter',sans-serif" }}>{ic} {val}</span>
+              ))}
+            </div>
+            {r.tags && (
+              <div style={{ display:"flex",flexWrap:"wrap",gap:7 }}>
+                {r.tags.map((t,i) => <span key={i} style={{ background:"rgba(59,111,212,0.18)",color:C.blueGlow,borderRadius:20,padding:"4px 11px",fontSize:11,fontWeight:700,fontFamily:"'Inter',sans-serif" }}>{t}</span>)}
+              </div>
+            )}
           </div>
-          <div style={{ fontSize:12,fontWeight:800,color:C.blue,letterSpacing:"1px",textTransform:"uppercase",marginBottom:12,fontFamily:"'Inter',sans-serif" }}>Preparacion</div>
-          <div style={{ display:"flex",flexDirection:"column",gap:14 }}>
-            {r.s.map((paso,i) => (
-              <div key={i} style={{ display:"flex",gap:14,alignItems:"flex-start" }}>
-                <div style={{ width:32,height:32,borderRadius:"50%",background:C.blueLt,border:`2px solid ${C.bluePl}`,color:C.blue,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:800,flexShrink:0 }}>{i+1}</div>
-                <div style={{ fontSize:15,lineHeight:1.65,color:C.text,paddingTop:5 }}>{paso}</div>
+        </div>
+
+        <div style={{ padding:"26px 28px 0" }}>
+          <div style={{ marginBottom:16 }}>
+            <Eyebrow>Ingredientes</Eyebrow>
+          </div>
+          <div style={{ display:"flex",flexDirection:"column",gap:11,marginBottom:30 }}>
+            {r.i.map((ing,i) => (
+              <div key={i} style={{ display:"flex",alignItems:"center",gap:14 }}>
+                <div style={{ width:8,height:8,borderRadius:"50%",background:C.blue,flexShrink:0 }}/>
+                <span style={{ fontSize:15,color:C.text,fontWeight:500,fontFamily:"'Manrope',sans-serif" }}>{ing}</span>
               </div>
             ))}
           </div>
-          <button onClick={()=>setCookMode(true)} style={{ marginTop:24,width:"100%",background:C.dark,color:C.white,border:"none",borderRadius:16,padding:"15px",fontSize:16,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif",display:"flex",alignItems:"center",justifyContent:"center",gap:8 }}>🍳 Modo cocina — pantalla limpia</button>
-          <button onClick={onClose} style={{ marginTop:10,width:"100%",background:`linear-gradient(135deg,${C.blue},${C.blueDk})`,color:C.white,border:"none",borderRadius:16,padding:"15px",fontSize:16,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif",boxShadow:sh.blue }}>✓ Listo, entendido</button>
+
+          <div style={{ marginBottom:16 }}>
+            <Eyebrow>Preparación</Eyebrow>
+          </div>
+          <div style={{ display:"flex",flexDirection:"column",gap:18 }}>
+            {r.s.map((paso,i) => (
+              <div key={i} style={{ display:"flex",gap:18,alignItems:"flex-start" }}>
+                <div style={{ fontSize:32,fontWeight:900,color:C.blue,lineHeight:1,letterSpacing:"-0.05em",fontFamily:"'Epilogue',sans-serif",flexShrink:0,minWidth:46 }}>
+                  {String(i+1).padStart(2,"0")}
+                </div>
+                <div style={{ fontSize:15.5,lineHeight:1.6,color:C.text,paddingTop:4,fontFamily:"'Manrope',sans-serif",fontWeight:500 }}>{paso}</div>
+              </div>
+            ))}
+          </div>
+
+          <button onClick={()=>setCookMode(true)} style={{ marginTop:30,width:"100%",background:C.ink,color:C.white,border:"none",borderRadius:16,padding:"18px",fontSize:16,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif",display:"flex",alignItems:"center",justifyContent:"center",gap:10,boxShadow:sh.ink }}>
+            Modo Cocina · pantalla limpia →
+          </button>
+          <button onClick={onClose} style={{ marginTop:10,width:"100%",background:C.white,color:C.ink,border:`1.5px solid ${C.line}`,borderRadius:16,padding:"16px",fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif" }}>Cerrar</button>
         </div>
       </div>
     </div>
   );
 }
 
+// ============================================
+// MAIN APP
+// ============================================
 function MainApp() {
   const [screen, setScreen] = useState("home");
   const [step, setStep] = useState(0);
@@ -666,9 +719,8 @@ function MainApp() {
 
   useEffect(() => {
     if (screen === "loading") {
-      const msgs = ["Analizando tu objetivo...","Seleccionando recetas...","Calculando la lista...","Optimizando presupuesto...","Listo!"];
       let i = 0;
-      const t = setInterval(() => { i++; if (i < msgs.length) setLoadMsg(i); else clearInterval(t); }, 500);
+      const t = setInterval(() => { i++; if (i < 5) setLoadMsg(i); else clearInterval(t); }, 500);
       return () => clearInterval(t);
     }
   }, [screen]);
@@ -709,124 +761,203 @@ function MainApp() {
   };
 
   const OBJ_IC = { bajar_peso:"⚖️", saludable:"🥗", ahorrar:"💰", masa:"💪", organizar:"📅", desinflamatoria:"🫚" };
-  const GFONT = `@import url('https://fonts.googleapis.com/css2?family=Epilogue:wght@500;600;700;800;900&family=Manrope:wght@400;500;600;700;800&family=Inter:wght@500;600;700&display=swap');`;
-  const BASE = `${GFONT} *{box-sizing:border-box;margin:0;padding:0;} body{margin:0;font-family:'Manrope',sans-serif;} button:focus,textarea:focus{outline:none;} @keyframes slideIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}} @keyframes spin{to{transform:rotate(360deg)}} @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}} @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.06)}100%{transform:scale(1)}} @keyframes chefPulse{0%,100%{transform:scale(1);box-shadow:0 8px 28px rgba(59,111,212,0.38)}50%{transform:scale(1.12);box-shadow:0 12px 40px rgba(59,111,212,0.6)}} @keyframes chefBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}} @keyframes ripple{0%{transform:scale(0.8);opacity:1}100%{transform:scale(2.2);opacity:0}}`;
 
+  // ============================================
+  // SCREEN: HOME
+  // ============================================
   if (screen === "home") return (
-    <div ref={scrollRef} style={{ minHeight:"100vh", background:C.white, fontFamily:"'Manrope',sans-serif", overflowY:"auto", display:"flex", flexDirection:"column" }}>
-      <style>{`${BASE} @keyframes floatPhone{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}`}</style>
-      <nav style={{ padding:"16px 28px", display:"flex", alignItems:"center", justifyContent:"flex-end" }}>
-        <div style={{ display:"flex", alignItems:"center", gap:6, background:C.blueLt, borderRadius:20, padding:"6px 12px" }}>
+    <div ref={scrollRef} style={{ minHeight:"100vh", background:C.bg, fontFamily:"'Manrope',sans-serif", overflowY:"auto", display:"flex", flexDirection:"column", position:"relative", overflow:"hidden" }}>
+      <style>{BASE}</style>
+      <BgGrid />
+      <Blob pos="tr" />
+      <Blob pos="bl" color="rgba(0,102,204,0.13)" size={400} />
+
+      <nav style={{ padding:"18px 26px", display:"flex", alignItems:"center", justifyContent:"space-between", position:"relative", zIndex:1 }}>
+        <KookiLogo size={22}/>
+        <div style={{ display:"flex", alignItems:"center", gap:7, background:C.white, border:`1px solid ${C.line}`, borderRadius:100, padding:"7px 14px", boxShadow:sh.sm }}>
           <span style={{ width:7, height:7, borderRadius:"50%", background:C.success, display:"inline-block" }}/>
-          <span style={{ fontSize:12, fontWeight:700, color:C.blue, fontFamily:"'Inter',sans-serif" }}>Acceso activo</span>
+          <span style={{ fontSize:12, fontWeight:700, color:C.ink, fontFamily:"'Inter',sans-serif" }}>Acceso activo</span>
         </div>
       </nav>
-      <div style={{ flex:1, display:"flex", flexDirection:"column", padding:"8px 28px 0", maxWidth:480, margin:"0 auto", width:"100%" }}>
-        <div style={{ display:"flex", justifyContent:"center", marginBottom:4 }}>
-          <img src="https://i.imgur.com/IYcv1Vp.jpeg" alt="Kooki" style={{ width:"60%", maxWidth:220, borderRadius:0 }}/>
+
+      <div style={{ flex:1, display:"flex", flexDirection:"column", padding:"12px 26px 0", maxWidth:480, margin:"0 auto", width:"100%", position:"relative", zIndex:1 }}>
+        <div style={{ display:"flex", justifyContent:"center", marginBottom:6 }}>
+          <Eyebrow center>Tu cocina con IA</Eyebrow>
         </div>
-        <h1 style={{ fontSize:38, fontWeight:800, color:C.dark, lineHeight:1.1, marginBottom:14, letterSpacing:"-0.025em", textAlign:"center", fontFamily:"'Epilogue',sans-serif" }}>
-          Tu semana<br/>resuelta en<br/><span style={{ color:C.blue }}>2 minutos.</span>
+        <h1 style={{ fontSize:"clamp(38px, 9vw, 52px)", fontWeight:900, color:C.ink, lineHeight:0.95, marginBottom:18, marginTop:14, letterSpacing:"-0.045em", textAlign:"center", fontFamily:"'Epilogue',sans-serif" }}>
+          Tu semana<br/>resuelta en<br/>
+          <span style={{ color:C.blue, fontStyle:"italic", fontWeight:800 }}>2 minutos</span>.
         </h1>
-        <p style={{ fontSize:15, color:C.sub, lineHeight:1.7, marginBottom:16, textAlign:"center" }}>Vos respondes. Kooki resuelve.</p>
-        <div style={{ position:"relative", marginBottom:28, display:"flex", justifyContent:"center", alignItems:"center" }}>
+        <p style={{ fontSize:16, color:C.sub, lineHeight:1.55, marginBottom:24, textAlign:"center", fontWeight:500 }}>
+          Vos respondés. Kooki resuelve.
+        </p>
+
+        <div style={{ position:"relative", marginBottom:32, display:"flex", justifyContent:"center", alignItems:"center" }}>
           <div style={{ position:"absolute", width:280, height:280, borderRadius:"50%", background:`radial-gradient(circle, ${C.bluePl} 0%, transparent 70%)`, zIndex:0 }}/>
-          <img src="https://i.imgur.com/ItvV1e7.jpeg" alt="Kooki app" style={{ width:"100%", maxWidth:300, borderRadius:24, position:"relative", zIndex:1, animation:"floatPhone 3s ease-in-out infinite", boxShadow:`0 20px 60px rgba(59,111,212,0.18)` }}/>
+          <img src="https://i.imgur.com/ItvV1e7.jpeg" alt="Kooki app" style={{ width:"100%", maxWidth:300, borderRadius:24, position:"relative", zIndex:1, animation:"floatPhone 3s ease-in-out infinite", boxShadow:`0 30px 60px rgba(10,14,26,0.18), -22px 22px 0 rgba(59,111,212,0.12)` }}/>
         </div>
-        <div style={{ background:C.bg, borderRadius:20, padding:"24px", marginBottom:28, border:`1px solid ${C.gray2}` }}>
-          <div style={{ fontSize:12, fontWeight:800, color:C.gray4, letterSpacing:"1px", textTransform:"uppercase", marginBottom:14, fontFamily:"'Inter',sans-serif" }}>Esto es lo que Kooki hace por vos:</div>
-          {[["✔️","Menu completo de lunes a domingo"],["✔️","Lista de compras organizada por seccion"],["✔️","Recetas paso a paso con modo cocina"],["✔️","Chef asistente para tus dudas"]].map(([ic,txt],i) => (
-            <div key={i} style={{ display:"flex", alignItems:"center", gap:12, marginBottom:i<3?11:0 }}>
-              <span style={{ fontSize:14, flexShrink:0 }}>{ic}</span>
-              <span style={{ fontSize:14, fontWeight:600, color:C.text }}>{txt}</span>
-            </div>
-          ))}
+
+        <div style={{ marginBottom:32 }}>
+          <div style={{ display:"flex", justifyContent:"center", marginBottom:18 }}>
+            <Eyebrow center>Esto hace Kooki por vos</Eyebrow>
+          </div>
+          <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+            {[
+              "Menú completo de lunes a domingo",
+              "Lista de compras organizada por sección",
+              "Recetas paso a paso con modo cocina",
+              "Chef asistente con IA para tus dudas",
+            ].map((txt,i) => (
+              <div key={i} style={{ display:"flex", alignItems:"center", gap:14 }}>
+                <div style={{ width:24, height:24, borderRadius:"50%", background:C.blue, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <span style={{ fontSize:15, fontWeight:600, color:C.ink, fontFamily:"'Manrope',sans-serif" }}>{txt}</span>
+              </div>
+            ))}
+          </div>
         </div>
-        <button onClick={() => { setScreen("onboarding"); setStep(0); setAnswers({}); }} style={{ width:"100%", background:`linear-gradient(135deg,${C.blue},${C.blueDk})`, color:C.white, border:"none", borderRadius:18, padding:"20px", fontSize:18, fontWeight:800, cursor:"pointer", boxShadow:sh.blue, fontFamily:"'Inter',sans-serif", marginBottom:12 }}>
-          📅 Armar mi semana →
+
+        <button onClick={() => { setScreen("onboarding"); setStep(0); setAnswers({}); }}
+          style={{ width:"100%", background:C.ink, color:C.white, border:"none", borderRadius:18, padding:"20px 28px", fontSize:16, fontWeight:700, cursor:"pointer", boxShadow:sh.ink, fontFamily:"'Inter',sans-serif", marginBottom:12, display:"flex", alignItems:"center", justifyContent:"center", gap:12, transition:"background 0.2s, transform 0.2s" }}
+          onMouseEnter={e => { e.currentTarget.style.background = C.blue; e.currentTarget.style.transform = "translateY(-2px)"; }}
+          onMouseLeave={e => { e.currentTarget.style.background = C.ink; e.currentTarget.style.transform = "translateY(0)"; }}>
+          <span>Armar mi semana</span>
+          <span style={{ width:30, height:30, borderRadius:"50%", background:C.white, color:C.ink, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:16, fontWeight:700 }}>→</span>
         </button>
-        <button onClick={() => { setHoyResult(null); setScreen("hoy"); }} style={{ width:"100%", background:C.white, color:C.blue, border:`2px solid ${C.blue}`, borderRadius:18, padding:"18px", fontSize:17, fontWeight:800, cursor:"pointer", fontFamily:"'Inter',sans-serif", marginBottom:24 }}>
-          🍳 ¿Que cocino hoy?
+        <button onClick={() => { setHoyResult(null); setScreen("hoy"); }}
+          style={{ width:"100%", background:C.white, color:C.ink, border:`1.5px solid ${C.line}`, borderRadius:18, padding:"18px", fontSize:16, fontWeight:700, cursor:"pointer", fontFamily:"'Inter',sans-serif", marginBottom:24, transition:"border-color 0.2s" }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = C.ink; }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = C.line; }}>
+          ¿Qué cocino hoy?
         </button>
-        <p style={{ textAlign:"center", fontSize:13, color:C.gray4, marginBottom:48 }}>✓ Listo en 2 minutos · ✓ Personalizado para vos</p>
+        <p style={{ textAlign:"center", fontSize:13, color:C.sub, marginBottom:48, fontFamily:"'Inter',sans-serif", fontWeight:500 }}>
+          ✓ Listo en 2 minutos · ✓ Personalizado para vos
+        </p>
       </div>
     </div>
   );
 
+  // ============================================
+  // SCREEN: ¿QUÉ COCINO HOY?
+  // ============================================
   if (screen === "hoy") return (
-    <div style={{ minHeight:"100vh", background:C.white, fontFamily:"'Manrope',sans-serif", display:"flex", flexDirection:"column" }}>
+    <div style={{ minHeight:"100vh", background:C.bg, fontFamily:"'Manrope',sans-serif", display:"flex", flexDirection:"column", position:"relative", overflow:"hidden" }}>
       <style>{BASE}</style>
-      <div style={{ padding:"14px 20px", display:"flex", alignItems:"center", gap:14, borderBottom:`1px solid ${C.gray2}` }}>
-        <button onClick={() => setScreen("home")} style={{ background:C.gray1, border:"none", borderRadius:12, width:38, height:38, cursor:"pointer", fontSize:18, display:"flex", alignItems:"center", justifyContent:"center", color:C.text, fontWeight:700 }}>←</button>
-        <div style={{ fontSize:17, fontWeight:800, color:C.dark, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.025em" }}>¿Que cocino hoy?</div>
+      <BgGrid />
+      <Blob pos="tr" />
+
+      <div style={{ padding:"16px 22px", display:"flex", alignItems:"center", gap:14, borderBottom:`1px solid ${C.line}`, background:C.bg, position:"relative", zIndex:1 }}>
+        <button onClick={() => setScreen("home")} style={{ background:C.white, border:`1px solid ${C.line}`, borderRadius:12, width:40, height:40, cursor:"pointer", fontSize:18, display:"flex", alignItems:"center", justifyContent:"center", color:C.ink, fontWeight:700 }}>←</button>
+        <div style={{ fontSize:18, fontWeight:800, color:C.ink, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.025em" }}>¿Qué cocino hoy?</div>
       </div>
+
       {!hoyResult ? (
-        <div style={{ flex:1, padding:"28px 24px", maxWidth:520, margin:"0 auto", width:"100%", overflowY:"auto" }}>
-          <div style={{ fontSize:26, fontWeight:800, color:C.dark, marginBottom:6, letterSpacing:"-0.025em", fontFamily:"'Epilogue',sans-serif" }}>Rapido y sin vuelta 🍳</div>
-          <div style={{ fontSize:14, color:C.sub, marginBottom:28, lineHeight:1.55 }}>3 preguntas y te doy la receta perfecta.</div>
-          <div style={{ marginBottom:24 }}>
-            <div style={{ fontSize:15, fontWeight:700, color:C.dark, marginBottom:12 }}>Cuantas comidas necesitas?</div>
+        <div style={{ flex:1, padding:"32px 24px", maxWidth:520, margin:"0 auto", width:"100%", overflowY:"auto", position:"relative", zIndex:1 }}>
+          <div style={{ marginBottom:14 }}>
+            <Eyebrow>Rápido y sin vueltas</Eyebrow>
+          </div>
+          <h2 style={{ fontSize:32, fontWeight:900, color:C.ink, lineHeight:1.0, marginBottom:10, letterSpacing:"-0.04em", fontFamily:"'Epilogue',sans-serif" }}>
+            3 preguntas y te doy<br/>la receta <span style={{ color:C.blue, fontStyle:"italic", fontWeight:800 }}>perfecta</span>.
+          </h2>
+          <div style={{ fontSize:15, color:C.sub, marginBottom:32, lineHeight:1.55, fontWeight:500 }}>
+            Filtramos del banco de recetas según lo que necesitás.
+          </div>
+
+          <div style={{ marginBottom:28 }}>
+            <div style={{ fontSize:15, fontWeight:700, color:C.ink, marginBottom:14, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.015em" }}>¿Cuántas comidas necesitás?</div>
             <div style={{ display:"flex", gap:10 }}>
-              {[["1","🍽️ Una sola"],["2","🌞🌙 Almuerzo y cena"]].map(([val,lbl]) => (
-                <button key={val} onClick={() => setHoyCuantas(val)} style={{ flex:1, padding:"14px 10px", borderRadius:14, border:`2px solid ${hoyCuantas===val?C.blue:C.gray2}`, background:hoyCuantas===val?C.blueLt:C.white, fontSize:14, fontWeight:700, color:hoyCuantas===val?C.blueDk:C.dark, cursor:"pointer", fontFamily:"'Inter',sans-serif", transition:"all 0.18s" }}>{lbl}</button>
-              ))}
+              {[["1","Una sola"],["2","Almuerzo y cena"]].map(([val,lbl]) => {
+                const sel = hoyCuantas === val;
+                return (
+                  <button key={val} onClick={() => setHoyCuantas(val)} style={{ flex:1, padding:"16px 12px", borderRadius:14, border:`2px solid ${sel?C.ink:C.line}`, background:sel?C.ink:C.white, fontSize:14, fontWeight:700, color:sel?C.white:C.ink, cursor:"pointer", fontFamily:"'Inter',sans-serif", transition:"all 0.18s" }}>
+                    {lbl}
+                  </button>
+                );
+              })}
             </div>
           </div>
-          <div style={{ marginBottom:24 }}>
-            <div style={{ fontSize:15, fontWeight:700, color:C.dark, marginBottom:12 }}>Que tipo de comida queres?</div>
+
+          <div style={{ marginBottom:28 }}>
+            <div style={{ fontSize:15, fontWeight:700, color:C.ink, marginBottom:14, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.015em" }}>¿Qué tipo de comida querés?</div>
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-              {[["cualquiera","🍽️","Cualquier cosa"],["liviana","🥗","Liviana y sana"],["rapida","⚡","Rapida (menos de 20 min)"],["contundente","💪","Contundente"],["vegetariana","🌿","Vegetariana / Vegana"]].map(([val,emoji,lbl]) => (
-                <button key={val} onClick={() => setHoyTipo(val)}
-                  style={{ padding:"14px 10px", borderRadius:14, border:`2px solid ${hoyTipo===val?C.blue:C.gray2}`, background:hoyTipo===val?C.blueLt:C.white, fontSize:13, fontWeight:700, color:hoyTipo===val?C.blueDk:C.dark, cursor:"pointer", fontFamily:"'Inter',sans-serif", transition:"all 0.18s", display:"flex", flexDirection:"column", alignItems:"center", gap:6, gridColumn:val==="vegetariana"?"span 2":"span 1" }}>
-                  <span style={{ fontSize:22 }}>{emoji}</span>
-                  <span>{lbl}</span>
-                  {hoyTipo===val && <Tag color={C.blue} bg={C.bluePl}>✓</Tag>}
-                </button>
-              ))}
+              {[["cualquiera","01","Cualquier cosa"],["liviana","02","Liviana y sana"],["rapida","03","Rápida (-20 min)"],["contundente","04","Contundente"],["vegetariana","05","Vegetariana"]].map(([val,num,lbl]) => {
+                const sel = hoyTipo === val;
+                return (
+                  <button key={val} onClick={() => setHoyTipo(val)}
+                    style={{ padding:"16px 12px", borderRadius:14, border:`2px solid ${sel?C.blue:C.line}`, background:sel?C.blueLt:C.white, cursor:"pointer", fontFamily:"'Manrope',sans-serif", transition:"all 0.18s", display:"flex", flexDirection:"column", alignItems:"flex-start", gap:8, gridColumn:val==="vegetariana"?"span 2":"span 1", textAlign:"left" }}>
+                    <div style={{ fontSize:24, fontWeight:900, color:sel?C.blue:C.gray3, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.04em", lineHeight:1 }}>{num}</div>
+                    <div style={{ fontSize:13.5, fontWeight:700, color:sel?C.ink:C.text, fontFamily:"'Inter',sans-serif" }}>{lbl}</div>
+                  </button>
+                );
+              })}
             </div>
           </div>
-          <div style={{ marginBottom:32 }}>
-            <div style={{ fontSize:15, fontWeight:700, color:C.dark, marginBottom:6 }}>
-              Que tenes en casa? <span style={{ fontWeight:500, color:C.gray4, fontSize:13 }}>(opcional)</span>
+
+          <div style={{ marginBottom:36 }}>
+            <div style={{ fontSize:15, fontWeight:700, color:C.ink, marginBottom:6, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.015em" }}>
+              ¿Qué tenés en casa? <span style={{ fontWeight:500, color:C.gray4, fontSize:13, fontFamily:"'Manrope',sans-serif" }}>(opcional)</span>
             </div>
-            <div style={{ fontSize:13, color:C.sub, marginBottom:10 }}>Te priorizamos recetas con lo que ya tenes</div>
+            <div style={{ fontSize:13, color:C.sub, marginBottom:12, fontWeight:500 }}>Te priorizamos recetas con lo que ya tenés.</div>
             <textarea value={hoyIngredientes} onChange={e => setHoyIngredientes(e.target.value)} placeholder="Ej: pollo, arroz, huevos, tomates..." rows={2}
-              style={{ width:"100%", padding:"14px 16px", borderRadius:14, border:`2px solid ${C.gray2}`, fontSize:15, color:C.text, resize:"none", lineHeight:1.6, background:C.gray1, fontFamily:"'Manrope',sans-serif", outline:"none" }}
-              onFocus={e=>e.target.style.borderColor=C.blue} onBlur={e=>e.target.style.borderColor=C.gray2}/>
+              style={{ width:"100%", padding:"15px 18px", borderRadius:14, border:`1.5px solid ${C.line}`, fontSize:15, color:C.text, resize:"none", lineHeight:1.5, background:C.white, fontFamily:"'Manrope',sans-serif", outline:"none", transition:"border 0.2s" }}
+              onFocus={e=>e.target.style.borderColor=C.blue} onBlur={e=>e.target.style.borderColor=C.line}/>
           </div>
-          <button onClick={() => setHoyResult(generarHoy(hoyCuantas, hoyTipo, hoyIngredientes))} style={{ width:"100%", background:`linear-gradient(135deg,${C.blue},${C.blueDk})`, color:C.white, border:"none", borderRadius:18, padding:"20px", fontSize:18, fontWeight:800, cursor:"pointer", boxShadow:sh.blue, fontFamily:"'Inter',sans-serif" }}>
-            ✨ Sugerir receta →
+
+          <button onClick={() => setHoyResult(generarHoy(hoyCuantas, hoyTipo, hoyIngredientes))}
+            style={{ width:"100%", background:C.ink, color:C.white, border:"none", borderRadius:18, padding:"20px", fontSize:16, fontWeight:700, cursor:"pointer", boxShadow:sh.ink, fontFamily:"'Inter',sans-serif", display:"flex", alignItems:"center", justifyContent:"center", gap:12, transition:"background 0.2s, transform 0.2s" }}
+            onMouseEnter={e => { e.currentTarget.style.background = C.blue; e.currentTarget.style.transform = "translateY(-2px)"; }}
+            onMouseLeave={e => { e.currentTarget.style.background = C.ink; e.currentTarget.style.transform = "translateY(0)"; }}>
+            <span>Sugerir receta</span>
+            <span style={{ width:30, height:30, borderRadius:"50%", background:C.white, color:C.ink, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:16, fontWeight:700 }}>→</span>
           </button>
         </div>
       ) : (
-        <div style={{ flex:1, padding:"28px 24px", maxWidth:520, margin:"0 auto", width:"100%" }}>
-          <div style={{ fontSize:24, fontWeight:800, color:C.dark, marginBottom:6, letterSpacing:"-0.025em", fontFamily:"'Epilogue',sans-serif" }}>Tu menu de hoy 🎉</div>
-          <div style={{ fontSize:14, color:C.sub, marginBottom:24 }}>Elegido para vos del banco de recetas</div>
+        <div style={{ flex:1, padding:"32px 24px", maxWidth:520, margin:"0 auto", width:"100%", position:"relative", zIndex:1 }}>
+          <div style={{ marginBottom:14 }}>
+            <Eyebrow>Listo</Eyebrow>
+          </div>
+          <h2 style={{ fontSize:30, fontWeight:900, color:C.ink, lineHeight:1.0, marginBottom:10, letterSpacing:"-0.04em", fontFamily:"'Epilogue',sans-serif" }}>
+            Tu menú <span style={{ color:C.blue, fontStyle:"italic", fontWeight:800 }}>de hoy</span>.
+          </h2>
+          <div style={{ fontSize:15, color:C.sub, marginBottom:28, fontWeight:500 }}>Elegido para vos del banco de recetas.</div>
+
           <div style={{ display:"flex", flexDirection:"column", gap:14, marginBottom:28 }}>
             {hoyResult.map((item,i) => {
               const r = R[item.nombre];
               return (
-                <div key={i} style={{ background:C.white, borderRadius:18, padding:"20px", boxShadow:sh.md }}>
-                  <div style={{ fontSize:12, fontWeight:800, color:C.blue, textTransform:"uppercase", letterSpacing:"1px", marginBottom:10, fontFamily:"'Inter',sans-serif" }}>{item.tipo}</div>
+                <div key={i} style={{ background:C.white, borderRadius:20, padding:"22px", boxShadow:sh.md, border:`1px solid ${C.line}` }}>
+                  <div style={{ marginBottom:14 }}>
+                    <Eyebrow>{item.tipo}</Eyebrow>
+                  </div>
                   <div style={{ display:"flex", alignItems:"center", gap:14 }}>
-                    <div style={{ width:56, height:56, borderRadius:16, background:C.blueLt, display:"flex", alignItems:"center", justifyContent:"center", fontSize:28, flexShrink:0 }}>{r?r.e:"🍽️"}</div>
-                    <div style={{ flex:1 }}>
-                      <div style={{ fontSize:16, fontWeight:800, color:C.dark, marginBottom:6 }}>{item.nombre}</div>
-                      {r && <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}><Tag color={C.blue} bg={C.blueLt}>⏱ {r.t}</Tag>{r.tags?.slice(0,1).map((t,j) => { const s=TAG_COLORS[t]||{}; return <Tag key={j} color={s.color||C.sub} bg={s.bg||C.gray1}>{t}</Tag>; })}</div>}
+                    <div style={{ width:60, height:60, borderRadius:16, background:C.blueLt, display:"flex", alignItems:"center", justifyContent:"center", fontSize:30, flexShrink:0 }}>{r?r.e:"🍽️"}</div>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontSize:17, fontWeight:800, color:C.ink, marginBottom:6, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.02em" }}>{item.nombre}</div>
+                      {r && (
+                        <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
+                          <Tag color={C.blue} bg={C.blueLt}>⏱ {r.t}</Tag>
+                          {r.tags?.slice(0,1).map((t,j) => { const s=TAG_COLORS[t]||{}; return <Tag key={j} color={s.color||C.sub} bg={s.bg||C.gray1}>{t}</Tag>; })}
+                        </div>
+                      )}
                     </div>
                   </div>
-                  <button onClick={() => setReceta(item.nombre)} style={{ marginTop:14, width:"100%", background:C.blueLt, color:C.blue, border:"none", borderRadius:12, padding:"12px", fontSize:14, fontWeight:700, cursor:"pointer", fontFamily:"'Inter',sans-serif" }}>Ver receta completa →</button>
+                  <button onClick={() => setReceta(item.nombre)} style={{ marginTop:16, width:"100%", background:C.bg, color:C.ink, border:`1px solid ${C.line}`, borderRadius:12, padding:"13px", fontSize:14, fontWeight:700, cursor:"pointer", fontFamily:"'Inter',sans-serif" }}>
+                    Ver receta completa →
+                  </button>
                 </div>
               );
             })}
           </div>
-          <button onClick={() => setHoyResult(generarHoy(hoyCuantas, hoyTipo, hoyIngredientes))} style={{ width:"100%", background:C.white, color:C.blue, border:`2px solid ${C.blue}`, borderRadius:16, padding:"16px", fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"'Inter',sans-serif", marginBottom:12 }}>↺ Otra sugerencia</button>
-          <button onClick={() => setHoyResult(null)} style={{ width:"100%", background:C.gray1, color:C.sub, border:"none", borderRadius:16, padding:"14px", fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"'Inter',sans-serif" }}>← Volver</button>
+
+          <button onClick={() => setHoyResult(generarHoy(hoyCuantas, hoyTipo, hoyIngredientes))} style={{ width:"100%", background:C.white, color:C.ink, border:`1.5px solid ${C.line}`, borderRadius:16, padding:"16px", fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"'Inter',sans-serif", marginBottom:12 }}>↺ Otra sugerencia</button>
+          <button onClick={() => setHoyResult(null)} style={{ width:"100%", background:"transparent", color:C.sub, border:"none", borderRadius:16, padding:"14px", fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"'Inter',sans-serif" }}>← Volver</button>
         </div>
       )}
+
       {hoyResult && (
         <div style={{ position:"fixed", bottom:28, right:22, zIndex:100 }}>
-          <button onClick={() => setChefOpen(true)} style={{ width:60, height:60, borderRadius:"50%", border:"none", background:`linear-gradient(135deg,${C.blue},${C.blueDk})`, color:C.white, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:sh.blue, animation:"chefBounce 2s ease infinite" }}>
+          <button onClick={() => setChefOpen(true)} style={{ width:60, height:60, borderRadius:"50%", border:"none", background:C.blue, color:C.white, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:sh.blue, animation:"chefBounce 2s ease infinite" }}>
             <ChefHat size={32}/>
           </button>
         </div>
@@ -836,37 +967,48 @@ function MainApp() {
     </div>
   );
 
+  // ============================================
+  // SCREEN: ONBOARDING
+  // ============================================
   if (screen === "onboarding") {
-    const progMsg = ["Conociendo tu objetivo...","Ajustando tu alimentacion...","Calculando tu tiempo...","Optimizando el presupuesto...","Definiendo las porciones...","Personalizando la complejidad...","Un ultimo detalle..."];
+    const progMsg = ["Conociendo tu objetivo...","Ajustando tu alimentación...","Calculando tu tiempo...","Optimizando el presupuesto...","Definiendo las porciones...","Personalizando la complejidad...","Un último detalle..."];
     const selDietas = answers.dieta || [];
+
     return (
-      <div style={{ minHeight:"100vh", background:C.white, fontFamily:"'Manrope',sans-serif", display:"flex", flexDirection:"column" }}>
+      <div style={{ minHeight:"100vh", background:C.bg, fontFamily:"'Manrope',sans-serif", display:"flex", flexDirection:"column", position:"relative", overflow:"hidden" }}>
         <style>{BASE}</style>
-        <div style={{ padding:"14px 20px", display:"flex", alignItems:"center", gap:14, borderBottom:`1px solid ${C.gray2}` }}>
-          <button onClick={() => step === 0 ? setScreen("home") : setStep(s=>s-1)} style={{ background:C.gray1, border:"none", borderRadius:12, width:38, height:38, cursor:"pointer", fontSize:18, display:"flex", alignItems:"center", justifyContent:"center", color:C.text, fontWeight:700 }}>←</button>
+        <BgGrid />
+
+        <div style={{ padding:"16px 22px", display:"flex", alignItems:"center", gap:14, borderBottom:`1px solid ${C.line}`, background:C.bg, position:"relative", zIndex:1 }}>
+          <button onClick={() => step === 0 ? setScreen("home") : setStep(s=>s-1)} style={{ background:C.white, border:`1px solid ${C.line}`, borderRadius:12, width:40, height:40, cursor:"pointer", fontSize:18, display:"flex", alignItems:"center", justifyContent:"center", color:C.ink, fontWeight:700 }}>←</button>
           <div style={{ flex:1 }}>
-            <div style={{ height:5, background:C.gray2, borderRadius:10, overflow:"hidden" }}>
-              <div style={{ height:"100%", width:`${((step+1)/STEPS.length)*100}%`, background:`linear-gradient(90deg,${C.blue},${C.blueMd})`, borderRadius:10, transition:"width 0.4s cubic-bezier(.4,0,.2,1)" }}/>
+            <div style={{ height:6, background:C.gray2, borderRadius:10, overflow:"hidden" }}>
+              <div style={{ height:"100%", width:`${((step+1)/STEPS.length)*100}%`, background:C.blue, borderRadius:10, transition:"width 0.4s cubic-bezier(.4,0,.2,1)" }}/>
             </div>
-            <div style={{ fontSize:12, color:C.blue, fontWeight:600, marginTop:5 }}>{progMsg[step]}</div>
+            <div style={{ fontSize:12, color:C.blue, fontWeight:600, marginTop:6, fontFamily:"'Inter',sans-serif", letterSpacing:"0.04em" }}>{progMsg[step]}</div>
           </div>
-          <span style={{ fontSize:13, fontWeight:700, color:C.sub }}>{step+1}/{STEPS.length}</span>
+          <span style={{ fontSize:13, fontWeight:800, color:C.ink, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.02em" }}>{step+1}/{STEPS.length}</span>
         </div>
-        <div key={animKey} style={{ flex:1, padding:"24px 20px 32px", overflowY:"auto", maxWidth:520, margin:"0 auto", width:"100%", animation:"slideIn 0.3s ease" }}>
+
+        <div key={animKey} style={{ flex:1, padding:"28px 22px 36px", overflowY:"auto", maxWidth:520, margin:"0 auto", width:"100%", animation:"slideIn 0.3s ease", position:"relative", zIndex:1 }}>
           {cur.type === "grid" && selDietas.length > 0 && (
-            <div style={{ background:C.blueLt, borderRadius:12, padding:"10px 14px", marginBottom:16, display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
-              <span style={{ fontSize:13, color:C.blue, fontWeight:700 }}>Seleccionaste:</span>
-              {selDietas.map(d => { const opt = STEPS[1].options.find(o=>o.value===d); return opt ? <Tag key={d} color={C.blue} bg={C.bluePl}>{opt.emoji} {opt.label}</Tag> : null; })}
+            <div style={{ background:C.white, border:`1px solid ${C.line}`, borderRadius:14, padding:"12px 16px", marginBottom:18, display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
+              <span style={{ fontSize:12, color:C.blue, fontWeight:700, fontFamily:"'Inter',sans-serif", textTransform:"uppercase", letterSpacing:"0.08em" }}>Seleccionaste:</span>
+              {selDietas.map(d => { const opt = STEPS[1].options.find(o=>o.value===d); return opt ? <Tag key={d} color={C.ink} bg={C.bluePl}>{opt.emoji} {opt.label}</Tag> : null; })}
             </div>
           )}
           {cur.type === "extras" && (
-            <div style={{ background:`linear-gradient(135deg,${C.blueLt},${C.bluePl})`, borderRadius:16, padding:"16px 18px", marginBottom:20, borderLeft:`4px solid ${C.blue}` }}>
-              <div style={{ fontSize:16, fontWeight:800, color:C.dark, marginBottom:4 }}>Ya estamos listos! 🎉</div>
-              <div style={{ fontSize:14, color:C.sub, lineHeight:1.55 }}>Con esto ya podemos armar tu semana perfecta. Los campos de abajo son opcionales.</div>
+            <div style={{ background:C.white, border:`1px solid ${C.line}`, borderRadius:18, padding:"20px 22px", marginBottom:24, borderLeft:`4px solid ${C.blue}` }}>
+              <div style={{ marginBottom:8 }}>
+                <Eyebrow>Casi listo</Eyebrow>
+              </div>
+              <div style={{ fontSize:18, fontWeight:800, color:C.ink, marginBottom:6, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.025em" }}>Ya estamos listos.</div>
+              <div style={{ fontSize:14, color:C.sub, lineHeight:1.55, fontWeight:500 }}>Con esto ya podemos armar tu semana perfecta. Los campos de abajo son opcionales.</div>
             </div>
           )}
-          <div style={{ fontSize:24, fontWeight:800, color:C.dark, lineHeight:1.25, marginBottom:6, letterSpacing:"-0.025em", fontFamily:"'Epilogue',sans-serif" }}>{cur.label}</div>
-          {cur.subtitle && <div style={{ fontSize:15, color:C.sub, marginBottom:24, lineHeight:1.55 }}>{cur.subtitle}</div>}
+
+          <h2 style={{ fontSize:"clamp(26px, 7vw, 34px)", fontWeight:900, color:C.ink, lineHeight:1.0, marginBottom:10, letterSpacing:"-0.04em", fontFamily:"'Epilogue',sans-serif" }}>{cur.label}</h2>
+          {cur.subtitle && <div style={{ fontSize:15, color:C.sub, marginBottom:28, lineHeight:1.55, fontWeight:500 }}>{cur.subtitle}</div>}
 
           {cur.type === "objetivo" && (
             <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
@@ -880,19 +1022,24 @@ function MainApp() {
                   setAnswers(a => ({ ...a, objetivo: [...arr, opt.value] }));
                 };
                 return (
-                  <button key={opt.value} onClick={toggle} style={{ padding:"16px 18px", borderRadius:16, cursor:"pointer", textAlign:"left", border:`2px solid ${sel?C.blue:C.gray2}`, background:sel?opt.color||C.blueLt:C.white, display:"flex", alignItems:"center", gap:14, transition:"all 0.18s", fontFamily:"'Manrope',sans-serif", boxShadow:sel?`0 0 0 3px ${C.blue}22,${sh.md}`:sh.sm }}>
-                    <div style={{ width:48, height:48, borderRadius:14, background:sel?C.blue:C.gray1, display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, flexShrink:0 }}>{opt.emoji}</div>
+                  <button key={opt.value} onClick={toggle} style={{ padding:"18px 20px", borderRadius:18, cursor:"pointer", textAlign:"left", border:`2px solid ${sel?C.blue:C.line}`, background:sel?C.blueLt:C.white, display:"flex", alignItems:"center", gap:16, transition:"all 0.18s", fontFamily:"'Manrope',sans-serif", boxShadow:sel?sh.md:sh.sm }}>
+                    <div style={{ width:52, height:52, borderRadius:14, background:sel?C.blue:C.bg, display:"flex", alignItems:"center", justifyContent:"center", fontSize:26, flexShrink:0 }}>{opt.emoji}</div>
                     <div style={{ flex:1 }}>
-                      <div style={{ fontSize:16, fontWeight:700, color:sel?C.blueDk:C.dark }}>{opt.label}</div>
-                      {opt.desc && <div style={{ fontSize:13, color:C.sub, marginTop:2 }}>{opt.desc}</div>}
+                      <div style={{ fontSize:16, fontWeight:800, color:C.ink, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.02em" }}>{opt.label}</div>
+                      {opt.desc && <div style={{ fontSize:13, color:C.sub, marginTop:3, fontWeight:500 }}>{opt.desc}</div>}
                     </div>
-                    {sel && <div style={{ width:26, height:26, borderRadius:"50%", background:C.blue, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color:C.white, fontWeight:800, fontSize:13 }}>{rank+1}</div>}
+                    {sel && (
+                      <div style={{ width:30, height:30, borderRadius:"50%", background:C.blue, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color:C.white, fontWeight:900, fontSize:14, fontFamily:"'Epilogue',sans-serif" }}>{rank+1}</div>
+                    )}
                   </button>
                 );
               })}
-              {(answers.objetivo||[]).length === 2 && <div style={{ textAlign:"center", fontSize:13, color:C.blue, fontWeight:600, marginTop:4 }}>✓ Maximo 2 objetivos seleccionados</div>}
+              {(answers.objetivo||[]).length === 2 && (
+                <div style={{ textAlign:"center", fontSize:13, color:C.blue, fontWeight:600, marginTop:6, fontFamily:"'Inter',sans-serif" }}>✓ Máximo 2 objetivos seleccionados</div>
+              )}
             </div>
           )}
+
           {cur.type === "grid" && (
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
               {cur.options.map(opt => {
@@ -904,150 +1051,193 @@ function MainApp() {
                   setAnswers(a => ({ ...a, dieta: sel ? without.filter(x=>x!==opt.value) : [...without, opt.value] }));
                 };
                 return (
-                  <button key={opt.value} onClick={toggle} style={{ padding:"18px 12px", borderRadius:16, cursor:"pointer", textAlign:"center", border:`2px solid ${sel?C.blue:C.gray2}`, background:sel?C.blueLt:C.white, display:"flex", flexDirection:"column", alignItems:"center", gap:8, transition:"all 0.18s", fontFamily:"'Manrope',sans-serif", boxShadow:sel?`0 0 0 3px ${C.blue}22,${sh.md}`:sh.sm }}>
-                    <div style={{ fontSize:30 }}>{opt.emoji}</div>
-                    <div style={{ fontSize:14, fontWeight:700, color:sel?C.blueDk:C.dark }}>{opt.label}</div>
-                    {sel && <Tag color={C.blue} bg={C.bluePl}>✓</Tag>}
+                  <button key={opt.value} onClick={toggle} style={{ padding:"20px 14px", borderRadius:18, cursor:"pointer", textAlign:"center", border:`2px solid ${sel?C.blue:C.line}`, background:sel?C.blueLt:C.white, display:"flex", flexDirection:"column", alignItems:"center", gap:10, transition:"all 0.18s", fontFamily:"'Manrope',sans-serif", boxShadow:sel?sh.md:sh.sm, position:"relative" }}>
+                    <div style={{ fontSize:32 }}>{opt.emoji}</div>
+                    <div style={{ fontSize:14, fontWeight:800, color:C.ink, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.02em" }}>{opt.label}</div>
+                    {sel && (
+                      <div style={{ position:"absolute", top:10, right:10, width:22, height:22, borderRadius:"50%", background:C.blue, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                      </div>
+                    )}
                   </button>
                 );
               })}
             </div>
           )}
+
           {(cur.type === "cards" || cur.type === "nivel") && (
             <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
               {cur.options.map(opt => {
                 const sel = answers[cur.id] === opt.value;
                 return (
-                  <button key={opt.value} onClick={() => setAnswers(a=>({...a,[cur.id]:opt.value}))} style={{ padding:"16px 18px", borderRadius:16, cursor:"pointer", textAlign:"left", border:`2px solid ${sel?C.blue:C.gray2}`, background:sel?opt.accent||C.blueLt:C.white, display:"flex", alignItems:"center", gap:14, transition:"all 0.18s", fontFamily:"'Manrope',sans-serif", boxShadow:sel?`0 0 0 3px ${C.blue}22,${sh.md}`:sh.sm }}>
-                    <div style={{ width:48, height:48, borderRadius:14, background:sel?C.blue:C.gray1, display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, flexShrink:0 }}>{opt.emoji}</div>
+                  <button key={opt.value} onClick={() => setAnswers(a=>({...a,[cur.id]:opt.value}))} style={{ padding:"22px 22px", borderRadius:18, cursor:"pointer", textAlign:"left", border:`2px solid ${sel?C.blue:C.line}`, background:sel?C.blueLt:C.white, display:"flex", alignItems:"center", gap:20, transition:"all 0.18s", fontFamily:"'Manrope',sans-serif", boxShadow:sel?sh.md:sh.sm }}>
+                    <div style={{ fontSize:38, fontWeight:900, color:sel?C.blue:C.gray3, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.05em", lineHeight:1, minWidth:54, transition:"color 0.18s" }}>{opt.num}</div>
                     <div style={{ flex:1 }}>
-                      <div style={{ fontSize:16, fontWeight:700, color:sel?C.blueDk:C.dark }}>{opt.label}</div>
-                      {opt.desc && <div style={{ fontSize:13, color:C.sub, marginTop:2 }}>{opt.desc}</div>}
+                      <div style={{ fontSize:17, fontWeight:800, color:C.ink, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.02em" }}>{opt.label}</div>
+                      {opt.desc && <div style={{ fontSize:14, color:C.sub, marginTop:3, fontWeight:500 }}>{opt.desc}</div>}
                     </div>
                     <div style={{ width:24, height:24, borderRadius:"50%", background:sel?C.blue:C.gray2, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                      {sel && <span style={{ color:C.white, fontSize:13, fontWeight:800 }}>✓</span>}
+                      {sel && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
                     </div>
                   </button>
                 );
               })}
             </div>
           )}
+
           {cur.type === "semaforo" && (
             <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
               {cur.options.map(opt => {
                 const sel = answers.presupuesto === opt.value;
                 return (
-                  <button key={opt.value} onClick={() => setAnswers(a=>({...a,presupuesto:opt.value}))} style={{ padding:"18px 20px", borderRadius:16, cursor:"pointer", textAlign:"left", border:`2px solid ${sel?opt.color:C.gray2}`, background:sel?opt.bg:C.white, display:"flex", alignItems:"center", gap:16, transition:"all 0.18s", fontFamily:"'Manrope',sans-serif", boxShadow:sel?`0 0 0 3px ${opt.color}30,${sh.md}`:sh.sm }}>
-                    <div style={{ width:20, height:20, borderRadius:"50%", background:opt.color, boxShadow:`0 0 0 4px ${opt.color}30`, flexShrink:0 }}/>
+                  <button key={opt.value} onClick={() => setAnswers(a=>({...a,presupuesto:opt.value}))} style={{ padding:"22px 22px", borderRadius:18, cursor:"pointer", textAlign:"left", border:`2px solid ${sel?opt.color:C.line}`, background:C.white, display:"flex", alignItems:"center", gap:20, transition:"all 0.18s", fontFamily:"'Manrope',sans-serif", boxShadow:sel?`0 0 0 3px ${opt.color}25, ${sh.md}`:sh.sm }}>
+                    <div style={{ fontSize:30, fontWeight:900, color:sel?opt.color:C.gray3, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.04em", lineHeight:1, minWidth:54, transition:"color 0.18s" }}>{opt.num}</div>
                     <div style={{ flex:1 }}>
-                      <div style={{ fontSize:16, fontWeight:700, color:C.dark }}>{opt.label}</div>
-                      <div style={{ fontSize:13, color:C.sub, marginTop:2 }}>{opt.desc}</div>
+                      <div style={{ fontSize:17, fontWeight:800, color:C.ink, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.02em" }}>{opt.label}</div>
+                      <div style={{ fontSize:14, color:C.sub, marginTop:3, fontWeight:500 }}>{opt.desc}</div>
                     </div>
                     <div style={{ width:24, height:24, borderRadius:"50%", background:sel?opt.color:C.gray2, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                      {sel && <span style={{ color:C.white, fontSize:13, fontWeight:800 }}>✓</span>}
+                      {sel && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
                     </div>
                   </button>
                 );
               })}
             </div>
           )}
+
           {cur.type === "extras" && (
-            <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
-              {[{id:"ingredientes",label:"Que tenes en casa ahora?",ph:"Ej: arroz, huevos, pollo...",e:"🧺"},{id:"no_gusta",label:"Algo que no comas?",ph:"Ej: cebolla cruda, mariscos...",e:"🚫"}].map(f2 => (
+            <div style={{ display:"flex", flexDirection:"column", gap:22 }}>
+              {[{id:"ingredientes",label:"¿Qué tenés en casa ahora?",ph:"Ej: arroz, huevos, pollo..."},{id:"no_gusta",label:"¿Algo que no comas?",ph:"Ej: cebolla cruda, mariscos..."}].map(f2 => (
                 <div key={f2.id}>
-                  <div style={{ fontSize:15, fontWeight:700, color:C.dark, marginBottom:10, display:"flex", alignItems:"center", gap:8 }}>
-                    <span>{f2.e}</span>{f2.label}<span style={{ fontWeight:500, color:C.gray4, fontSize:13 }}>(opcional)</span>
+                  <div style={{ fontSize:15, fontWeight:700, color:C.ink, marginBottom:10, display:"flex", alignItems:"center", gap:8, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.015em" }}>
+                    {f2.label} <span style={{ fontWeight:500, color:C.gray4, fontSize:13, fontFamily:"'Manrope',sans-serif" }}>(opcional)</span>
                   </div>
                   <textarea value={answers[f2.id]||""} onChange={e=>setAnswers(a=>({...a,[f2.id]:e.target.value}))} placeholder={f2.ph} rows={3}
-                    style={{ width:"100%", padding:"14px 16px", borderRadius:14, border:`2px solid ${C.gray2}`, fontSize:15, color:C.text, resize:"none", lineHeight:1.6, background:C.gray1, fontFamily:"'Manrope',sans-serif" }}
-                    onFocus={e=>e.target.style.borderColor=C.blue} onBlur={e=>e.target.style.borderColor=C.gray2}/>
+                    style={{ width:"100%", padding:"15px 18px", borderRadius:14, border:`1.5px solid ${C.line}`, fontSize:15, color:C.text, resize:"none", lineHeight:1.55, background:C.white, fontFamily:"'Manrope',sans-serif", outline:"none", transition:"border 0.2s" }}
+                    onFocus={e=>e.target.style.borderColor=C.blue} onBlur={e=>e.target.style.borderColor=C.line}/>
                 </div>
               ))}
             </div>
           )}
-          <button onClick={handleNext} disabled={!canNext()} style={{ width:"100%", marginTop:28, padding:"18px", borderRadius:16, border:"none", fontSize:17, fontWeight:800, background:canNext()?`linear-gradient(135deg,${C.blue},${C.blueDk})`:C.gray2, color:canNext()?C.white:C.gray4, cursor:canNext()?"pointer":"not-allowed", boxShadow:canNext()?sh.blue:"none", transition:"all 0.2s", fontFamily:"'Inter',sans-serif" }}>
-            {isLast ? "✨ Generar mi menu" : "Continuar →"}
+
+          <button onClick={handleNext} disabled={!canNext()}
+            style={{ width:"100%", marginTop:32, padding:"20px 28px", borderRadius:18, border:"none", fontSize:16, fontWeight:700, background:canNext()?C.ink:C.gray2, color:canNext()?C.white:C.gray4, cursor:canNext()?"pointer":"not-allowed", boxShadow:canNext()?sh.ink:"none", transition:"all 0.2s", fontFamily:"'Inter',sans-serif", display:"flex", alignItems:"center", justifyContent:"center", gap:12 }}
+            onMouseEnter={e => { if (canNext()) { e.currentTarget.style.background = C.blue; e.currentTarget.style.transform = "translateY(-2px)"; } }}
+            onMouseLeave={e => { if (canNext()) { e.currentTarget.style.background = C.ink; e.currentTarget.style.transform = "translateY(0)"; } }}>
+            <span>{isLast ? "Generar mi menú" : "Continuar"}</span>
+            {canNext() && <span style={{ width:30, height:30, borderRadius:"50%", background:C.white, color:C.ink, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:16, fontWeight:700 }}>→</span>}
           </button>
-          {cur.type === "extras" && <p style={{ textAlign:"center", fontSize:13, color:C.gray4, marginTop:10 }}>Podes saltearlo y continuar directo</p>}
+          {cur.type === "extras" && <p style={{ textAlign:"center", fontSize:13, color:C.sub, marginTop:12, fontWeight:500 }}>Podés saltearlo y continuar directo</p>}
         </div>
       </div>
     );
   }
 
+  // ============================================
+  // SCREEN: LOADING
+  // ============================================
   if (screen === "loading") {
-    const MSGS = ["Analizando tu objetivo...","Seleccionando las mejores recetas...","Calculando la lista de compras...","Optimizando el presupuesto...","Tu menu esta casi listo!"];
+    const MSGS = ["Analizando tu objetivo...","Seleccionando las mejores recetas...","Calculando la lista de compras...","Optimizando el presupuesto...","¡Tu menú está casi listo!"];
     return (
-      <div style={{ minHeight:"100vh", background:C.white, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:32, fontFamily:"'Manrope',sans-serif" }}>
+      <div style={{ minHeight:"100vh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:32, fontFamily:"'Manrope',sans-serif", position:"relative", overflow:"hidden" }}>
         <style>{BASE}</style>
-        <div style={{ width:80, height:80, borderRadius:"50%", border:`6px solid ${C.blueLt}`, borderTop:`6px solid ${C.blue}`, animation:"spin 0.9s linear infinite", marginBottom:32 }}/>
-        <h2 style={{ fontSize:26, fontWeight:800, color:C.dark, marginBottom:10, textAlign:"center", fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.025em" }}>Kooki esta trabajando...</h2>
-        <p style={{ fontSize:15, color:C.sub, textAlign:"center", maxWidth:260, lineHeight:1.65, marginBottom:32 }}>Personalizando tu plan de alimentacion</p>
-        <div style={{ width:"100%", maxWidth:300, display:"flex", flexDirection:"column", gap:12 }}>
-          {MSGS.map((m,i) => (
-            <div key={i} style={{ display:"flex", alignItems:"center", gap:12, opacity:i<=loadMsg?1:0.2, transition:"opacity 0.4s" }}>
-              <div style={{ width:10, height:10, borderRadius:"50%", background:i<loadMsg?C.success:i===loadMsg?C.blue:C.gray3, flexShrink:0, transition:"background 0.3s" }}/>
-              <span style={{ fontSize:14, color:i===loadMsg?C.text:C.gray4, fontWeight:i===loadMsg?600:400 }}>{m}</span>
-            </div>
-          ))}
+        <BgGrid />
+        <Blob pos="tr" />
+        <Blob pos="bl" color="rgba(0,102,204,0.13)" />
+        <div style={{ position:"relative", zIndex:1, display:"flex", flexDirection:"column", alignItems:"center" }}>
+          <div style={{ width:80, height:80, borderRadius:"50%", border:`6px solid ${C.bluePl}`, borderTop:`6px solid ${C.blue}`, animation:"spin 0.9s linear infinite", marginBottom:32 }}/>
+          <div style={{ marginBottom:14 }}>
+            <Eyebrow center>Generando</Eyebrow>
+          </div>
+          <h2 style={{ fontSize:32, fontWeight:900, color:C.ink, marginBottom:14, textAlign:"center", fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.04em", lineHeight:1.0 }}>
+            Kooki está <span style={{ color:C.blue, fontStyle:"italic", fontWeight:800 }}>trabajando</span>.
+          </h2>
+          <p style={{ fontSize:15, color:C.sub, textAlign:"center", maxWidth:280, lineHeight:1.55, marginBottom:36, fontWeight:500 }}>
+            Personalizando tu plan de alimentación
+          </p>
+          <div style={{ width:"100%", maxWidth:320, display:"flex", flexDirection:"column", gap:14 }}>
+            {MSGS.map((m,i) => (
+              <div key={i} style={{ display:"flex", alignItems:"center", gap:14, opacity:i<=loadMsg?1:0.3, transition:"opacity 0.4s" }}>
+                <div style={{ width:10, height:10, borderRadius:"50%", background:i<loadMsg?C.success:i===loadMsg?C.blue:C.gray3, flexShrink:0, transition:"background 0.3s" }}/>
+                <span style={{ fontSize:14, color:i===loadMsg?C.ink:C.gray4, fontWeight:i===loadMsg?700:500, fontFamily:"'Inter',sans-serif" }}>{m}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
   }
 
+  // ============================================
+  // SCREEN: RESULT (header OSCURO tipo slide)
+  // ============================================
   if (screen === "result" && result) {
     const showChefFab = tab === "lista" || tab === "recetas";
     return (
       <div ref={scrollRef} style={{ minHeight:"100vh", background:C.bg, fontFamily:"'Manrope',sans-serif", overflowY:"auto" }}>
         <style>{BASE}</style>
-        <div style={{ background:`linear-gradient(140deg,${C.blue},${C.blueDk})`, padding:"22px 22px 36px", position:"relative", overflow:"hidden" }}>
-          <div style={{ position:"absolute", top:-50, right:-50, width:180, height:180, borderRadius:"50%", background:"rgba(255,255,255,0.05)" }}/>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:22, position:"relative" }}>
-            <KookiLogo size={26} dark/>
-            <button onClick={resetAll} style={{ background:"rgba(255,255,255,0.15)", border:"1px solid rgba(255,255,255,0.25)", color:C.white, borderRadius:12, padding:"8px 16px", fontSize:13, cursor:"pointer", fontWeight:600, fontFamily:"'Inter',sans-serif" }}>↺ Nuevo menu</button>
+
+        <div style={{ background:C.ink, padding:"24px 22px 44px", position:"relative", overflow:"hidden" }}>
+          <BgGrid dark />
+          <Blob pos="tr" color="rgba(59,111,212,0.4)" size={400} />
+
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:28, position:"relative", zIndex:1 }}>
+            <KookiLogo size={24} dark/>
+            <button onClick={resetAll} style={{ background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.15)", color:C.white, borderRadius:12, padding:"9px 16px", fontSize:13, cursor:"pointer", fontWeight:600, fontFamily:"'Inter',sans-serif" }}>↺ Nuevo menú</button>
           </div>
-          <div style={{ position:"relative" }}>
-            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
-              <span style={{ fontSize:22 }}>{OBJ_IC[result.objetivo]||"✨"}</span>
-              <span style={{ background:"rgba(255,255,255,0.18)", color:C.white, borderRadius:20, padding:"4px 12px", fontSize:12, fontWeight:700 }}>{result.tag}</span>
+
+          <div style={{ position:"relative", zIndex:1 }}>
+            <div style={{ marginBottom:18 }}>
+              <Eyebrow dark>Tu plan personalizado</Eyebrow>
             </div>
-            <div style={{ fontSize:24, fontWeight:800, color:C.white, marginBottom:8, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.025em" }}>Tu plan esta listo 🎉</div>
-            <div style={{ fontSize:14, color:"rgba(255,255,255,0.82)", lineHeight:1.6, marginBottom:18 }}>{result.tip}</div>
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16 }}>
+              <span style={{ fontSize:24 }}>{OBJ_IC[result.objetivo]||"✨"}</span>
+              <span style={{ background:"rgba(59,111,212,0.18)", border:"1px solid rgba(59,111,212,0.35)", color:C.blueGlow, borderRadius:100, padding:"6px 14px", fontSize:12, fontWeight:700, fontFamily:"'Inter',sans-serif", textTransform:"uppercase", letterSpacing:"0.08em" }}>{result.tag}</span>
+            </div>
+            <h1 style={{ fontSize:"clamp(28px, 7vw, 38px)", fontWeight:900, color:C.white, marginBottom:14, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.04em", lineHeight:1.0 }}>
+              Tu plan está <span style={{ color:C.blue, fontStyle:"italic", fontWeight:800 }}>listo</span>.
+            </h1>
+            <div style={{ fontSize:15, color:"rgba(255,255,255,0.7)", lineHeight:1.55, marginBottom:22, fontWeight:500 }}>{result.tip}</div>
             {result.precio_estimado && (
-              <div style={{ background:"rgba(255,255,255,0.12)", borderRadius:16, padding:"14px 18px", display:"flex", alignItems:"center", gap:12 }}>
-                <span style={{ fontSize:26 }}>🛒</span>
+              <div style={{ background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:18, padding:"16px 20px", display:"flex", alignItems:"center", gap:14, backdropFilter:"blur(10px)" }}>
+                <div style={{ width:42, height:42, borderRadius:12, background:"rgba(59,111,212,0.2)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:22, flexShrink:0 }}>🛒</div>
                 <div>
-                  <div style={{ fontSize:11, color:"rgba(255,255,255,0.65)", fontWeight:700, letterSpacing:"0.8px", textTransform:"uppercase", fontFamily:"'Inter',sans-serif" }}>Estimado compras semanales</div>
-                  <div style={{ fontSize:20, fontWeight:800, color:C.white, marginTop:2 }}>{result.precio_estimado} ARS</div>
+                  <div style={{ fontSize:11, color:"rgba(255,255,255,0.5)", fontWeight:600, letterSpacing:"0.12em", textTransform:"uppercase", fontFamily:"'Inter',sans-serif" }}>Estimado compras semanales</div>
+                  <div style={{ fontSize:22, fontWeight:900, color:C.white, marginTop:3, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.03em" }}>{result.precio_estimado} ARS</div>
                 </div>
               </div>
             )}
           </div>
         </div>
-        <div style={{ background:C.white, margin:"0 16px", borderRadius:18, padding:5, marginTop:-16, boxShadow:sh.lg, position:"relative", zIndex:10 }}>
+
+        <div style={{ background:C.white, margin:"0 16px", borderRadius:18, padding:5, marginTop:-18, boxShadow:sh.lg, position:"relative", zIndex:10, border:`1px solid ${C.line}` }}>
           <div style={{ display:"flex", gap:4 }}>
-            {[["menu","📅 Menu"],["lista","🛒 Compras"],["recetas","👨‍🍳 Recetas"]].map(([id,lbl]) => (
-              <button key={id} onClick={()=>setTab(id)} style={{ flex:1, padding:"12px 6px", borderRadius:13, border:"none", fontWeight:700, fontSize:13, cursor:"pointer", transition:"all 0.2s", fontFamily:"'Inter',sans-serif", background:tab===id?C.blue:"transparent", color:tab===id?C.white:C.gray4 }}>{lbl}</button>
+            {[["menu","Menú"],["lista","Compras"],["recetas","Recetas"]].map(([id,lbl]) => (
+              <button key={id} onClick={()=>setTab(id)} style={{ flex:1, padding:"13px 6px", borderRadius:13, border:"none", fontWeight:700, fontSize:14, cursor:"pointer", transition:"all 0.2s", fontFamily:"'Inter',sans-serif", background:tab===id?C.ink:"transparent", color:tab===id?C.white:C.gray4 }}>{lbl}</button>
             ))}
           </div>
         </div>
-        <div style={{ padding:"16px 16px 100px", animation:"slideIn 0.35s ease" }}>
+
+        <div style={{ padding:"18px 16px 100px", animation:"slideIn 0.35s ease" }}>
           {tab === "menu" && (
-            <div style={{ background:C.white, borderRadius:18, overflow:"hidden", boxShadow:sh.md }}>
+            <div style={{ background:C.white, borderRadius:20, overflow:"hidden", boxShadow:sh.md, border:`1px solid ${C.line}` }}>
               {result.menu.map((d,i) => (
                 <div key={i}>
-                  <div style={{ padding:"14px 18px" }}>
-                    <div style={{ fontWeight:800, color:C.blue, fontSize:11, textTransform:"uppercase", letterSpacing:"1px", marginBottom:12, fontFamily:"'Inter',sans-serif" }}>{d.dia}</div>
+                  <div style={{ padding:"18px 20px" }}>
+                    <div style={{ marginBottom:14 }}>
+                      <Eyebrow>{d.dia}</Eyebrow>
+                    </div>
                     {[["alm","🌞","Almuerzo","tag_alm"],["cen","🌙","Cena","tag_cen"]].map(([k,ic,lb,tagKey]) => (
-                      <div key={k} style={{ marginBottom:k==="alm"?12:0 }}>
+                      <div key={k} style={{ marginBottom:k==="alm"?14:0 }}>
                         <div style={{ display:"flex", alignItems:"flex-start" }}>
                           <div style={{ flex:1, minWidth:0 }}>
-                            <div style={{ fontSize:12, color:C.gray4, marginBottom:3 }}>{ic} {lb}</div>
-                            <div style={{ fontSize:14, fontWeight:700, color:C.text, marginBottom:5 }}>{d[k]}</div>
+                            <div style={{ fontSize:12, color:C.gray4, marginBottom:4, fontFamily:"'Inter',sans-serif", fontWeight:600 }}>{ic} {lb}</div>
+                            <div style={{ fontSize:15, fontWeight:800, color:C.ink, marginBottom:6, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.02em" }}>{d[k]}</div>
                             {d[tagKey] && <MealTag label={d[tagKey]}/>}
                           </div>
                           <div style={{ display:"flex", gap:6, flexShrink:0, marginLeft:10, paddingTop:2 }}>
-                            <button onClick={()=>setReceta(d[k])} style={{ background:C.blueLt, border:"none", borderRadius:8, padding:"5px 11px", fontSize:12, color:C.blue, cursor:"pointer", fontWeight:700, fontFamily:"'Inter',sans-serif" }}>Receta</button>
-                            <button onClick={()=>handleCambiar(d.dia,k)} style={{ background:C.gray1, border:`1px solid ${C.gray2}`, borderRadius:8, padding:"5px 9px", fontSize:13, color:cambiando===`${d.dia}-${k}`?C.blue:C.gray4, cursor:"pointer", fontFamily:"'Inter',sans-serif" }}>
+                            <button onClick={()=>setReceta(d[k])} style={{ background:C.blueLt, border:"none", borderRadius:10, padding:"7px 13px", fontSize:12, color:C.blue, cursor:"pointer", fontWeight:700, fontFamily:"'Inter',sans-serif" }}>Receta</button>
+                            <button onClick={()=>handleCambiar(d.dia,k)} style={{ background:C.bg, border:`1px solid ${C.line}`, borderRadius:10, padding:"7px 11px", fontSize:13, color:cambiando===`${d.dia}-${k}`?C.blue:C.gray4, cursor:"pointer", fontFamily:"'Inter',sans-serif" }}>
                               {cambiando===`${d.dia}-${k}`?"⏳":"🔄"}
                             </button>
                           </div>
@@ -1055,41 +1245,48 @@ function MainApp() {
                       </div>
                     ))}
                   </div>
-                  {i<6 && <div style={{ height:1, background:C.gray2 }}/>}
+                  {i<6 && <div style={{ height:1, background:C.line }}/>}
                 </div>
               ))}
             </div>
           )}
+
           {tab === "lista" && (
-            <div style={{ background:C.white, borderRadius:18, overflow:"hidden", boxShadow:sh.md }}>
+            <div style={{ background:C.white, borderRadius:20, overflow:"hidden", boxShadow:sh.md, border:`1px solid ${C.line}` }}>
               {Object.entries(result.lista_compras).map(([cat,items],i,arr) => (
                 <div key={i}>
-                  <div style={{ padding:"16px 18px" }}>
-                    <div style={{ fontSize:14, fontWeight:800, color:C.dark, marginBottom:12 }}>{cat}</div>
-                    <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                  <div style={{ padding:"18px 20px" }}>
+                    <div style={{ fontSize:15, fontWeight:800, color:C.ink, marginBottom:14, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.02em" }}>{cat}</div>
+                    <div style={{ display:"flex", flexDirection:"column", gap:11 }}>
                       {items.map((item,j) => (
                         <label key={j} style={{ display:"flex", alignItems:"center", gap:12, cursor:"pointer" }}>
                           <div style={{ width:22, height:22, borderRadius:7, border:`2px solid ${C.gray3}`, flexShrink:0 }}/>
-                          <span style={{ fontSize:14, color:C.text, fontWeight:500 }}>{item}</span>
+                          <span style={{ fontSize:14.5, color:C.text, fontWeight:500, fontFamily:"'Manrope',sans-serif" }}>{item}</span>
                         </label>
                       ))}
                     </div>
                   </div>
-                  {i<arr.length-1 && <div style={{ height:1, background:C.gray2 }}/>}
+                  {i<arr.length-1 && <div style={{ height:1, background:C.line }}/>}
                 </div>
               ))}
             </div>
           )}
+
           {tab === "recetas" && (
             <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
               {result.menu.flatMap(d=>[d.alm,d.cen]).filter((v,i,a)=>a.indexOf(v)===i).map((plato,i) => {
                 const r = R[plato];
                 return (
-                  <button key={i} onClick={()=>setReceta(plato)} style={{ background:C.white, borderRadius:16, padding:"16px 18px", border:"none", cursor:"pointer", textAlign:"left", display:"flex", alignItems:"center", gap:14, boxShadow:sh.sm, fontFamily:"'Manrope',sans-serif" }}>
-                    <div style={{ width:52, height:52, borderRadius:14, background:C.blueLt, display:"flex", alignItems:"center", justifyContent:"center", fontSize:26, flexShrink:0 }}>{r?r.e:"🍽️"}</div>
+                  <button key={i} onClick={()=>setReceta(plato)} style={{ background:C.white, borderRadius:16, padding:"16px 18px", border:`1px solid ${C.line}`, cursor:"pointer", textAlign:"left", display:"flex", alignItems:"center", gap:14, boxShadow:sh.sm, fontFamily:"'Manrope',sans-serif" }}>
+                    <div style={{ width:56, height:56, borderRadius:14, background:C.blueLt, display:"flex", alignItems:"center", justifyContent:"center", fontSize:28, flexShrink:0 }}>{r?r.e:"🍽️"}</div>
                     <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ fontSize:15, fontWeight:700, color:C.dark, marginBottom:5, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{plato}</div>
-                      {r ? <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}><Tag color={C.blue} bg={C.blueLt}>⏱ {r.t}</Tag>{r.tags?.slice(0,2).map((t,i) => { const s=TAG_COLORS[t]||{}; return <Tag key={i} color={s.color||C.sub} bg={s.bg||C.gray1}>{t}</Tag>; })}</div> : <Tag color={C.gray4} bg={C.gray1}>Proximamente</Tag>}
+                      <div style={{ fontSize:15, fontWeight:800, color:C.ink, marginBottom:6, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.02em" }}>{plato}</div>
+                      {r ? (
+                        <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
+                          <Tag color={C.blue} bg={C.blueLt}>⏱ {r.t}</Tag>
+                          {r.tags?.slice(0,2).map((t,i) => { const s=TAG_COLORS[t]||{}; return <Tag key={i} color={s.color||C.sub} bg={s.bg||C.gray1}>{t}</Tag>; })}
+                        </div>
+                      ) : <Tag color={C.gray4} bg={C.gray1}>Próximamente</Tag>}
                     </div>
                     <span style={{ color:C.gray3, fontSize:22, flexShrink:0 }}>›</span>
                   </button>
@@ -1097,15 +1294,18 @@ function MainApp() {
               })}
             </div>
           )}
+
           {tab === "menu" && (
-            <div style={{ marginTop:20, background:C.white, borderRadius:18, overflow:"hidden", boxShadow:sh.md }}>
-              <div style={{ padding:"16px 18px 10px" }}>
-                <div style={{ fontSize:12, fontWeight:800, color:C.gray4, letterSpacing:"1px", textTransform:"uppercase", marginBottom:14, fontFamily:"'Inter',sans-serif" }}>Compartir y exportar</div>
+            <div style={{ marginTop:20, background:C.white, borderRadius:20, overflow:"hidden", boxShadow:sh.md, border:`1px solid ${C.line}` }}>
+              <div style={{ padding:"18px 20px 12px" }}>
+                <div style={{ marginBottom:16 }}>
+                  <Eyebrow>Compartir y exportar</Eyebrow>
+                </div>
                 <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
                   <button onClick={()=>{
                     const menu = result.menu.map(d => "*"+d.dia+"*\n🌞 "+d.alm+"\n🌙 "+d.cen).join("\n\n");
                     const lista = Object.entries(result.lista_compras).map(([cat,items]) => "*"+cat+"*\n"+items.map(i=>"• "+i).join("\n")).join("\n\n");
-                    window.open("https://wa.me/?text="+encodeURIComponent("🥦 *Mi menu semanal — Kooki*\n\n"+menu+"\n\n───────────────\n🛒 *Lista de compras*\n\n"+lista+"\n\n_Generado con Kooki — IA que cocina con vos_"),"_blank");
+                    window.open("https://wa.me/?text="+encodeURIComponent("🥦 *Mi menú semanal — Kooki*\n\n"+menu+"\n\n───────────────\n🛒 *Lista de compras*\n\n"+lista+"\n\n_Generado con Kooki — IA que cocina con vos_"),"_blank");
                   }} style={{ width:"100%", background:"#25D366", color:"white", border:"none", borderRadius:14, padding:"15px 18px", fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"'Inter',sans-serif", display:"flex", alignItems:"center", justifyContent:"center", gap:10 }}>
                     <span style={{ fontSize:20 }}>📱</span> Compartir por WhatsApp
                   </button>
@@ -1113,7 +1313,7 @@ function MainApp() {
                     const menu = result.menu.map(d => d.dia+":\nAlmuerzo: "+d.alm+"\nCena: "+d.cen).join("\n\n");
                     const lista = Object.entries(result.lista_compras).map(([cat,items]) => cat+":\n"+items.map(i=>"- "+i).join("\n")).join("\n\n");
                     navigator.clipboard.writeText("MI MENU SEMANAL — KOOKI\n\n"+menu+"\n\n─────────────\nLISTA DE COMPRAS\n\n"+lista).then(()=>alert("✓ Copiado al portapapeles")).catch(()=>alert("No se pudo copiar."));
-                  }} style={{ width:"100%", background:C.blueLt, color:C.blue, border:`2px solid ${C.bluePl}`, borderRadius:14, padding:"15px 18px", fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"'Inter',sans-serif", display:"flex", alignItems:"center", justifyContent:"center", gap:10 }}>
+                  }} style={{ width:"100%", background:C.blueLt, color:C.blue, border:`1.5px solid ${C.bluePl}`, borderRadius:14, padding:"15px 18px", fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"'Inter',sans-serif", display:"flex", alignItems:"center", justifyContent:"center", gap:10 }}>
                     <span style={{ fontSize:20 }}>📋</span> Copiar todo al portapapeles
                   </button>
                   <button onClick={()=>{
@@ -1124,27 +1324,29 @@ function MainApp() {
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement("a"); a.href=url; a.download="lista-compras-kooki.csv";
                     document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-                  }} style={{ width:"100%", background:C.gray1, color:C.text, border:`1px solid ${C.gray2}`, borderRadius:14, padding:"15px 18px", fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"'Inter',sans-serif", display:"flex", alignItems:"center", justifyContent:"center", gap:10 }}>
+                  }} style={{ width:"100%", background:C.bg, color:C.ink, border:`1.5px solid ${C.line}`, borderRadius:14, padding:"15px 18px", fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"'Inter',sans-serif", display:"flex", alignItems:"center", justifyContent:"center", gap:10 }}>
                     <span style={{ fontSize:20 }}>📊</span> Exportar lista (.csv)
                   </button>
                 </div>
               </div>
             </div>
           )}
-          <button onClick={()=>{ setScreen("loading"); setLoadMsg(0); setTimeout(doGen,2700); }} style={{ width:"100%", marginTop:12, background:C.white, color:C.blue, border:`2px solid ${C.blue}`, borderRadius:16, padding:"16px", fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"'Inter',sans-serif" }}>
-            ↺ Regenerar menu completo
+
+          <button onClick={()=>{ setScreen("loading"); setLoadMsg(0); setTimeout(doGen,2700); }} style={{ width:"100%", marginTop:12, background:C.white, color:C.ink, border:`1.5px solid ${C.line}`, borderRadius:16, padding:"16px", fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"'Inter',sans-serif" }}>
+            ↺ Regenerar menú completo
           </button>
         </div>
+
         {showChefFab && (
           <div style={{ position:"fixed", bottom:28, right:22, zIndex:100 }}>
             {chefPulse && <div style={{ position:"absolute", inset:0, borderRadius:"50%", background:C.blue, animation:"ripple 1.5s ease infinite", zIndex:-1 }}/>}
             {chefPulse && (
-              <div style={{ position:"absolute", bottom:"110%", right:0, background:C.dark, color:C.white, borderRadius:12, padding:"8px 12px", fontSize:12, fontWeight:700, whiteSpace:"nowrap", boxShadow:sh.md, marginBottom:4, fontFamily:"'Inter',sans-serif" }}>
-                Tenes dudas? Preguntame! 👨‍🍳
-                <div style={{ position:"absolute", bottom:-6, right:18, width:12, height:12, background:C.dark, transform:"rotate(45deg)" }}/>
+              <div style={{ position:"absolute", bottom:"110%", right:0, background:C.ink, color:C.white, borderRadius:12, padding:"9px 14px", fontSize:12, fontWeight:700, whiteSpace:"nowrap", boxShadow:sh.ink, marginBottom:6, fontFamily:"'Inter',sans-serif" }}>
+                ¿Tenés dudas? Preguntame!
+                <div style={{ position:"absolute", bottom:-6, right:18, width:12, height:12, background:C.ink, transform:"rotate(45deg)" }}/>
               </div>
             )}
-            <button onClick={() => { setChefOpen(true); setChefPulse(false); }} style={{ width:60, height:60, borderRadius:"50%", border:"none", background:`linear-gradient(135deg,${C.blue},${C.blueDk})`, color:C.white, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:sh.blue, animation:chefPulse?"chefPulse 1.5s ease infinite":"chefBounce 2s ease infinite" }}>
+            <button onClick={() => { setChefOpen(true); setChefPulse(false); }} style={{ width:60, height:60, borderRadius:"50%", border:"none", background:C.blue, color:C.white, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:sh.blue, animation:chefPulse?"chefPulse 1.5s ease infinite":"chefBounce 2s ease infinite" }}>
               <ChefHat size={32}/>
             </button>
           </div>
