@@ -359,9 +359,25 @@ function isContundente(nombre) {
   const k = parseInt(r.k);
   return (!isNaN(k) && k >= 450) || (r.tags||[]).some(t => t.includes("Alta proteina") || t.includes("Rendidor"));
 }
-function scoreReceta(nombre, objetivo, dietas, tiempo, history) {
+function parseIngredientList(txt) {
+  if (!txt || typeof txt !== "string") return [];
+  return txt.toLowerCase()
+    .split(/[,;.\n]+|\s+y\s+|\s+o\s+/)
+    .map(s => s.trim())
+    .filter(s => s.length >= 3);
+}
+function recetaContiene(nombre, ingsList) {
+  if (!ingsList || ingsList.length === 0) return false;
+  const r = R[nombre];
+  if (!r) return false;
+  const haystack = ((r.i||[]).join(" ") + " " + nombre).toLowerCase();
+  return ingsList.some(ing => haystack.includes(ing));
+}
+function scoreReceta(nombre, objetivo, dietas, tiempo, history, noGustaList = [], tieneList = []) {
   const r = R[nombre];
   if (!r) return -999;
+  // HARD FILTER: si la receta tiene algo que el usuario no come, fuera
+  if (noGustaList.length > 0 && recetaContiene(nombre, noGustaList)) return -1000;
   let score = Math.random() * 5;
   const meta = META[objetivo] || META.organizar;
   const tagStr = (r.tags||[]).join(" ").toLowerCase();
@@ -377,6 +393,12 @@ function scoreReceta(nombre, objetivo, dietas, tiempo, history) {
   if (tiempo === "rapido" && mins > 30) score -= 10;
   if (tiempo === "medio" && mins <= 30) score += 4;
   if (tiempo === "libre" && mins >= 30) score += 3;
+  // BONUS: ingredientes que tiene en casa
+  if (tieneList.length > 0) {
+    const haystack = ((r.i||[]).join(" ") + " " + nombre).toLowerCase();
+    const matches = tieneList.filter(ing => haystack.includes(ing)).length;
+    if (matches > 0) score += matches * 6;
+  }
   const idx = history.findIndex(h => h.n === nombre);
   if (idx !== -1) {
     const ageDays = (Date.now() - history[idx].t) / (24*60*60*1000);
@@ -392,7 +414,11 @@ function generar(a) {
   const meta = META[key] || META.organizar;
   const history = getHistory();
   const todas = Object.keys(R);
-  const conScore = todas.map(n => ({ n, s: scoreReceta(n, key, dietas, a.tiempo, history), liviana: isLiviana(n), contundente: isContundente(n) })).sort((x,y) => y.s - x.s);
+  const noGusta = parseIngredientList(a.no_gusta);
+  const tiene = parseIngredientList(a.ingredientes);
+  const conScore = todas.map(n => ({ n, s: scoreReceta(n, key, dietas, a.tiempo, history, noGusta, tiene), liviana: isLiviana(n), contundente: isContundente(n) }))
+    .filter(x => x.s > -999) // filtramos las descartadas duro
+    .sort((x,y) => y.s - x.s);
   const candidatosAlm = conScore.filter(x => x.contundente || !x.liviana).slice(0, 25);
   const candidatosCen = conScore.filter(x => x.liviana).slice(0, 20);
   const almsBase = candidatosAlm.length >= 7 ? candidatosAlm : conScore.slice(0, 25);
@@ -413,9 +439,9 @@ function generar(a) {
     tag_cen: (R[censElegidas[i]]?.tags?.[0]) || "🔥 Bajo en calorias",
   }));
   saveToHistory([...almsElegidas, ...censElegidas]);
-  return { ...meta, menu, lista_compras: LISTAS[key] || LISTAS.organizar, objetivo: key, precio_estimado: meta.precio[a.presupuesto || "medio"], answers: a, dietas };
+  return { ...meta, menu, lista_compras: LISTAS[key] || LISTAS.organizar, objetivo: key, precio_estimado: meta.precio[a.presupuesto || "medio"], answers: a, dietas, noGusta, tiene };
 }
-function cambiarReceta(menuActual, dia, tipo, objetivo, dietas, tiempo) {
+function cambiarReceta(menuActual, dia, tipo, objetivo, dietas, tiempo, noGusta = [], tiene = []) {
   const history = getHistory();
   const todas = Object.keys(R);
   const enMenu = new Set();
@@ -425,7 +451,9 @@ function cambiarReceta(menuActual, dia, tipo, objetivo, dietas, tiempo) {
   const filtro = tipo === "cen" ? (n => isLiviana(n)) : (n => isContundente(n) || !isLiviana(n));
   let candidatos = todas.filter(n => !enMenu.has(n) && filtro(n));
   if (candidatos.length < 3) candidatos = todas.filter(n => !enMenu.has(n));
-  const conScore = candidatos.filter(n => n !== recetaActual).map(n => ({ n, s: scoreReceta(n, objetivo, dietas, tiempo, history) + Math.random()*15 })).sort((x,y) => y.s - x.s);
+  // descarto las que tienen ingredientes prohibidos
+  if (noGusta.length > 0) candidatos = candidatos.filter(n => !recetaContiene(n, noGusta));
+  const conScore = candidatos.filter(n => n !== recetaActual).map(n => ({ n, s: scoreReceta(n, objetivo, dietas, tiempo, history, noGusta, tiene) + Math.random()*15 })).sort((x,y) => y.s - x.s);
   const nueva = conScore[0]?.n || candidatos[0] || recetaActual;
   saveToHistory([nueva]);
   return nueva;
@@ -753,7 +781,7 @@ function MainApp() {
     setTimeout(() => {
       setResult(prev => {
         if (!prev) return prev;
-        const nueva = cambiarReceta(prev.menu, dia, tipo, prev.objetivo, prev.dietas || [], prev.answers?.tiempo);
+        const nueva = cambiarReceta(prev.menu, dia, tipo, prev.objetivo, prev.dietas || [], prev.answers?.tiempo, prev.noGusta || [], prev.tiene || []);
         return { ...prev, menu: prev.menu.map(d => d.dia !== dia ? d : { ...d, [tipo]:nueva, [`tag_${tipo}`]:(R[nueva]?.tags?.[0]) || "⚡ Rendidor" }) };
       });
       setCambiando(null);
