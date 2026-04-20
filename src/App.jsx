@@ -3,8 +3,25 @@ import { useState, useEffect, useRef } from "react";
 const VALID_CODES = new Set(['KOOKI-9K2X-W5NR']);
 const ACCESS_KEY = "kooki_access_v1";
 const HISTORY_KEY = "kooki_history_v1";
+const FREE_DAILY_KEY = "kooki_free_today";
 const HISTORY_DAYS = 7;
 const HISTORY_MAX = 20;
+const CHECKOUT_URL = "https://impulsoebooks.online/cart/53627712930158:1";
+
+function isPremium() {
+  try { return !!localStorage.getItem(ACCESS_KEY); } catch(e) { return false; }
+}
+function hasUsedFreeToday() {
+  try {
+    const stored = localStorage.getItem(FREE_DAILY_KEY);
+    if (!stored) return false;
+    const today = new Date().toDateString();
+    return stored === today;
+  } catch(e) { return false; }
+}
+function markFreeUsedToday() {
+  try { localStorage.setItem(FREE_DAILY_KEY, new Date().toDateString()); } catch(e) {}
+}
 
 // ============================================
 // SISTEMA DE DISEÑO (alineado con landing v3.9)
@@ -73,9 +90,42 @@ function MealTag({ label }) {
 }
 
 // ============================================
-// PANTALLA DE ACCESO
+// COMPONENTE: UPGRADE PROMPT (CTA a premium)
 // ============================================
-function AccessScreen({ onAccess }) {
+function UpgradePrompt({ title, subtitle, onClose }) {
+  return (
+    <div onClick={onClose} style={{ position:"fixed", inset:0, background:"rgba(10,14,26,0.6)", backdropFilter:"blur(6px)", zIndex:2500, display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
+      <div onClick={e=>e.stopPropagation()} style={{ background:C.white, borderRadius:28, padding:"40px 32px", maxWidth:420, width:"100%", textAlign:"center", boxShadow:"0 30px 80px rgba(10,14,26,0.2)", animation:"fadeIn 0.3s ease" }}>
+        <div style={{ width:64, height:64, borderRadius:18, background:C.blue, display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 20px", boxShadow:sh.blue }}>
+          <ChefHat size={36} />
+        </div>
+        <div style={{ marginBottom:10 }}><Eyebrow center>Premium</Eyebrow></div>
+        <h3 style={{ fontSize:24, fontWeight:900, color:C.ink, marginBottom:10, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.03em", lineHeight:1.05 }}>
+          {title || <>Esto es <span style={{ color:C.blue, fontStyle:"italic" }}>Premium</span>.</>}
+        </h3>
+        <p style={{ fontSize:15, color:C.sub, lineHeight:1.55, marginBottom:28, fontWeight:500 }}>
+          {subtitle || "Desbloqueá el menú semanal, las recetas completas, la lista de compras y el chef IA."}
+        </p>
+        <a href={CHECKOUT_URL} target="_blank" rel="noopener noreferrer"
+          style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:12, width:"100%", padding:"18px", borderRadius:16, border:"none", background:C.ink, color:C.white, fontSize:16, fontWeight:700, cursor:"pointer", fontFamily:"'Inter',sans-serif", boxShadow:sh.ink, textDecoration:"none", marginBottom:12 }}>
+          <span>Quiero Premium · $20.900</span>
+          <span style={{ width:28, height:28, borderRadius:"50%", background:C.white, color:C.ink, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:15, fontWeight:700 }}>→</span>
+        </a>
+        <div style={{ fontSize:13, color:C.sub, fontWeight:600, marginBottom:18 }}>Pago único · Acceso de por vida</div>
+        <div style={{ fontSize:13, color:C.sub, marginBottom:20, lineHeight:1.5 }}>¿Ya tenés código?</div>
+        <button onClick={() => { onClose(); window.__showAccessScreen && window.__showAccessScreen(); }}
+          style={{ background:C.bg, color:C.ink, border:`1.5px solid ${C.line}`, borderRadius:14, padding:"14px 24px", fontSize:14, fontWeight:700, cursor:"pointer", fontFamily:"'Inter',sans-serif", width:"100%" }}>
+          Tengo mi código de acceso
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ============================================
+// PANTALLA DE ACCESO (para activar código premium)
+// ============================================
+function AccessScreen({ onAccess, onBack }) {
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -107,7 +157,7 @@ function AccessScreen({ onAccess }) {
       <div style={{ width:"100%", maxWidth:400, animation:"fadeIn 0.4s ease", position:"relative", zIndex:1 }}>
         <div style={{ textAlign:"center", marginBottom:36 }}>
           <img src="https://i.imgur.com/IYcv1Vp.jpeg" alt="Kooki" style={{ width:160, marginBottom:12 }}/>
-          <div style={{ display:"flex", justifyContent:"center" }}><Eyebrow>Acceso Privado</Eyebrow></div>
+          <div style={{ display:"flex", justifyContent:"center" }}><Eyebrow>Activar Premium</Eyebrow></div>
         </div>
         <div style={{ background:C.white, borderRadius:28, padding:"36px 32px", boxShadow:"0 20px 60px rgba(10,14,26,0.08)", border:`1px solid ${C.line}` }}>
           <h2 style={{ fontSize:28, fontWeight:900, color:C.ink, marginBottom:10, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.035em", lineHeight:1.05 }}>
@@ -123,12 +173,15 @@ function AccessScreen({ onAccess }) {
             style={{ width:"100%", padding:"20px", borderRadius:16, border:"none", background:loading||!code.trim()?C.gray2:C.ink, color:loading||!code.trim()?C.gray4:C.white, fontSize:16, fontWeight:700, cursor:loading||!code.trim()?"not-allowed":"pointer", fontFamily:"'Inter',sans-serif", boxShadow:!loading&&code.trim()?sh.ink:"none", display:"flex", alignItems:"center", justifyContent:"center", gap:12, transition:"background 0.2s, transform 0.2s" }}
             onMouseEnter={e => { if (!loading && code.trim()) { e.currentTarget.style.background = C.blue; e.currentTarget.style.transform = "translateY(-2px)"; } }}
             onMouseLeave={e => { if (!loading && code.trim()) { e.currentTarget.style.background = C.ink; e.currentTarget.style.transform = "translateY(0)"; } }}>
-            <span>{loading ? "Verificando..." : "Acceder"}</span>
+            <span>{loading ? "Verificando..." : "Activar Premium"}</span>
             {!loading && code.trim() && (<span style={{ width:28, height:28, borderRadius:"50%", background:C.white, color:C.ink, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:15, fontWeight:700 }}>→</span>)}
           </button>
         </div>
-        <div style={{ textAlign:"center", marginTop:24, fontSize:14, color:C.sub, lineHeight:1.6, fontWeight:500 }}>
-          ¿No tenés código?<br/><a href="https://impulsoebooks.online/pages/kooki-1" style={{ color:C.blue, fontWeight:700, textDecoration:"none" }}>Conseguilo acá →</a>
+        <div style={{ textAlign:"center", marginTop:24, display:"flex", flexDirection:"column", gap:12 }}>
+          <div style={{ fontSize:14, color:C.sub, lineHeight:1.6, fontWeight:500 }}>
+            ¿No tenés código?<br/><a href={CHECKOUT_URL} style={{ color:C.blue, fontWeight:700, textDecoration:"none" }}>Conseguilo acá →</a>
+          </div>
+          {onBack && <button onClick={onBack} style={{ background:"none", border:"none", color:C.sub, fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"'Inter',sans-serif" }}>← Volver</button>}
         </div>
       </div>
     </div>
@@ -184,10 +237,6 @@ const STEPS = [
     ]},
   { id:"extra", type:"extras", label:"Último paso", subtitle:"Opcional — para un resultado todavía más preciso" },
 ];
-
-// ============================================
-// DATA: RECETAS (idéntico al original)
-// ============================================
 const R = {
   "Ensalada de pollo grillado y quinoa":{t:"20 min",d:"Facil",k:"380 kcal",p:"35g",e:"🥗",tags:["⚡ Rapido","💪 Alta proteina"],i:["150g pechuga de pollo","1/2 taza quinoa","Rucula y lechuga","Tomate cherry x8","Pepino 1/2","Jugo de limon","Aceite de oliva","Sal y pimienta"],s:["Cocinar la quinoa en agua con sal 15 min. Tapar y apagar.","Grillar la pechuga salpimentada 4 min por lado a fuego fuerte.","Dejar reposar el pollo 3 min antes de cortar en tiras.","Mezclar quinoa, hojas, tomate y pepino. Coronar con el pollo. Condimentar con limon y aceite."]},
   "Sopa de verduras con lentejas":{t:"30 min",d:"Facil",k:"290 kcal",p:"18g",e:"🥣",tags:["🔥 Bajo en calorias","💚 Desinflamatorio"],i:["1 taza lentejas rojas","1 zanahoria","1 cebolla","2 papas chicas","Caldo en cubo","Comino y sal","Limon"],s:["Picar cebolla y zanahoria. Rehogar 5 min en olla con aceite.","Agregar lentejas enjuagadas y papas en cubos. Cubrir con agua y caldo.","Cocinar 20 min a fuego medio.","Condimentar con comino, sal y limon al servir."]},
@@ -498,6 +547,9 @@ function generarHoy(cuantas, tipo, ingredientes) {
 
 // ============================================
 // CHEF CHAT (burbuja user en negro)
+
+// ============================================
+// CHEF CHAT (solo premium — sin cambios internos)
 // ============================================
 function ChefChat({ result, recetaActual, onClose }) {
   const [msgs, setMsgs] = useState([{ role:"assistant", text:"¡Hola! Soy tu chef asistente.\n\nConozco tu menú completo y todas tus recetas. Podés preguntarme cualquier cosa: si te falta un ingrediente y cómo reemplazarlo, dudas sobre la preparación, tiempos de cocción, o lo que necesites." }]);
@@ -604,10 +656,11 @@ function ChefChat({ result, recetaActual, onClose }) {
 }
 
 // ============================================
-// MODAL RECETA (header oscuro estilo slide + modo cocina con números gigantes)
+// MODAL RECETA (FREEMIUM: pasos bloqueados en gratis)
 // ============================================
-function ModalReceta({ nombre, onClose }) {
+function ModalReceta({ nombre, onClose, premium = false }) {
   const [cookMode, setCookMode] = useState(false);
+  const [showUpgrade, setShowUpgrade] = useState(false);
   const r = R[nombre];
   if (!r) return (
     <div onClick={onClose} style={{ position:"fixed",inset:0,background:"rgba(10,14,26,0.7)",zIndex:2000,display:"flex",alignItems:"flex-end",justifyContent:"center",backdropFilter:"blur(6px)" }}>
@@ -619,14 +672,12 @@ function ModalReceta({ nombre, onClose }) {
     </div>
   );
 
-  // MODO COCINA — pantalla negra con grid + números gigantes azules
-  if (cookMode) return (
+  // MODO COCINA — solo premium
+  if (cookMode && premium) return (
     <div style={{ position:"fixed",inset:0,background:C.ink,zIndex:3000,overflowY:"auto",padding:"0 0 80px" }}>
       <BgGrid dark />
       <div style={{ padding:"22px 26px",display:"flex",alignItems:"center",justifyContent:"space-between",position:"sticky",top:0,background:C.ink,zIndex:10,borderBottom:`1px solid rgba(255,255,255,0.06)` }}>
-        <div style={{ position:"relative", zIndex:1 }}>
-          <Eyebrow dark>Modo Cocina</Eyebrow>
-        </div>
+        <div style={{ position:"relative", zIndex:1 }}><Eyebrow dark>Modo Cocina</Eyebrow></div>
         <button onClick={()=>setCookMode(false)} style={{ background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.12)",borderRadius:12,padding:"10px 18px",color:C.white,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"'Inter',sans-serif",position:"relative",zIndex:1 }}>Salir</button>
       </div>
       <div style={{ padding:"24px 26px 0", position:"relative", zIndex:1 }}>
@@ -634,9 +685,7 @@ function ModalReceta({ nombre, onClose }) {
         {r.s.map((paso,i) => (
           <div key={i} style={{ marginBottom:36 }}>
             <div style={{ display:"flex",alignItems:"center",gap:16,marginBottom:14 }}>
-              <div style={{ fontSize:64,fontWeight:900,color:C.blue,lineHeight:1,letterSpacing:"-0.05em",fontFamily:"'Epilogue',sans-serif",flexShrink:0 }}>
-                {String(i+1).padStart(2,"0")}
-              </div>
+              <div style={{ fontSize:64,fontWeight:900,color:C.blue,lineHeight:1,letterSpacing:"-0.05em",fontFamily:"'Epilogue',sans-serif",flexShrink:0 }}>{String(i+1).padStart(2,"0")}</div>
               <div style={{ height:2,flex:1,background:"rgba(255,255,255,0.08)",borderRadius:2 }}/>
             </div>
             <div style={{ fontSize:22,lineHeight:1.55,color:C.white,fontFamily:"'Manrope',sans-serif",fontWeight:500 }}>{paso}</div>
@@ -654,14 +703,12 @@ function ModalReceta({ nombre, onClose }) {
           <div style={{ width:40,height:5,background:C.gray3,borderRadius:4 }}/>
         </div>
 
-        {/* Header OSCURO estilo slide */}
+        {/* Header OSCURO */}
         <div style={{ background:C.ink,padding:"26px 28px 30px",position:"relative",overflow:"hidden" }}>
           <BgGrid dark />
           <Blob pos="tr" color="rgba(59,111,212,0.35)" size={350} />
           <div style={{ position:"relative", zIndex:1 }}>
-            <div style={{ marginBottom:14 }}>
-              <Eyebrow dark>Receta</Eyebrow>
-            </div>
+            <div style={{ marginBottom:14 }}><Eyebrow dark>Receta</Eyebrow></div>
             <div style={{ fontSize:36,marginBottom:12 }}>{r.e}</div>
             <h2 style={{ fontSize:"clamp(22px, 5.5vw, 30px)",fontWeight:900,color:C.white,lineHeight:1.05,marginBottom:16,fontFamily:"'Epilogue',sans-serif",letterSpacing:"-0.035em" }}>{nombre}</h2>
             <div style={{ display:"flex",flexWrap:"wrap",gap:8,marginBottom:r.tags?14:0 }}>
@@ -678,9 +725,8 @@ function ModalReceta({ nombre, onClose }) {
         </div>
 
         <div style={{ padding:"26px 28px 0" }}>
-          <div style={{ marginBottom:16 }}>
-            <Eyebrow>Ingredientes</Eyebrow>
-          </div>
+          {/* INGREDIENTES — siempre visibles */}
+          <div style={{ marginBottom:16 }}><Eyebrow>Ingredientes</Eyebrow></div>
           <div style={{ display:"flex",flexDirection:"column",gap:11,marginBottom:30 }}>
             {r.i.map((ing,i) => (
               <div key={i} style={{ display:"flex",alignItems:"center",gap:14 }}>
@@ -690,34 +736,67 @@ function ModalReceta({ nombre, onClose }) {
             ))}
           </div>
 
-          <div style={{ marginBottom:16 }}>
-            <Eyebrow>Preparación</Eyebrow>
-          </div>
-          <div style={{ display:"flex",flexDirection:"column",gap:18 }}>
-            {r.s.map((paso,i) => (
-              <div key={i} style={{ display:"flex",gap:18,alignItems:"flex-start" }}>
-                <div style={{ fontSize:32,fontWeight:900,color:C.blue,lineHeight:1,letterSpacing:"-0.05em",fontFamily:"'Epilogue',sans-serif",flexShrink:0,minWidth:46 }}>
-                  {String(i+1).padStart(2,"0")}
-                </div>
-                <div style={{ fontSize:15.5,lineHeight:1.6,color:C.text,paddingTop:4,fontFamily:"'Manrope',sans-serif",fontWeight:500 }}>{paso}</div>
+          {/* PREPARACIÓN — solo premium */}
+          {premium ? (
+            <>
+              <div style={{ marginBottom:16 }}><Eyebrow>Preparación</Eyebrow></div>
+              <div style={{ display:"flex",flexDirection:"column",gap:18 }}>
+                {r.s.map((paso,i) => (
+                  <div key={i} style={{ display:"flex",gap:18,alignItems:"flex-start" }}>
+                    <div style={{ fontSize:32,fontWeight:900,color:C.blue,lineHeight:1,letterSpacing:"-0.05em",fontFamily:"'Epilogue',sans-serif",flexShrink:0,minWidth:46 }}>{String(i+1).padStart(2,"0")}</div>
+                    <div style={{ fontSize:15.5,lineHeight:1.6,color:C.text,paddingTop:4,fontFamily:"'Manrope',sans-serif",fontWeight:500 }}>{paso}</div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+              <button onClick={()=>setCookMode(true)} style={{ marginTop:30,width:"100%",background:C.ink,color:C.white,border:"none",borderRadius:16,padding:"18px",fontSize:16,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif",display:"flex",alignItems:"center",justifyContent:"center",gap:10,boxShadow:sh.ink }}>
+                Modo Cocina · pantalla limpia →
+              </button>
+            </>
+          ) : (
+            /* BLOQUEO FREEMIUM — pasos bloqueados */
+            <div style={{ position:"relative", marginBottom:20 }}>
+              <div style={{ marginBottom:16 }}><Eyebrow>Preparación</Eyebrow></div>
+              {/* Muestra 1er paso borroso como preview */}
+              <div style={{ fontSize:15,lineHeight:1.6,color:C.text,fontFamily:"'Manrope',sans-serif",fontWeight:500,filter:"blur(5px)",userSelect:"none",pointerEvents:"none",marginBottom:8 }}>
+                {r.s[0] || "Paso 1 de la preparación..."}
+              </div>
+              <div style={{ fontSize:15,lineHeight:1.6,color:C.text,fontFamily:"'Manrope',sans-serif",fontWeight:500,filter:"blur(6px)",userSelect:"none",pointerEvents:"none",marginBottom:8 }}>
+                {r.s[1] || "Paso 2 de la preparación..."}
+              </div>
 
-          <button onClick={()=>setCookMode(true)} style={{ marginTop:30,width:"100%",background:C.ink,color:C.white,border:"none",borderRadius:16,padding:"18px",fontSize:16,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif",display:"flex",alignItems:"center",justifyContent:"center",gap:10,boxShadow:sh.ink }}>
-            Modo Cocina · pantalla limpia →
-          </button>
+              {/* Overlay de upgrade */}
+              <div style={{ background:`linear-gradient(180deg, transparent 0%, ${C.white} 30%)`,padding:"60px 24px 24px",borderRadius:20,marginTop:-40,position:"relative",zIndex:2,textAlign:"center" }}>
+                <div style={{ width:48,height:48,borderRadius:14,background:C.blue,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 14px",boxShadow:sh.blue }}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                </div>
+                <div style={{ fontSize:18,fontWeight:900,color:C.ink,marginBottom:6,fontFamily:"'Epilogue',sans-serif",letterSpacing:"-0.02em" }}>
+                  Pasos de preparación · <span style={{ color:C.blue,fontStyle:"italic" }}>Premium</span>
+                </div>
+                <div style={{ fontSize:14,color:C.sub,marginBottom:20,fontWeight:500,lineHeight:1.5 }}>
+                  Desbloqueá los pasos completos, modo cocina y chef IA.
+                </div>
+                <a href={CHECKOUT_URL} target="_blank" rel="noopener noreferrer"
+                  style={{ display:"flex",alignItems:"center",justifyContent:"center",gap:10,width:"100%",padding:"16px",borderRadius:14,background:C.ink,color:C.white,fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif",boxShadow:sh.ink,textDecoration:"none" }}>
+                  Quiero Premium · $20.900 <span style={{ width:26,height:26,borderRadius:"50%",background:C.white,color:C.ink,display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:700 }}>→</span>
+                </a>
+                <div style={{ fontSize:12,color:C.sub,marginTop:10,fontWeight:600 }}>Pago único · Acceso de por vida</div>
+              </div>
+            </div>
+          )}
+
           <button onClick={onClose} style={{ marginTop:10,width:"100%",background:C.white,color:C.ink,border:`1.5px solid ${C.line}`,borderRadius:16,padding:"16px",fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif" }}>Cerrar</button>
         </div>
       </div>
+      {showUpgrade && <UpgradePrompt onClose={()=>setShowUpgrade(false)} />}
     </div>
   );
 }
 
 // ============================================
-// MAIN APP
+// MAIN APP (FREEMIUM — home abierto, gratis primero)
 // ============================================
-function MainApp() {
+function MainApp({ onShowAccess }) {
+  const [premium] = useState(() => isPremium());
   const [screen, setScreen] = useState("home");
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState({});
@@ -732,7 +811,9 @@ function MainApp() {
   const [hoyCuantas, setHoyCuantas] = useState("2");
   const [hoyTipo, setHoyTipo] = useState("cualquiera");
   const [hoyIngredientes, setHoyIngredientes] = useState("");
+  const [hoyNoGusta, setHoyNoGusta] = useState("");
   const [hoyResult, setHoyResult] = useState(null);
+  const [showUpgrade, setShowUpgrade] = useState(false);
   const scrollRef = useRef(null);
 
   const cur = STEPS[step];
@@ -788,10 +869,20 @@ function MainApp() {
     }, 700);
   };
 
+  const handleHoyGenerar = () => {
+    if (!premium && hasUsedFreeToday()) {
+      setShowUpgrade(true);
+      return;
+    }
+    const result = generarHoy(hoyCuantas, hoyTipo, hoyIngredientes);
+    setHoyResult(result);
+    if (!premium) markFreeUsedToday();
+  };
+
   const OBJ_IC = { bajar_peso:"⚖️", saludable:"🥗", ahorrar:"💰", masa:"💪", organizar:"📅", desinflamatoria:"🫚" };
 
   // ============================================
-  // SCREEN: HOME
+  // SCREEN: HOME (FREEMIUM — gratis primero)
   // ============================================
   if (screen === "home") return (
     <div ref={scrollRef} style={{ minHeight:"100vh", background:C.bg, fontFamily:"'Manrope',sans-serif", overflowY:"auto", display:"flex", flexDirection:"column", position:"relative", overflow:"hidden" }}>
@@ -802,10 +893,16 @@ function MainApp() {
 
       <nav style={{ padding:"18px 26px", display:"flex", alignItems:"center", justifyContent:"space-between", position:"relative", zIndex:1 }}>
         <KookiLogo size={22}/>
-        <div style={{ display:"flex", alignItems:"center", gap:7, background:C.white, border:`1px solid ${C.line}`, borderRadius:100, padding:"7px 14px", boxShadow:sh.sm }}>
-          <span style={{ width:7, height:7, borderRadius:"50%", background:C.success, display:"inline-block" }}/>
-          <span style={{ fontSize:12, fontWeight:700, color:C.ink, fontFamily:"'Inter',sans-serif" }}>Acceso activo</span>
-        </div>
+        {premium ? (
+          <div style={{ display:"flex", alignItems:"center", gap:7, background:C.white, border:`1px solid ${C.line}`, borderRadius:100, padding:"7px 14px", boxShadow:sh.sm }}>
+            <span style={{ width:7, height:7, borderRadius:"50%", background:C.success, display:"inline-block" }}/>
+            <span style={{ fontSize:12, fontWeight:700, color:C.ink, fontFamily:"'Inter',sans-serif" }}>Premium activo</span>
+          </div>
+        ) : (
+          <button onClick={onShowAccess} style={{ display:"flex", alignItems:"center", gap:7, background:C.white, border:`1px solid ${C.line}`, borderRadius:100, padding:"7px 14px", boxShadow:sh.sm, cursor:"pointer", fontFamily:"'Inter',sans-serif" }}>
+            <span style={{ fontSize:12, fontWeight:700, color:C.blue }}>Activar código</span>
+          </button>
+        )}
       </nav>
 
       <div style={{ flex:1, display:"flex", flexDirection:"column", padding:"12px 26px 0", maxWidth:480, margin:"0 auto", width:"100%", position:"relative", zIndex:1 }}>
@@ -813,11 +910,11 @@ function MainApp() {
           <Eyebrow center>Tu cocina con IA</Eyebrow>
         </div>
         <h1 style={{ fontSize:"clamp(38px, 9vw, 52px)", fontWeight:900, color:C.ink, lineHeight:0.95, marginBottom:18, marginTop:14, letterSpacing:"-0.045em", textAlign:"center", fontFamily:"'Epilogue',sans-serif" }}>
-          Tu semana<br/>resuelta en<br/>
-          <span style={{ color:C.blue, fontStyle:"italic", fontWeight:800 }}>2 minutos</span>.
+          Dejá de pensar<br/>
+          <span style={{ color:C.blue, fontStyle:"italic", fontWeight:800 }}>qué cocinar</span>.
         </h1>
         <p style={{ fontSize:16, color:C.sub, lineHeight:1.55, marginBottom:24, textAlign:"center", fontWeight:500 }}>
-          Vos respondés. Kooki resuelve.
+          Kooki te sugiere qué cocinar hoy con lo que tenés en casa.
         </p>
 
         <div style={{ position:"relative", marginBottom:32, display:"flex", justifyContent:"center", alignItems:"center" }}>
@@ -825,9 +922,34 @@ function MainApp() {
           <img src="https://i.imgur.com/ItvV1e7.jpeg" alt="Kooki app" style={{ width:"100%", maxWidth:300, borderRadius:24, position:"relative", zIndex:1, animation:"floatPhone 3s ease-in-out infinite", boxShadow:`0 30px 60px rgba(10,14,26,0.18), -22px 22px 0 rgba(59,111,212,0.12)` }}/>
         </div>
 
-        <div style={{ marginBottom:32 }}>
+        {/* CTA GRATIS — primero y principal */}
+        <button onClick={() => { setHoyResult(null); setScreen("hoy"); }}
+          style={{ width:"100%", background:C.ink, color:C.white, border:"none", borderRadius:18, padding:"20px 28px", fontSize:16, fontWeight:700, cursor:"pointer", boxShadow:sh.ink, fontFamily:"'Inter',sans-serif", marginBottom:12, display:"flex", alignItems:"center", justifyContent:"center", gap:12, transition:"background 0.2s, transform 0.2s" }}
+          onMouseEnter={e => { e.currentTarget.style.background = C.blue; e.currentTarget.style.transform = "translateY(-2px)"; }}
+          onMouseLeave={e => { e.currentTarget.style.background = C.ink; e.currentTarget.style.transform = "translateY(0)"; }}>
+          <span>¿Qué cocino hoy? · Gratis</span>
+          <span style={{ width:30, height:30, borderRadius:"50%", background:C.white, color:C.ink, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:16, fontWeight:700 }}>→</span>
+        </button>
+
+        {/* CTA PREMIUM — secundario */}
+        {premium ? (
+          <button onClick={() => { setScreen("onboarding"); setStep(0); setAnswers({}); }}
+            style={{ width:"100%", background:C.white, color:C.ink, border:`1.5px solid ${C.line}`, borderRadius:18, padding:"18px", fontSize:16, fontWeight:700, cursor:"pointer", fontFamily:"'Inter',sans-serif", marginBottom:12, transition:"border-color 0.2s" }}
+            onMouseEnter={e => e.currentTarget.style.borderColor = C.ink}
+            onMouseLeave={e => e.currentTarget.style.borderColor = C.line}>
+            Armar mi semana completa
+          </button>
+        ) : (
+          <button onClick={() => setShowUpgrade(true)}
+            style={{ width:"100%", background:C.white, color:C.blue, border:`1.5px solid ${C.blue}`, borderRadius:18, padding:"18px", fontSize:16, fontWeight:700, cursor:"pointer", fontFamily:"'Inter',sans-serif", marginBottom:12 }}>
+            Armar mi semana · Premium
+          </button>
+        )}
+
+        {/* Features list */}
+        <div style={{ marginBottom:32, marginTop:12 }}>
           <div style={{ display:"flex", justifyContent:"center", marginBottom:18 }}>
-            <Eyebrow center>Esto hace Kooki por vos</Eyebrow>
+            <Eyebrow center>Premium incluye</Eyebrow>
           </div>
           <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
             {[
@@ -846,28 +968,16 @@ function MainApp() {
           </div>
         </div>
 
-        <button onClick={() => { setScreen("onboarding"); setStep(0); setAnswers({}); }}
-          style={{ width:"100%", background:C.ink, color:C.white, border:"none", borderRadius:18, padding:"20px 28px", fontSize:16, fontWeight:700, cursor:"pointer", boxShadow:sh.ink, fontFamily:"'Inter',sans-serif", marginBottom:12, display:"flex", alignItems:"center", justifyContent:"center", gap:12, transition:"background 0.2s, transform 0.2s" }}
-          onMouseEnter={e => { e.currentTarget.style.background = C.blue; e.currentTarget.style.transform = "translateY(-2px)"; }}
-          onMouseLeave={e => { e.currentTarget.style.background = C.ink; e.currentTarget.style.transform = "translateY(0)"; }}>
-          <span>Armar mi semana</span>
-          <span style={{ width:30, height:30, borderRadius:"50%", background:C.white, color:C.ink, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:16, fontWeight:700 }}>→</span>
-        </button>
-        <button onClick={() => { setHoyResult(null); setScreen("hoy"); }}
-          style={{ width:"100%", background:C.white, color:C.ink, border:`1.5px solid ${C.line}`, borderRadius:18, padding:"18px", fontSize:16, fontWeight:700, cursor:"pointer", fontFamily:"'Inter',sans-serif", marginBottom:24, transition:"border-color 0.2s" }}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = C.ink; }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = C.line; }}>
-          ¿Qué cocino hoy?
-        </button>
         <p style={{ textAlign:"center", fontSize:13, color:C.sub, marginBottom:48, fontFamily:"'Inter',sans-serif", fontWeight:500 }}>
-          ✓ Listo en 2 minutos · ✓ Personalizado para vos
+          ✓ Probá gratis hoy · ✓ Premium $20.900 pago único
         </p>
       </div>
+      {showUpgrade && <UpgradePrompt onClose={()=>setShowUpgrade(false)} title={<>Armar tu semana es <span style={{color:C.blue,fontStyle:"italic"}}>Premium</span>.</>} subtitle="Menú de 7 días, lista de compras, recetas completas y chef IA. Un pago, acceso de por vida." />}
     </div>
   );
 
   // ============================================
-  // SCREEN: ¿QUÉ COCINO HOY?
+  // SCREEN: ¿QUÉ COCINO HOY? (GRATIS con límite 1/día)
   // ============================================
   if (screen === "hoy") return (
     <div style={{ minHeight:"100vh", background:C.bg, fontFamily:"'Manrope',sans-serif", display:"flex", flexDirection:"column", position:"relative", overflow:"hidden" }}>
@@ -878,13 +988,12 @@ function MainApp() {
       <div style={{ padding:"16px 22px", display:"flex", alignItems:"center", gap:14, borderBottom:`1px solid ${C.line}`, background:C.bg, position:"relative", zIndex:1 }}>
         <button onClick={() => setScreen("home")} style={{ background:C.white, border:`1px solid ${C.line}`, borderRadius:12, width:40, height:40, cursor:"pointer", fontSize:18, display:"flex", alignItems:"center", justifyContent:"center", color:C.ink, fontWeight:700 }}>←</button>
         <div style={{ fontSize:18, fontWeight:800, color:C.ink, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.025em" }}>¿Qué cocino hoy?</div>
+        {!premium && <div style={{ marginLeft:"auto", fontSize:12, fontWeight:700, color:C.blue, fontFamily:"'Inter',sans-serif", background:C.blueLt, padding:"5px 12px", borderRadius:20 }}>Gratis</div>}
       </div>
 
       {!hoyResult ? (
         <div style={{ flex:1, padding:"32px 24px", maxWidth:520, margin:"0 auto", width:"100%", overflowY:"auto", position:"relative", zIndex:1 }}>
-          <div style={{ marginBottom:14 }}>
-            <Eyebrow>Rápido y sin vueltas</Eyebrow>
-          </div>
+          <div style={{ marginBottom:14 }}><Eyebrow>Rápido y sin vueltas</Eyebrow></div>
           <h2 style={{ fontSize:32, fontWeight:900, color:C.ink, lineHeight:1.0, marginBottom:10, letterSpacing:"-0.04em", fontFamily:"'Epilogue',sans-serif" }}>
             3 preguntas y te doy<br/>la receta <span style={{ color:C.blue, fontStyle:"italic", fontWeight:800 }}>perfecta</span>.
           </h2>
@@ -922,7 +1031,7 @@ function MainApp() {
             </div>
           </div>
 
-          <div style={{ marginBottom:36 }}>
+          <div style={{ marginBottom:22 }}>
             <div style={{ fontSize:15, fontWeight:700, color:C.ink, marginBottom:6, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.015em" }}>
               ¿Qué tenés en casa? <span style={{ fontWeight:500, color:C.gray4, fontSize:13, fontFamily:"'Manrope',sans-serif" }}>(opcional)</span>
             </div>
@@ -932,19 +1041,27 @@ function MainApp() {
               onFocus={e=>e.target.style.borderColor=C.blue} onBlur={e=>e.target.style.borderColor=C.line}/>
           </div>
 
-          <button onClick={() => setHoyResult(generarHoy(hoyCuantas, hoyTipo, hoyIngredientes))}
+          <div style={{ marginBottom:36 }}>
+            <div style={{ fontSize:15, fontWeight:700, color:C.ink, marginBottom:6, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.015em" }}>
+              ¿Algo que no comas? <span style={{ fontWeight:500, color:C.gray4, fontSize:13, fontFamily:"'Manrope',sans-serif" }}>(opcional)</span>
+            </div>
+            <textarea value={hoyNoGusta} onChange={e => setHoyNoGusta(e.target.value)} placeholder="Ej: mariscos, cebolla cruda..." rows={1}
+              style={{ width:"100%", padding:"15px 18px", borderRadius:14, border:`1.5px solid ${C.line}`, fontSize:15, color:C.text, resize:"none", lineHeight:1.5, background:C.white, fontFamily:"'Manrope',sans-serif", outline:"none", transition:"border 0.2s" }}
+              onFocus={e=>e.target.style.borderColor=C.blue} onBlur={e=>e.target.style.borderColor=C.line}/>
+          </div>
+
+          <button onClick={handleHoyGenerar}
             style={{ width:"100%", background:C.ink, color:C.white, border:"none", borderRadius:18, padding:"20px", fontSize:16, fontWeight:700, cursor:"pointer", boxShadow:sh.ink, fontFamily:"'Inter',sans-serif", display:"flex", alignItems:"center", justifyContent:"center", gap:12, transition:"background 0.2s, transform 0.2s" }}
             onMouseEnter={e => { e.currentTarget.style.background = C.blue; e.currentTarget.style.transform = "translateY(-2px)"; }}
             onMouseLeave={e => { e.currentTarget.style.background = C.ink; e.currentTarget.style.transform = "translateY(0)"; }}>
             <span>Sugerir receta</span>
             <span style={{ width:30, height:30, borderRadius:"50%", background:C.white, color:C.ink, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:16, fontWeight:700 }}>→</span>
           </button>
+          {!premium && <p style={{ textAlign:"center", fontSize:12, color:C.sub, marginTop:12, fontWeight:500 }}>1 sugerencia gratuita por día</p>}
         </div>
       ) : (
         <div style={{ flex:1, padding:"32px 24px", maxWidth:520, margin:"0 auto", width:"100%", position:"relative", zIndex:1 }}>
-          <div style={{ marginBottom:14 }}>
-            <Eyebrow>Listo</Eyebrow>
-          </div>
+          <div style={{ marginBottom:14 }}><Eyebrow>Listo</Eyebrow></div>
           <h2 style={{ fontSize:30, fontWeight:900, color:C.ink, lineHeight:1.0, marginBottom:10, letterSpacing:"-0.04em", fontFamily:"'Epilogue',sans-serif" }}>
             Tu menú <span style={{ color:C.blue, fontStyle:"italic", fontWeight:800 }}>de hoy</span>.
           </h2>
@@ -955,9 +1072,7 @@ function MainApp() {
               const r = R[item.nombre];
               return (
                 <div key={i} style={{ background:C.white, borderRadius:20, padding:"22px", boxShadow:sh.md, border:`1px solid ${C.line}` }}>
-                  <div style={{ marginBottom:14 }}>
-                    <Eyebrow>{item.tipo}</Eyebrow>
-                  </div>
+                  <div style={{ marginBottom:14 }}><Eyebrow>{item.tipo}</Eyebrow></div>
                   <div style={{ display:"flex", alignItems:"center", gap:14 }}>
                     <div style={{ width:60, height:60, borderRadius:16, background:C.blueLt, display:"flex", alignItems:"center", justifyContent:"center", fontSize:30, flexShrink:0 }}>{r?r.e:"🍽️"}</div>
                     <div style={{ flex:1, minWidth:0 }}>
@@ -971,33 +1086,52 @@ function MainApp() {
                     </div>
                   </div>
                   <button onClick={() => setReceta(item.nombre)} style={{ marginTop:16, width:"100%", background:C.bg, color:C.ink, border:`1px solid ${C.line}`, borderRadius:12, padding:"13px", fontSize:14, fontWeight:700, cursor:"pointer", fontFamily:"'Inter',sans-serif" }}>
-                    Ver receta completa →
+                    Ver receta →
                   </button>
                 </div>
               );
             })}
           </div>
 
-          <button onClick={() => setHoyResult(generarHoy(hoyCuantas, hoyTipo, hoyIngredientes))} style={{ width:"100%", background:C.white, color:C.ink, border:`1.5px solid ${C.line}`, borderRadius:16, padding:"16px", fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"'Inter',sans-serif", marginBottom:12 }}>↺ Otra sugerencia</button>
+          {/* Upsell sutil después del resultado */}
+          {!premium && (
+            <div style={{ background:C.ink, borderRadius:20, padding:"28px 24px", marginBottom:20, position:"relative", overflow:"hidden" }}>
+              <BgGrid dark />
+              <div style={{ position:"relative", zIndex:1 }}>
+                <div style={{ fontSize:18, fontWeight:900, color:C.white, marginBottom:8, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.02em", lineHeight:1.1 }}>
+                  Eso fue <span style={{ color:C.blue, fontStyle:"italic" }}>1 día</span>. ¿Querés los 7?
+                </div>
+                <div style={{ fontSize:14, color:"rgba(255,255,255,0.6)", marginBottom:18, fontWeight:500, lineHeight:1.5 }}>
+                  Menú semanal + lista de compras + recetas completas + chef IA.
+                </div>
+                <a href={CHECKOUT_URL} target="_blank" rel="noopener noreferrer"
+                  style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:10, width:"100%", padding:"16px", borderRadius:14, background:C.blue, color:C.white, fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"'Inter',sans-serif", boxShadow:sh.blue, textDecoration:"none" }}>
+                  Quiero Premium · $20.900 <span style={{ width:26, height:26, borderRadius:"50%", background:C.white, color:C.blue, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:14, fontWeight:700 }}>→</span>
+                </a>
+              </div>
+            </div>
+          )}
+
+          <button onClick={() => {
+            if (!premium && hasUsedFreeToday()) { setShowUpgrade(true); return; }
+            const r2 = generarHoy(hoyCuantas, hoyTipo, hoyIngredientes);
+            setHoyResult(r2);
+            if (!premium) markFreeUsedToday();
+          }} style={{ width:"100%", background:C.white, color:C.ink, border:`1.5px solid ${C.line}`, borderRadius:16, padding:"16px", fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"'Inter',sans-serif", marginBottom:12 }}>↺ Otra sugerencia</button>
           <button onClick={() => setHoyResult(null)} style={{ width:"100%", background:"transparent", color:C.sub, border:"none", borderRadius:16, padding:"14px", fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"'Inter',sans-serif" }}>← Volver</button>
         </div>
       )}
 
-      {hoyResult && (
-        <div style={{ position:"fixed", bottom:28, right:22, zIndex:100 }}>
-          <button onClick={() => setChefOpen(true)} style={{ width:60, height:60, borderRadius:"50%", border:"none", background:C.blue, color:C.white, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:sh.blue, animation:"chefBounce 2s ease infinite" }}>
-            <ChefHat size={32}/>
-          </button>
-        </div>
-      )}
-      {chefOpen && <ChefChat result={null} recetaActual={receta} onClose={()=>setChefOpen(false)}/>}
-      {receta && <ModalReceta nombre={receta} onClose={()=>setReceta(null)}/>}
+      {receta && <ModalReceta nombre={receta} onClose={()=>setReceta(null)} premium={premium} />}
+      {showUpgrade && <UpgradePrompt onClose={()=>setShowUpgrade(false)} title={<>Ya usaste tu sugerencia <span style={{color:C.blue,fontStyle:"italic"}}>gratis</span> de hoy.</>} subtitle="Con Premium tenés sugerencias ilimitadas, menú semanal, lista de compras y chef IA." />}
     </div>
   );
 
   // ============================================
-  // SCREEN: ONBOARDING
+  // SCREENS: ONBOARDING, LOADING, RESULT — solo premium (sin cambios significativos)
+  // Se mantienen igual que antes pero con premium=true en ModalReceta
   // ============================================
+
   if (screen === "onboarding") {
     const progMsg = ["Conociendo tu objetivo...","Ajustando tu alimentación...","Calculando tu tiempo...","Optimizando el presupuesto...","Definiendo las porciones...","Personalizando la complejidad...","Un último detalle..."];
     const selDietas = answers.dieta || [];
@@ -1006,7 +1140,6 @@ function MainApp() {
       <div style={{ minHeight:"100vh", background:C.bg, fontFamily:"'Manrope',sans-serif", display:"flex", flexDirection:"column", position:"relative", overflow:"hidden" }}>
         <style>{BASE}</style>
         <BgGrid />
-
         <div style={{ padding:"16px 22px", display:"flex", alignItems:"center", gap:14, borderBottom:`1px solid ${C.line}`, background:C.bg, position:"relative", zIndex:1 }}>
           <button onClick={() => step === 0 ? setScreen("home") : setStep(s=>s-1)} style={{ background:C.white, border:`1px solid ${C.line}`, borderRadius:12, width:40, height:40, cursor:"pointer", fontSize:18, display:"flex", alignItems:"center", justifyContent:"center", color:C.ink, fontWeight:700 }}>←</button>
           <div style={{ flex:1 }}>
@@ -1027,9 +1160,7 @@ function MainApp() {
           )}
           {cur.type === "extras" && (
             <div style={{ background:C.white, border:`1px solid ${C.line}`, borderRadius:18, padding:"20px 22px", marginBottom:24, borderLeft:`4px solid ${C.blue}` }}>
-              <div style={{ marginBottom:8 }}>
-                <Eyebrow>Casi listo</Eyebrow>
-              </div>
+              <div style={{ marginBottom:8 }}><Eyebrow>Casi listo</Eyebrow></div>
               <div style={{ fontSize:18, fontWeight:800, color:C.ink, marginBottom:6, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.025em" }}>Ya estamos listos.</div>
               <div style={{ fontSize:14, color:C.sub, lineHeight:1.55, fontWeight:500 }}>Con esto ya podemos armar tu semana perfecta. Los campos de abajo son opcionales.</div>
             </div>
@@ -1056,15 +1187,11 @@ function MainApp() {
                       <div style={{ fontSize:16, fontWeight:800, color:C.ink, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.02em" }}>{opt.label}</div>
                       {opt.desc && <div style={{ fontSize:13, color:C.sub, marginTop:3, fontWeight:500 }}>{opt.desc}</div>}
                     </div>
-                    {sel && (
-                      <div style={{ width:30, height:30, borderRadius:"50%", background:C.blue, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color:C.white, fontWeight:900, fontSize:14, fontFamily:"'Epilogue',sans-serif" }}>{rank+1}</div>
-                    )}
+                    {sel && <div style={{ width:30, height:30, borderRadius:"50%", background:C.blue, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color:C.white, fontWeight:900, fontSize:14, fontFamily:"'Epilogue',sans-serif" }}>{rank+1}</div>}
                   </button>
                 );
               })}
-              {(answers.objetivo||[]).length === 2 && (
-                <div style={{ textAlign:"center", fontSize:13, color:C.blue, fontWeight:600, marginTop:6, fontFamily:"'Inter',sans-serif" }}>✓ Máximo 2 objetivos seleccionados</div>
-              )}
+              {(answers.objetivo||[]).length === 2 && <div style={{ textAlign:"center", fontSize:13, color:C.blue, fontWeight:600, marginTop:6, fontFamily:"'Inter',sans-serif" }}>✓ Máximo 2 objetivos seleccionados</div>}
             </div>
           )}
 
@@ -1082,11 +1209,7 @@ function MainApp() {
                   <button key={opt.value} onClick={toggle} style={{ padding:"20px 14px", borderRadius:18, cursor:"pointer", textAlign:"center", border:`2px solid ${sel?C.blue:C.line}`, background:sel?C.blueLt:C.white, display:"flex", flexDirection:"column", alignItems:"center", gap:10, transition:"all 0.18s", fontFamily:"'Manrope',sans-serif", boxShadow:sel?sh.md:sh.sm, position:"relative" }}>
                     <div style={{ fontSize:32 }}>{opt.emoji}</div>
                     <div style={{ fontSize:14, fontWeight:800, color:C.ink, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.02em" }}>{opt.label}</div>
-                    {sel && (
-                      <div style={{ position:"absolute", top:10, right:10, width:22, height:22, borderRadius:"50%", background:C.blue, display:"flex", alignItems:"center", justifyContent:"center" }}>
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                      </div>
-                    )}
+                    {sel && <div style={{ position:"absolute", top:10, right:10, width:22, height:22, borderRadius:"50%", background:C.blue, display:"flex", alignItems:"center", justifyContent:"center" }}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>}
                   </button>
                 );
               })}
@@ -1161,28 +1284,19 @@ function MainApp() {
     );
   }
 
-  // ============================================
-  // SCREEN: LOADING
-  // ============================================
   if (screen === "loading") {
     const MSGS = ["Analizando tu objetivo...","Seleccionando las mejores recetas...","Calculando la lista de compras...","Optimizando el presupuesto...","¡Tu menú está casi listo!"];
     return (
       <div style={{ minHeight:"100vh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:32, fontFamily:"'Manrope',sans-serif", position:"relative", overflow:"hidden" }}>
         <style>{BASE}</style>
-        <BgGrid />
-        <Blob pos="tr" />
-        <Blob pos="bl" color="rgba(0,102,204,0.13)" />
+        <BgGrid /><Blob pos="tr" /><Blob pos="bl" color="rgba(0,102,204,0.13)" />
         <div style={{ position:"relative", zIndex:1, display:"flex", flexDirection:"column", alignItems:"center" }}>
           <div style={{ width:80, height:80, borderRadius:"50%", border:`6px solid ${C.bluePl}`, borderTop:`6px solid ${C.blue}`, animation:"spin 0.9s linear infinite", marginBottom:32 }}/>
-          <div style={{ marginBottom:14 }}>
-            <Eyebrow center>Generando</Eyebrow>
-          </div>
+          <div style={{ marginBottom:14 }}><Eyebrow center>Generando</Eyebrow></div>
           <h2 style={{ fontSize:32, fontWeight:900, color:C.ink, marginBottom:14, textAlign:"center", fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.04em", lineHeight:1.0 }}>
             Kooki está <span style={{ color:C.blue, fontStyle:"italic", fontWeight:800 }}>trabajando</span>.
           </h2>
-          <p style={{ fontSize:15, color:C.sub, textAlign:"center", maxWidth:280, lineHeight:1.55, marginBottom:36, fontWeight:500 }}>
-            Personalizando tu plan de alimentación
-          </p>
+          <p style={{ fontSize:15, color:C.sub, textAlign:"center", maxWidth:280, lineHeight:1.55, marginBottom:36, fontWeight:500 }}>Personalizando tu plan de alimentación</p>
           <div style={{ width:"100%", maxWidth:320, display:"flex", flexDirection:"column", gap:14 }}>
             {MSGS.map((m,i) => (
               <div key={i} style={{ display:"flex", alignItems:"center", gap:14, opacity:i<=loadMsg?1:0.3, transition:"opacity 0.4s" }}>
@@ -1196,28 +1310,19 @@ function MainApp() {
     );
   }
 
-  // ============================================
-  // SCREEN: RESULT (header OSCURO tipo slide)
-  // ============================================
   if (screen === "result" && result) {
     const showChefFab = tab === "lista" || tab === "recetas";
     return (
       <div ref={scrollRef} style={{ minHeight:"100vh", background:C.bg, fontFamily:"'Manrope',sans-serif", overflowY:"auto" }}>
         <style>{BASE}</style>
-
         <div style={{ background:C.ink, padding:"24px 22px 44px", position:"relative", overflow:"hidden" }}>
-          <BgGrid dark />
-          <Blob pos="tr" color="rgba(59,111,212,0.4)" size={400} />
-
+          <BgGrid dark /><Blob pos="tr" color="rgba(59,111,212,0.4)" size={400} />
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:28, position:"relative", zIndex:1 }}>
             <KookiLogo size={24} dark/>
             <button onClick={resetAll} style={{ background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.15)", color:C.white, borderRadius:12, padding:"9px 16px", fontSize:13, cursor:"pointer", fontWeight:600, fontFamily:"'Inter',sans-serif" }}>↺ Nuevo menú</button>
           </div>
-
           <div style={{ position:"relative", zIndex:1 }}>
-            <div style={{ marginBottom:18 }}>
-              <Eyebrow dark>Tu plan personalizado</Eyebrow>
-            </div>
+            <div style={{ marginBottom:18 }}><Eyebrow dark>Tu plan personalizado</Eyebrow></div>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16 }}>
               <span style={{ fontSize:24 }}>{OBJ_IC[result.objetivo]||"✨"}</span>
               <span style={{ background:"rgba(59,111,212,0.18)", border:"1px solid rgba(59,111,212,0.35)", color:C.blueGlow, borderRadius:100, padding:"6px 14px", fontSize:12, fontWeight:700, fontFamily:"'Inter',sans-serif", textTransform:"uppercase", letterSpacing:"0.08em" }}>{result.tag}</span>
@@ -1252,9 +1357,7 @@ function MainApp() {
               {result.menu.map((d,i) => (
                 <div key={i}>
                   <div style={{ padding:"18px 20px" }}>
-                    <div style={{ marginBottom:14 }}>
-                      <Eyebrow>{d.dia}</Eyebrow>
-                    </div>
+                    <div style={{ marginBottom:14 }}><Eyebrow>{d.dia}</Eyebrow></div>
                     {[["alm","🌞","Almuerzo","tag_alm"],["cen","🌙","Cena","tag_cen"]].map(([k,ic,lb,tagKey]) => (
                       <div key={k} style={{ marginBottom:k==="alm"?14:0 }}>
                         <div style={{ display:"flex", alignItems:"flex-start" }}>
@@ -1326,9 +1429,7 @@ function MainApp() {
           {tab === "menu" && (
             <div style={{ marginTop:20, background:C.white, borderRadius:20, overflow:"hidden", boxShadow:sh.md, border:`1px solid ${C.line}` }}>
               <div style={{ padding:"18px 20px 12px" }}>
-                <div style={{ marginBottom:16 }}>
-                  <Eyebrow>Compartir y exportar</Eyebrow>
-                </div>
+                <div style={{ marginBottom:16 }}><Eyebrow>Compartir y exportar</Eyebrow></div>
                 <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
                   <button onClick={()=>{
                     const menu = result.menu.map(d => "*"+d.dia+"*\n🌞 "+d.alm+"\n🌙 "+d.cen).join("\n\n");
@@ -1379,7 +1480,7 @@ function MainApp() {
             </button>
           </div>
         )}
-        {receta && <ModalReceta nombre={receta} onClose={()=>setReceta(null)}/>}
+        {receta && <ModalReceta nombre={receta} onClose={()=>setReceta(null)} premium={true} />}
         {chefOpen && <ChefChat result={result} recetaActual={receta} onClose={()=>setChefOpen(false)}/>}
       </div>
     );
@@ -1388,10 +1489,21 @@ function MainApp() {
   return null;
 }
 
+// ============================================
+// APP ROOT — ya no pide código obligatorio
+// ============================================
 export default function App() {
-  const [hasAccess, setHasAccess] = useState(() => {
-    try { return !!localStorage.getItem(ACCESS_KEY); } catch(e) { return false; }
-  });
-  if (!hasAccess) return <AccessScreen onAccess={() => setHasAccess(true)} />;
-  return <MainApp />;
+  const [showAccess, setShowAccess] = useState(false);
+
+  // Exponer función para que UpgradePrompt pueda mostrar AccessScreen
+  window.__showAccessScreen = () => setShowAccess(true);
+
+  if (showAccess) {
+    return <AccessScreen
+      onAccess={() => { setShowAccess(false); window.location.reload(); }}
+      onBack={() => setShowAccess(false)}
+    />;
+  }
+
+  return <MainApp onShowAccess={() => setShowAccess(true)} />;
 }
