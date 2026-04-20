@@ -507,16 +507,20 @@ function cambiarReceta(menuActual, dia, tipo, objetivo, dietas, tiempo, noGusta 
   saveToHistory([nueva]);
   return nueva;
 }
-function generarHoy(cuantas, tipo, ingredientes) {
+function generarHoy(cuantas, tipo, ingredientes, noGusta) {
   const todas = Object.keys(R);
   const history = getHistory();
+  const noGustaList = parseIngredientList(noGusta);
   let candidatos = [...todas];
+  // Filtro duro: descartar recetas con ingredientes prohibidos
+  if (noGustaList.length > 0) candidatos = candidatos.filter(n => !recetaContiene(n, noGustaList));
   if (tipo === "vegetariana") candidatos = candidatos.filter(isVegetariana);
   else if (tipo === "liviana") candidatos = candidatos.filter(isLiviana);
   else if (tipo === "rapida") candidatos = candidatos.filter(n => parseTime(R[n]?.t) <= 20);
   else if (tipo === "contundente") candidatos = candidatos.filter(isContundente);
+  if (candidatos.length === 0) candidatos = todas.filter(n => !recetaContiene(n, noGustaList));
   if (candidatos.length === 0) candidatos = [...todas];
-  const ings = (ingredientes || "").toLowerCase().split(/[,\s]+/).filter(i => i.length > 2);
+  const ings = parseIngredientList(ingredientes);
   const conScore = candidatos.map(n => {
     let score = Math.random() * 10;
     const recetaIngs = (R[n]?.i || []).join(" ").toLowerCase() + " " + n.toLowerCase();
@@ -544,9 +548,6 @@ function generarHoy(cuantas, tipo, ingredientes) {
   if (cuantas === "1") return [{ tipo:"Tu comida de hoy", nombre: elegidas[0] }];
   return [{ tipo:"Almuerzo", nombre: elegidas[0] }, { tipo:"Cena", nombre: elegidas[1] || elegidas[0] }];
 }
-
-// ============================================
-// CHEF CHAT (burbuja user en negro)
 
 // ============================================
 // CHEF CHAT (solo premium — sin cambios internos)
@@ -874,7 +875,7 @@ function MainApp({ onShowAccess }) {
       setShowUpgrade(true);
       return;
     }
-    const result = generarHoy(hoyCuantas, hoyTipo, hoyIngredientes);
+    const result = generarHoy(hoyCuantas, hoyTipo, hoyIngredientes, hoyNoGusta);
     setHoyResult(result);
     if (!premium) markFreeUsedToday();
   };
@@ -1114,7 +1115,7 @@ function MainApp({ onShowAccess }) {
 
           <button onClick={() => {
             if (!premium && hasUsedFreeToday()) { setShowUpgrade(true); return; }
-            const r2 = generarHoy(hoyCuantas, hoyTipo, hoyIngredientes);
+            const r2 = generarHoy(hoyCuantas, hoyTipo, hoyIngredientes, hoyNoGusta);
             setHoyResult(r2);
             if (!premium) markFreeUsedToday();
           }} style={{ width:"100%", background:C.white, color:C.ink, border:`1.5px solid ${C.line}`, borderRadius:16, padding:"16px", fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"'Inter',sans-serif", marginBottom:12 }}>↺ Otra sugerencia</button>
