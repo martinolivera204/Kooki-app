@@ -552,6 +552,38 @@ function generarHoy(cuantas, tipo, ingredientes, noGusta) {
   return [{ tipo:"Almuerzo", nombre: elegidas[0] }, { tipo:"Cena", nombre: elegidas[1] || elegidas[0] }];
 }
 
+function cambiarRecetaHoy(recetaActual, excluir, tipo, ingredientes, noGusta) {
+  const todas = Object.keys(R);
+  const noGustaList = parseIngredientList(noGusta);
+  const ings = parseIngredientList(ingredientes);
+  const excluirSet = new Set(excluir);
+  excluirSet.add(recetaActual);
+
+  let candidatos = todas.filter(n => !excluirSet.has(n));
+  if (noGustaList.length > 0) candidatos = candidatos.filter(n => !recetaContiene(n, noGustaList));
+  if (tipo === "vegetariana") candidatos = candidatos.filter(isVegetariana);
+  else if (tipo === "liviana") candidatos = candidatos.filter(isLiviana);
+  else if (tipo === "rapida") candidatos = candidatos.filter(n => parseTime(R[n]?.t) <= 20);
+  else if (tipo === "contundente") candidatos = candidatos.filter(isContundente);
+  if (candidatos.length === 0) candidatos = todas.filter(n => !excluirSet.has(n) && !recetaContiene(n, noGustaList));
+  if (candidatos.length === 0) return recetaActual;
+
+  const conScore = candidatos.map(n => {
+    let score = Math.random() * 5;
+    const recetaIngs = (R[n]?.i || []).join(" ").toLowerCase() + " " + n.toLowerCase();
+    if (ings.length > 0) {
+      const matches = ings.filter(ing => recetaIngs.includes(ing)).length;
+      if (matches === 0) score -= 100;
+      else { score += matches * 40; if (matches === ings.length) score += 50; }
+    }
+    return { n, score };
+  }).sort((a,b) => b.score - a.score);
+
+  const nueva = conScore[0]?.n || recetaActual;
+  saveToHistory([nueva]);
+  return nueva;
+}
+
 // ============================================
 // CHEF CHAT (solo premium — sin cambios internos)
 // ============================================
@@ -1094,11 +1126,9 @@ function MainApp({ onShowAccess }) {
                       Ver receta →
                     </button>
                     <button onClick={() => {
-                      const nuevas = generarHoy(hoyCuantas, hoyTipo, hoyIngredientes, hoyNoGusta);
-                      const idx = hoyResult.findIndex(x => x.nombre === item.nombre);
-                      if (idx !== -1 && nuevas[0]) {
-                        setHoyResult(prev => prev.map((p, pi) => pi === idx ? { ...p, nombre: nuevas[0].nombre } : p));
-                      }
+                      const excluir = hoyResult.map(x => x.nombre);
+                      const nueva = cambiarRecetaHoy(item.nombre, excluir, hoyTipo, hoyIngredientes, hoyNoGusta);
+                      setHoyResult(prev => prev.map(p => p.nombre === item.nombre ? { ...p, nombre: nueva } : p));
                     }} style={{ width:48, background:C.bg, color:C.gray4, border:`1px solid ${C.line}`, borderRadius:12, padding:"13px", fontSize:18, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
                       🔄
                     </button>
