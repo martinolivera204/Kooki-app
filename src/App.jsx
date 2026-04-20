@@ -522,13 +522,16 @@ function generarHoy(cuantas, tipo, ingredientes, noGusta) {
   if (candidatos.length === 0) candidatos = [...todas];
   const ings = parseIngredientList(ingredientes);
   const conScore = candidatos.map(n => {
-    let score = Math.random() * 10;
+    let score = Math.random() * 5;
     const recetaIngs = (R[n]?.i || []).join(" ").toLowerCase() + " " + n.toLowerCase();
     if (ings.length > 0) {
       const matches = ings.filter(ing => recetaIngs.includes(ing)).length;
-      const pct = matches / ings.length;
-      score += pct * 60;
-      if (matches === 0) score -= 20;
+      if (matches === 0) {
+        score -= 100; // no matchea NADA de lo que tiene → fuera
+      } else {
+        score += matches * 40; // cada ingrediente que matchea suma fuerte
+        if (matches === ings.length) score += 50; // bonus extra si matchea TODO
+      }
     }
     const idx = history.findIndex(h => h.n === n);
     if (idx !== -1) {
@@ -1086,9 +1089,20 @@ function MainApp({ onShowAccess }) {
                       )}
                     </div>
                   </div>
-                  <button onClick={() => setReceta(item.nombre)} style={{ marginTop:16, width:"100%", background:C.bg, color:C.ink, border:`1px solid ${C.line}`, borderRadius:12, padding:"13px", fontSize:14, fontWeight:700, cursor:"pointer", fontFamily:"'Inter',sans-serif" }}>
-                    Ver receta →
-                  </button>
+                  <div style={{ display:"flex", gap:10, marginTop:16 }}>
+                    <button onClick={() => setReceta(item.nombre)} style={{ flex:1, background:C.bg, color:C.ink, border:`1px solid ${C.line}`, borderRadius:12, padding:"13px", fontSize:14, fontWeight:700, cursor:"pointer", fontFamily:"'Inter',sans-serif" }}>
+                      Ver receta →
+                    </button>
+                    <button onClick={() => {
+                      const nuevas = generarHoy(hoyCuantas, hoyTipo, hoyIngredientes, hoyNoGusta);
+                      const idx = hoyResult.findIndex(x => x.nombre === item.nombre);
+                      if (idx !== -1 && nuevas[0]) {
+                        setHoyResult(prev => prev.map((p, pi) => pi === idx ? { ...p, nombre: nuevas[0].nombre } : p));
+                      }
+                    }} style={{ width:48, background:C.bg, color:C.gray4, border:`1px solid ${C.line}`, borderRadius:12, padding:"13px", fontSize:18, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                      🔄
+                    </button>
+                  </div>
                 </div>
               );
             })}
