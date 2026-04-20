@@ -1169,6 +1169,15 @@ function MainApp({ onShowAccess }) {
 
       {receta && <ModalReceta nombre={receta} onClose={()=>setReceta(null)} premium={premium} />}
       {showUpgrade && <UpgradePrompt onClose={()=>setShowUpgrade(false)} title={<>Ya usaste tu sugerencia <span style={{color:C.blue,fontStyle:"italic"}}>gratis</span> de hoy.</>} subtitle="Con Premium tenés sugerencias ilimitadas, menú semanal, lista de compras y chef IA." />}
+
+      {premium && hoyResult && (
+        <div style={{ position:"fixed", bottom:28, right:22, zIndex:100 }}>
+          <button onClick={() => setChefOpen(true)} style={{ width:60, height:60, borderRadius:"50%", border:"none", background:C.blue, color:C.white, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:sh.blue, animation:"chefBounce 2s ease infinite" }}>
+            <ChefHat size={32}/>
+          </button>
+        </div>
+      )}
+      {chefOpen && <ChefChat result={null} recetaActual={receta} onClose={()=>setChefOpen(false)}/>}
     </div>
   );
 
