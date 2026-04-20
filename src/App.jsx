@@ -564,16 +564,21 @@ function generarHoy(cuantas, tipo, ingredientes, noGusta, dietas, tiempo, objeti
     }
     return { n, score };
   }).sort((a,b) => b.score - a.score);
-  const top = conScore.slice(0, Math.min(5, conScore.length));
+  const top = conScore.slice(0, Math.min(12, conScore.length));
   const elegidas = []; const usadas = new Set();
-  for (const c of top) { if (usadas.has(c.n)) continue; elegidas.push(c.n); usadas.add(c.n); if (elegidas.length >= 2) break; }
-  while (elegidas.length < 2 && conScore.length > elegidas.length) {
+  for (const c of top) { if (usadas.has(c.n)) continue; elegidas.push(c.n); usadas.add(c.n); if (elegidas.length >= 4) break; }
+  while (elegidas.length < 4 && conScore.length > elegidas.length) {
     const next = conScore[elegidas.length];
     if (next && !usadas.has(next.n)) { elegidas.push(next.n); usadas.add(next.n); } else break;
   }
-  saveToHistory(elegidas);
-  if (cuantas === "1") return [{ tipo:"Tu comida de hoy", nombre: elegidas[0] }];
-  return [{ tipo:"Almuerzo", nombre: elegidas[0] }, { tipo:"Cena", nombre: elegidas[1] || elegidas[0] }];
+  saveToHistory(elegidas.slice(0, 2));
+  if (cuantas === "1") return elegidas.slice(0, 4).map((n, i) => ({ tipo: i === 0 ? "Mejor opción" : `Opción ${i+1}`, nombre: n }));
+  return [
+    { tipo:"Almuerzo · opción 1", nombre: elegidas[0] },
+    { tipo:"Almuerzo · opción 2", nombre: elegidas[1] || elegidas[0] },
+    { tipo:"Cena · opción 1", nombre: elegidas[2] || elegidas[0] },
+    { tipo:"Cena · opción 2", nombre: elegidas[3] || elegidas[1] || elegidas[0] },
+  ];
 }
 
 function cambiarRecetaHoy(recetaActual, excluir, tipo, ingredientes, noGusta, dietas, tiempo, objetivo) {
