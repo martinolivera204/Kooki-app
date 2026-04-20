@@ -507,15 +507,22 @@ function cambiarReceta(menuActual, dia, tipo, objetivo, dietas, tiempo, noGusta 
   saveToHistory([nueva]);
   return nueva;
 }
-function generarHoy(cuantas, tipo, ingredientes, noGusta) {
+function generarHoy(cuantas, tipo, ingredientes, noGusta, dietas, tiempo, objetivo) {
   const todas = Object.keys(R);
   const history = getHistory();
   const noGustaList = parseIngredientList(noGusta);
+  const dietasArr = dietas || [];
+  const objKey = objetivo || "organizar";
+  const meta = META[objKey] || META.organizar;
   let candidatos = [...todas];
   // Filtro duro: descartar recetas con ingredientes prohibidos
   if (noGustaList.length > 0) candidatos = candidatos.filter(n => !recetaContiene(n, noGustaList));
-  if (tipo === "vegetariana") candidatos = candidatos.filter(isVegetariana);
-  else if (tipo === "liviana") candidatos = candidatos.filter(isLiviana);
+  // Filtro duro: dieta vegetariana/vegana
+  if (dietasArr.includes("vegetariana") || dietasArr.includes("vegana")) {
+    candidatos = candidatos.filter(isVegetariana);
+  }
+  // Filtro por tipo de comida
+  if (tipo === "liviana") candidatos = candidatos.filter(isLiviana);
   else if (tipo === "rapida") candidatos = candidatos.filter(n => parseTime(R[n]?.t) <= 20);
   else if (tipo === "contundente") candidatos = candidatos.filter(isContundente);
   if (candidatos.length === 0) candidatos = todas.filter(n => !recetaContiene(n, noGustaList));
@@ -523,16 +530,33 @@ function generarHoy(cuantas, tipo, ingredientes, noGusta) {
   const ings = parseIngredientList(ingredientes);
   const conScore = candidatos.map(n => {
     let score = Math.random() * 5;
-    const recetaIngs = (R[n]?.i || []).join(" ").toLowerCase() + " " + n.toLowerCase();
+    const r = R[n];
+    const recetaIngs = (r?.i || []).join(" ").toLowerCase() + " " + n.toLowerCase();
+    const tagStr = (r?.tags || []).join(" ").toLowerCase();
+    // Objetivo — keywords de META
+    meta.kw.forEach(k => { if (tagStr.includes(k)) score += 12; });
+    // Ingredientes que tiene en casa
     if (ings.length > 0) {
       const matches = ings.filter(ing => recetaIngs.includes(ing)).length;
-      if (matches === 0) {
-        score -= 100; // no matchea NADA de lo que tiene → fuera
-      } else {
-        score += matches * 40; // cada ingrediente que matchea suma fuerte
-        if (matches === ings.length) score += 50; // bonus extra si matchea TODO
-      }
+      if (matches === 0) score -= 100;
+      else { score += matches * 40; if (matches === ings.length) score += 50; }
     }
+    // Bonus por dieta desinflamatoria
+    if (dietasArr.includes("desinflamatoria") && tagStr.includes("desinflamatorio")) score += 15;
+    // Bonus por tags relevantes (keto = bajo en calorias, lowcarb = bajo en calorias)
+    if (dietasArr.includes("keto") || dietasArr.includes("lowcarb")) {
+      if (tagStr.includes("bajo en calorias") || tagStr.includes("desinflamatorio")) score += 10;
+    }
+    // Tiempo
+    const mins = parseTime(r?.t);
+    if (tiempo === "rapido" && mins <= 15) score += 12;
+    else if (tiempo === "rapido" && mins <= 20) score += 6;
+    else if (tiempo === "rapido" && mins > 30) score -= 15;
+    if (tiempo === "medio" && mins <= 30) score += 5;
+    if (tiempo === "libre" && mins >= 30) score += 3;
+    // Economico
+    if (tagStr.includes("economico")) score += 5;
+    // History
     const idx = history.findIndex(h => h.n === n);
     if (idx !== -1) {
       const ageDays = (Date.now() - history[idx].t) / (24*60*60*1000);
@@ -552,17 +576,20 @@ function generarHoy(cuantas, tipo, ingredientes, noGusta) {
   return [{ tipo:"Almuerzo", nombre: elegidas[0] }, { tipo:"Cena", nombre: elegidas[1] || elegidas[0] }];
 }
 
-function cambiarRecetaHoy(recetaActual, excluir, tipo, ingredientes, noGusta) {
+function cambiarRecetaHoy(recetaActual, excluir, tipo, ingredientes, noGusta, dietas, tiempo, objetivo) {
   const todas = Object.keys(R);
   const noGustaList = parseIngredientList(noGusta);
+  const dietasArr = dietas || [];
+  const objKey = objetivo || "organizar";
+  const meta = META[objKey] || META.organizar;
   const ings = parseIngredientList(ingredientes);
   const excluirSet = new Set(excluir);
   excluirSet.add(recetaActual);
 
   let candidatos = todas.filter(n => !excluirSet.has(n));
   if (noGustaList.length > 0) candidatos = candidatos.filter(n => !recetaContiene(n, noGustaList));
-  if (tipo === "vegetariana") candidatos = candidatos.filter(isVegetariana);
-  else if (tipo === "liviana") candidatos = candidatos.filter(isLiviana);
+  if (dietasArr.includes("vegetariana") || dietasArr.includes("vegana")) candidatos = candidatos.filter(isVegetariana);
+  if (tipo === "liviana") candidatos = candidatos.filter(isLiviana);
   else if (tipo === "rapida") candidatos = candidatos.filter(n => parseTime(R[n]?.t) <= 20);
   else if (tipo === "contundente") candidatos = candidatos.filter(isContundente);
   if (candidatos.length === 0) candidatos = todas.filter(n => !excluirSet.has(n) && !recetaContiene(n, noGustaList));
@@ -570,12 +597,21 @@ function cambiarRecetaHoy(recetaActual, excluir, tipo, ingredientes, noGusta) {
 
   const conScore = candidatos.map(n => {
     let score = Math.random() * 5;
-    const recetaIngs = (R[n]?.i || []).join(" ").toLowerCase() + " " + n.toLowerCase();
+    const r = R[n];
+    const recetaIngs = (r?.i || []).join(" ").toLowerCase() + " " + n.toLowerCase();
+    const tagStr = (r?.tags || []).join(" ").toLowerCase();
+    // Objetivo
+    meta.kw.forEach(k => { if (tagStr.includes(k)) score += 12; });
     if (ings.length > 0) {
       const matches = ings.filter(ing => recetaIngs.includes(ing)).length;
       if (matches === 0) score -= 100;
       else { score += matches * 40; if (matches === ings.length) score += 50; }
     }
+    if (dietasArr.includes("desinflamatoria") && tagStr.includes("desinflamatorio")) score += 15;
+    const mins = parseTime(r?.t);
+    if (tiempo === "rapido" && mins <= 15) score += 12;
+    else if (tiempo === "rapido" && mins > 30) score -= 15;
+    if (tiempo === "medio" && mins <= 30) score += 5;
     return { n, score };
   }).sort((a,b) => b.score - a.score);
 
@@ -848,6 +884,10 @@ function MainApp({ onShowAccess }) {
   const [hoyTipo, setHoyTipo] = useState("cualquiera");
   const [hoyIngredientes, setHoyIngredientes] = useState("");
   const [hoyNoGusta, setHoyNoGusta] = useState("");
+  const [hoyObjetivo, setHoyObjetivo] = useState("");
+  const [hoyDieta, setHoyDieta] = useState(["libre"]);
+  const [hoyTiempo, setHoyTiempo] = useState("medio");
+  const [hoyPresupuesto, setHoyPresupuesto] = useState("medio");
   const [hoyResult, setHoyResult] = useState(null);
   const [showUpgrade, setShowUpgrade] = useState(false);
   const scrollRef = useRef(null);
@@ -910,7 +950,7 @@ function MainApp({ onShowAccess }) {
       setShowUpgrade(true);
       return;
     }
-    const result = generarHoy(hoyCuantas, hoyTipo, hoyIngredientes, hoyNoGusta);
+    const result = generarHoy(hoyCuantas, hoyTipo, hoyIngredientes, hoyNoGusta, hoyDieta, hoyTiempo, hoyObjetivo);
     setHoyResult(result);
     if (!premium) markFreeUsedToday();
   };
@@ -1028,22 +1068,23 @@ function MainApp({ onShowAccess }) {
       </div>
 
       {!hoyResult ? (
-        <div style={{ flex:1, padding:"32px 24px", maxWidth:520, margin:"0 auto", width:"100%", overflowY:"auto", position:"relative", zIndex:1 }}>
-          <div style={{ marginBottom:14 }}><Eyebrow>Rápido y sin vueltas</Eyebrow></div>
-          <h2 style={{ fontSize:32, fontWeight:900, color:C.ink, lineHeight:1.0, marginBottom:10, letterSpacing:"-0.04em", fontFamily:"'Epilogue',sans-serif" }}>
-            3 preguntas y te doy<br/>la receta <span style={{ color:C.blue, fontStyle:"italic", fontWeight:800 }}>perfecta</span>.
+        <div style={{ flex:1, padding:"28px 24px", maxWidth:520, margin:"0 auto", width:"100%", overflowY:"auto", position:"relative", zIndex:1 }}>
+          <div style={{ marginBottom:10 }}><Eyebrow>Personalizado para vos</Eyebrow></div>
+          <h2 style={{ fontSize:28, fontWeight:900, color:C.ink, lineHeight:1.0, marginBottom:8, letterSpacing:"-0.04em", fontFamily:"'Epilogue',sans-serif" }}>
+            Contanos qué necesitás y Kooki te da la receta <span style={{ color:C.blue, fontStyle:"italic", fontWeight:800 }}>perfecta</span>.
           </h2>
-          <div style={{ fontSize:15, color:C.sub, marginBottom:32, lineHeight:1.55, fontWeight:500 }}>
-            Filtramos del banco de recetas según lo que necesitás.
+          <div style={{ fontSize:14, color:C.sub, marginBottom:28, lineHeight:1.55, fontWeight:500 }}>
+            Cuanto más completes, mejor la sugerencia.
           </div>
 
-          <div style={{ marginBottom:28 }}>
-            <div style={{ fontSize:15, fontWeight:700, color:C.ink, marginBottom:14, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.015em" }}>¿Cuántas comidas necesitás?</div>
-            <div style={{ display:"flex", gap:10 }}>
+          {/* CUÁNTAS COMIDAS */}
+          <div style={{ marginBottom:24 }}>
+            <div style={{ fontSize:14, fontWeight:700, color:C.ink, marginBottom:10, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.015em" }}>¿Cuántas comidas necesitás?</div>
+            <div style={{ display:"flex", gap:8 }}>
               {[["1","Una sola"],["2","Almuerzo y cena"]].map(([val,lbl]) => {
                 const sel = hoyCuantas === val;
                 return (
-                  <button key={val} onClick={() => setHoyCuantas(val)} style={{ flex:1, padding:"16px 12px", borderRadius:14, border:`2px solid ${sel?C.ink:C.line}`, background:sel?C.ink:C.white, fontSize:14, fontWeight:700, color:sel?C.white:C.ink, cursor:"pointer", fontFamily:"'Inter',sans-serif", transition:"all 0.18s" }}>
+                  <button key={val} onClick={() => setHoyCuantas(val)} style={{ flex:1, padding:"14px 10px", borderRadius:12, border:`2px solid ${sel?C.ink:C.line}`, background:sel?C.ink:C.white, fontSize:13, fontWeight:700, color:sel?C.white:C.ink, cursor:"pointer", fontFamily:"'Inter',sans-serif", transition:"all 0.18s" }}>
                     {lbl}
                   </button>
                 );
@@ -1051,49 +1092,125 @@ function MainApp({ onShowAccess }) {
             </div>
           </div>
 
-          <div style={{ marginBottom:28 }}>
-            <div style={{ fontSize:15, fontWeight:700, color:C.ink, marginBottom:14, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.015em" }}>¿Qué tipo de comida querés?</div>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-              {[["cualquiera","01","Cualquier cosa"],["liviana","02","Liviana y sana"],["rapida","03","Rápida (-20 min)"],["contundente","04","Contundente"],["vegetariana","05","Vegetariana"]].map(([val,num,lbl]) => {
-                const sel = hoyTipo === val;
+          {/* OBJETIVO */}
+          <div style={{ marginBottom:24 }}>
+            <div style={{ fontSize:14, fontWeight:700, color:C.ink, marginBottom:10, fontFamily:"'Epilogue',sans-serif" }}>¿Qué te importa hoy?</div>
+            <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+              {[["bajar_peso","⚖️","Bajar de peso"],["saludable","🥗","Comer sano"],["ahorrar","💰","Ahorrar"],["masa","💪","Ganar masa"],["organizar","📅","Organizarme"]].map(([val,emoji,lbl]) => {
+                const sel = hoyObjetivo === val;
+                return <button key={val} onClick={() => setHoyObjetivo(sel?"":val)} style={{ padding:"10px 16px", borderRadius:20, border:`2px solid ${sel?C.blue:C.line}`, background:sel?C.blueLt:C.white, fontSize:13, fontWeight:700, color:sel?C.blue:C.text, cursor:"pointer", fontFamily:"'Inter',sans-serif", transition:"all 0.15s", display:"flex", alignItems:"center", gap:6 }}>
+                  <span style={{ fontSize:16 }}>{emoji}</span>{lbl}
+                </button>;
+              })}
+            </div>
+          </div>
+
+          {/* DIETA */}
+          <div style={{ marginBottom:24 }}>
+            <div style={{ fontSize:14, fontWeight:700, color:C.ink, marginBottom:10, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.015em" }}>¿Seguís alguna dieta?</div>
+            <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+              {[
+                {value:"libre",emoji:"🍽️",label:"Sin restricciones"},
+                {value:"keto",emoji:"🥑",label:"Keto"},
+                {value:"lowcarb",emoji:"🥦",label:"Low Carb"},
+                {value:"vegetariana",emoji:"🌿",label:"Vegetariana"},
+                {value:"vegana",emoji:"🌱",label:"Vegana"},
+                {value:"singluten",emoji:"🌾",label:"Sin Gluten"},
+                {value:"sinlactosa",emoji:"🥛",label:"Sin Lactosa"},
+                {value:"desinflamatoria",emoji:"🫚",label:"Desinflamatoria"},
+              ].map(opt => {
+                const sel = hoyDieta.includes(opt.value);
+                const toggle = () => {
+                  if (opt.value === "libre") { setHoyDieta(["libre"]); return; }
+                  const without = hoyDieta.filter(x => x !== "libre");
+                  setHoyDieta(sel ? without.filter(x=>x!==opt.value) : [...without, opt.value]);
+                };
                 return (
-                  <button key={val} onClick={() => setHoyTipo(val)}
-                    style={{ padding:"16px 12px", borderRadius:14, border:`2px solid ${sel?C.blue:C.line}`, background:sel?C.blueLt:C.white, cursor:"pointer", fontFamily:"'Manrope',sans-serif", transition:"all 0.18s", display:"flex", flexDirection:"column", alignItems:"flex-start", gap:8, gridColumn:val==="vegetariana"?"span 2":"span 1", textAlign:"left" }}>
-                    <div style={{ fontSize:24, fontWeight:900, color:sel?C.blue:C.gray3, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.04em", lineHeight:1 }}>{num}</div>
-                    <div style={{ fontSize:13.5, fontWeight:700, color:sel?C.ink:C.text, fontFamily:"'Inter',sans-serif" }}>{lbl}</div>
+                  <button key={opt.value} onClick={toggle} style={{ padding:"10px 14px", borderRadius:12, border:`1.5px solid ${sel?C.blue:C.line}`, background:sel?C.blueLt:C.white, cursor:"pointer", fontFamily:"'Inter',sans-serif", transition:"all 0.15s", display:"flex", alignItems:"center", gap:6, fontSize:12.5, fontWeight:700, color:sel?C.blue:C.text }}>
+                    <span style={{ fontSize:16 }}>{opt.emoji}</span>{opt.label}
                   </button>
                 );
               })}
             </div>
           </div>
 
-          <div style={{ marginBottom:22 }}>
-            <div style={{ fontSize:15, fontWeight:700, color:C.ink, marginBottom:6, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.015em" }}>
-              ¿Qué tenés en casa? <span style={{ fontWeight:500, color:C.gray4, fontSize:13, fontFamily:"'Manrope',sans-serif" }}>(opcional)</span>
+          {/* TIEMPO */}
+          <div style={{ marginBottom:24 }}>
+            <div style={{ fontSize:14, fontWeight:700, color:C.ink, marginBottom:10, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.015em" }}>¿Cuánto tiempo tenés?</div>
+            <div style={{ display:"flex", gap:8 }}>
+              {[["rapido","⚡","Rápido","< 15 min"],["medio","🕐","Normal","15-30 min"],["libre","👨‍🍳","Sin límite","Me gusta cocinar"]].map(([val,ic,lbl,desc]) => {
+                const sel = hoyTiempo === val;
+                return (
+                  <button key={val} onClick={() => setHoyTiempo(val)} style={{ flex:1, padding:"14px 8px", borderRadius:12, border:`2px solid ${sel?C.blue:C.line}`, background:sel?C.blueLt:C.white, cursor:"pointer", fontFamily:"'Manrope',sans-serif", transition:"all 0.15s", textAlign:"center" }}>
+                    <div style={{ fontSize:20, marginBottom:4 }}>{ic}</div>
+                    <div style={{ fontSize:12.5, fontWeight:800, color:sel?C.blue:C.ink, fontFamily:"'Epilogue',sans-serif" }}>{lbl}</div>
+                    <div style={{ fontSize:10.5, color:C.sub, marginTop:2, fontWeight:500 }}>{desc}</div>
+                  </button>
+                );
+              })}
             </div>
-            <div style={{ fontSize:13, color:C.sub, marginBottom:12, fontWeight:500 }}>Te priorizamos recetas con lo que ya tenés.</div>
-            <textarea value={hoyIngredientes} onChange={e => setHoyIngredientes(e.target.value)} placeholder="Ej: pollo, arroz, huevos, tomates..." rows={2}
-              style={{ width:"100%", padding:"15px 18px", borderRadius:14, border:`1.5px solid ${C.line}`, fontSize:15, color:C.text, resize:"none", lineHeight:1.5, background:C.white, fontFamily:"'Manrope',sans-serif", outline:"none", transition:"border 0.2s" }}
+          </div>
+
+          {/* PRESUPUESTO */}
+          <div style={{ marginBottom:24 }}>
+            <div style={{ fontSize:14, fontWeight:700, color:C.ink, marginBottom:10, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.015em" }}>¿Presupuesto?</div>
+            <div style={{ display:"flex", gap:8 }}>
+              {[["bajo","$","Ajustado"],["medio","$$","Moderado"],["alto","$$$","Sin límite"]].map(([val,sym,lbl]) => {
+                const sel = hoyPresupuesto === val;
+                return (
+                  <button key={val} onClick={() => setHoyPresupuesto(val)} style={{ flex:1, padding:"14px 8px", borderRadius:12, border:`2px solid ${sel?C.blue:C.line}`, background:sel?C.blueLt:C.white, cursor:"pointer", fontFamily:"'Manrope',sans-serif", transition:"all 0.15s", textAlign:"center" }}>
+                    <div style={{ fontSize:20, fontWeight:900, color:sel?C.blue:C.gray3, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.03em" }}>{sym}</div>
+                    <div style={{ fontSize:11.5, fontWeight:700, color:sel?C.ink:C.text, marginTop:4, fontFamily:"'Inter',sans-serif" }}>{lbl}</div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* TIPO DE COMIDA */}
+          <div style={{ marginBottom:24 }}>
+            <div style={{ fontSize:14, fontWeight:700, color:C.ink, marginBottom:10, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.015em" }}>¿Qué tipo de comida querés?</div>
+            <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+              {[["cualquiera","Cualquier cosa"],["liviana","Liviana"],["rapida","Rápida"],["contundente","Contundente"]].map(([val,lbl]) => {
+                const sel = hoyTipo === val;
+                return (
+                  <button key={val} onClick={() => setHoyTipo(val)} style={{ padding:"10px 16px", borderRadius:12, border:`2px solid ${sel?C.ink:C.line}`, background:sel?C.ink:C.white, fontSize:13, fontWeight:700, color:sel?C.white:C.ink, cursor:"pointer", fontFamily:"'Inter',sans-serif", transition:"all 0.15s" }}>
+                    {lbl}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* QUÉ TENÉS EN CASA */}
+          <div style={{ marginBottom:20 }}>
+            <div style={{ fontSize:14, fontWeight:700, color:C.ink, marginBottom:6, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.015em" }}>
+              ¿Qué tenés en casa? <span style={{ fontWeight:500, color:C.gray4, fontSize:12, fontFamily:"'Manrope',sans-serif" }}>(opcional)</span>
+            </div>
+            <textarea value={hoyIngredientes} onChange={e => setHoyIngredientes(e.target.value)} placeholder="Ej: pollo, arroz, huevos..." rows={2}
+              style={{ width:"100%", padding:"14px 16px", borderRadius:12, border:`1.5px solid ${C.line}`, fontSize:14, color:C.text, resize:"none", lineHeight:1.5, background:C.white, fontFamily:"'Manrope',sans-serif", outline:"none", transition:"border 0.2s" }}
               onFocus={e=>e.target.style.borderColor=C.blue} onBlur={e=>e.target.style.borderColor=C.line}/>
           </div>
 
-          <div style={{ marginBottom:36 }}>
-            <div style={{ fontSize:15, fontWeight:700, color:C.ink, marginBottom:6, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.015em" }}>
-              ¿Algo que no comas? <span style={{ fontWeight:500, color:C.gray4, fontSize:13, fontFamily:"'Manrope',sans-serif" }}>(opcional)</span>
+          {/* QUÉ NO COMÉS */}
+          <div style={{ marginBottom:32 }}>
+            <div style={{ fontSize:14, fontWeight:700, color:C.ink, marginBottom:6, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.015em" }}>
+              ¿Algo que no comas? <span style={{ fontWeight:500, color:C.gray4, fontSize:12, fontFamily:"'Manrope',sans-serif" }}>(opcional)</span>
             </div>
             <textarea value={hoyNoGusta} onChange={e => setHoyNoGusta(e.target.value)} placeholder="Ej: mariscos, cebolla cruda..." rows={1}
-              style={{ width:"100%", padding:"15px 18px", borderRadius:14, border:`1.5px solid ${C.line}`, fontSize:15, color:C.text, resize:"none", lineHeight:1.5, background:C.white, fontFamily:"'Manrope',sans-serif", outline:"none", transition:"border 0.2s" }}
+              style={{ width:"100%", padding:"14px 16px", borderRadius:12, border:`1.5px solid ${C.line}`, fontSize:14, color:C.text, resize:"none", lineHeight:1.5, background:C.white, fontFamily:"'Manrope',sans-serif", outline:"none", transition:"border 0.2s" }}
               onFocus={e=>e.target.style.borderColor=C.blue} onBlur={e=>e.target.style.borderColor=C.line}/>
           </div>
 
+          {/* BOTÓN GENERAR */}
           <button onClick={handleHoyGenerar}
-            style={{ width:"100%", background:C.ink, color:C.white, border:"none", borderRadius:18, padding:"20px", fontSize:16, fontWeight:700, cursor:"pointer", boxShadow:sh.ink, fontFamily:"'Inter',sans-serif", display:"flex", alignItems:"center", justifyContent:"center", gap:12, transition:"background 0.2s, transform 0.2s" }}
+            style={{ width:"100%", background:C.ink, color:C.white, border:"none", borderRadius:18, padding:"20px", fontSize:16, fontWeight:700, cursor:"pointer", boxShadow:sh.ink, fontFamily:"'Inter',sans-serif", display:"flex", alignItems:"center", justifyContent:"center", gap:12, transition:"background 0.2s, transform 0.2s", marginBottom:8 }}
             onMouseEnter={e => { e.currentTarget.style.background = C.blue; e.currentTarget.style.transform = "translateY(-2px)"; }}
             onMouseLeave={e => { e.currentTarget.style.background = C.ink; e.currentTarget.style.transform = "translateY(0)"; }}>
             <span>Sugerir receta</span>
             <span style={{ width:30, height:30, borderRadius:"50%", background:C.white, color:C.ink, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:16, fontWeight:700 }}>→</span>
           </button>
-          {!premium && <p style={{ textAlign:"center", fontSize:12, color:C.sub, marginTop:12, fontWeight:500 }}>1 sugerencia gratuita por día</p>}
+          {!premium && <p style={{ textAlign:"center", fontSize:12, color:C.sub, marginTop:8, fontWeight:500 }}>1 sugerencia gratuita por día</p>}
         </div>
       ) : (
         <div style={{ flex:1, padding:"32px 24px", maxWidth:520, margin:"0 auto", width:"100%", position:"relative", zIndex:1 }}>
@@ -1127,7 +1244,7 @@ function MainApp({ onShowAccess }) {
                     </button>
                     <button onClick={() => {
                       const excluir = hoyResult.map(x => x.nombre);
-                      const nueva = cambiarRecetaHoy(item.nombre, excluir, hoyTipo, hoyIngredientes, hoyNoGusta);
+                      const nueva = cambiarRecetaHoy(item.nombre, excluir, hoyTipo, hoyIngredientes, hoyNoGusta, hoyDieta, hoyTiempo, hoyObjetivo);
                       setHoyResult(prev => prev.map(p => p.nombre === item.nombre ? { ...p, nombre: nueva } : p));
                     }} style={{ width:48, background:C.bg, color:C.gray4, border:`1px solid ${C.line}`, borderRadius:12, padding:"13px", fontSize:18, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
                       🔄
@@ -1159,7 +1276,7 @@ function MainApp({ onShowAccess }) {
 
           <button onClick={() => {
             if (!premium && hasUsedFreeToday()) { setShowUpgrade(true); return; }
-            const r2 = generarHoy(hoyCuantas, hoyTipo, hoyIngredientes, hoyNoGusta);
+            const r2 = generarHoy(hoyCuantas, hoyTipo, hoyIngredientes, hoyNoGusta, hoyDieta, hoyTiempo, hoyObjetivo);
             setHoyResult(r2);
             if (!premium) markFreeUsedToday();
           }} style={{ width:"100%", background:C.white, color:C.ink, border:`1.5px solid ${C.line}`, borderRadius:16, padding:"16px", fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"'Inter',sans-serif", marginBottom:12 }}>↺ Otra sugerencia</button>
