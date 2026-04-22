@@ -8,6 +8,26 @@ const HISTORY_DAYS = 7;
 const HISTORY_MAX = 20;
 const CHECKOUT_URL = "https://impulsoebooks.online/cart/53627712930158:1";
 
+// ============================================
+// META PIXEL
+// ============================================
+const PIXEL_ID = '1221666853017936';
+
+function initPixel() {
+  if (window.fbq) return;
+  (function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+  n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)})(window,
+  document,'script','https://connect.facebook.net/en_US/fbevents.js');
+  window.fbq('init', PIXEL_ID);
+  window.fbq('track', 'PageView');
+}
+
+function trackEvent(event, data) {
+  if (window.fbq) window.fbq('track', event, data);
+}
+
 function isPremium() {
   try { return !!localStorage.getItem(ACCESS_KEY); } catch(e) { return false; }
 }
@@ -90,6 +110,58 @@ function MealTag({ label }) {
 }
 
 // ============================================
+// COMPONENTE NUEVO: TABLA COMPARATIVA GRATIS VS PREMIUM
+// ============================================
+function ComparisonTable() {
+  const features = [
+    { name: "¿Qué cocino hoy?", free: "1 por día", premium: "Ilimitado" },
+    { name: "Personalización completa", free: true, premium: true },
+    { name: "Cambiar receta 🔄", free: true, premium: true },
+    { name: 'Filtro "qué tengo"', free: true, premium: true },
+    { name: 'Filtro "qué no como"', free: true, premium: true },
+    { name: "Ingredientes", free: true, premium: true },
+    { name: "Pasos de la receta", free: false, premium: true },
+    { name: "Modo Cocina", free: false, premium: true },
+    { name: "Menú semanal 7 días", free: false, premium: true },
+    { name: "Lista de compras", free: false, premium: true },
+    { name: "Chef asistente IA", free: false, premium: true },
+    { name: "Compartir WhatsApp / CSV", free: false, premium: true },
+  ];
+
+  const Check = () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={C.blue} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+  );
+  const Cross = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={C.gray3} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  );
+
+  return (
+    <div style={{ background: C.white, borderRadius: 20, overflow: "hidden", boxShadow: sh.md, border: `1px solid ${C.line}` }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 72px 80px", padding: "14px 18px", borderBottom: `1.5px solid ${C.line}`, background: C.bg }}>
+        <div />
+        <div style={{ textAlign: "center", fontSize: 11, fontWeight: 700, color: C.sub, fontFamily: "'Inter',sans-serif", textTransform: "uppercase", letterSpacing: "0.08em" }}>Gratis</div>
+        <div style={{ textAlign: "center", fontSize: 11, fontWeight: 700, color: C.blue, fontFamily: "'Inter',sans-serif", textTransform: "uppercase", letterSpacing: "0.08em" }}>Premium</div>
+      </div>
+      {features.map((f, i) => (
+        <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 72px 80px", padding: "13px 18px", borderBottom: i < features.length - 1 ? `1px solid ${C.line}` : "none", alignItems: "center" }}>
+          <div style={{ fontSize: 13.5, fontWeight: 600, color: C.ink, fontFamily: "'Manrope',sans-serif" }}>{f.name}</div>
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+            {f.free === true ? <Check /> : f.free === false ? <Cross /> : (
+              <span style={{ fontSize: 10.5, fontWeight: 700, color: C.sub, fontFamily: "'Inter',sans-serif", textAlign: "center", lineHeight: 1.2 }}>{f.free}</span>
+            )}
+          </div>
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+            {f.premium === true ? <Check /> : (
+              <span style={{ fontSize: 10.5, fontWeight: 700, color: C.blue, fontFamily: "'Inter',sans-serif", textAlign: "center", lineHeight: 1.2 }}>{f.premium}</span>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ============================================
 // COMPONENTE: UPGRADE PROMPT (CTA a premium)
 // ============================================
 function UpgradePrompt({ title, subtitle, onClose }) {
@@ -106,7 +178,7 @@ function UpgradePrompt({ title, subtitle, onClose }) {
         <p style={{ fontSize:15, color:C.sub, lineHeight:1.55, marginBottom:28, fontWeight:500 }}>
           {subtitle || "Desbloqueá el menú semanal, las recetas completas, la lista de compras y el chef IA."}
         </p>
-        <a href={CHECKOUT_URL} target="_blank" rel="noopener noreferrer"
+        <a href={CHECKOUT_URL} target="_blank" rel="noopener noreferrer" onClick={() => trackEvent('AddToCart', {value: 20900, currency: 'ARS'})}
           style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:12, width:"100%", padding:"18px", borderRadius:16, border:"none", background:C.ink, color:C.white, fontSize:16, fontWeight:700, cursor:"pointer", fontFamily:"'Inter',sans-serif", boxShadow:sh.ink, textDecoration:"none", marginBottom:12 }}>
           <span>Quiero Premium · $20.900</span>
           <span style={{ width:28, height:28, borderRadius:"50%", background:C.white, color:C.ink, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:15, fontWeight:700 }}>→</span>
@@ -449,7 +521,6 @@ function recetaContiene(nombre, ingsList) {
 function scoreReceta(nombre, objetivo, dietas, tiempo, history, noGustaList = [], tieneList = []) {
   const r = R[nombre];
   if (!r) return -999;
-  // HARD FILTER: si la receta tiene algo que el usuario no come, fuera
   if (noGustaList.length > 0 && recetaContiene(nombre, noGustaList)) return -1000;
   let score = Math.random() * 5;
   const meta = META[objetivo] || META.organizar;
@@ -466,7 +537,6 @@ function scoreReceta(nombre, objetivo, dietas, tiempo, history, noGustaList = []
   if (tiempo === "rapido" && mins > 30) score -= 10;
   if (tiempo === "medio" && mins <= 30) score += 4;
   if (tiempo === "libre" && mins >= 30) score += 3;
-  // BONUS: ingredientes que tiene en casa
   if (tieneList.length > 0) {
     const haystack = ((r.i||[]).join(" ") + " " + nombre).toLowerCase();
     const matches = tieneList.filter(ing => haystack.includes(ing)).length;
@@ -490,7 +560,7 @@ function generar(a) {
   const noGusta = parseIngredientList(a.no_gusta);
   const tiene = parseIngredientList(a.ingredientes);
   const conScore = todas.map(n => ({ n, s: scoreReceta(n, key, dietas, a.tiempo, history, noGusta, tiene), liviana: isLiviana(n), contundente: isContundente(n) }))
-    .filter(x => x.s > -999) // filtramos las descartadas duro
+    .filter(x => x.s > -999)
     .sort((x,y) => y.s - x.s);
   const candidatosAlm = conScore.filter(x => x.contundente || !x.liviana).slice(0, 25);
   const candidatosCen = conScore.filter(x => x.liviana).slice(0, 20);
@@ -524,7 +594,6 @@ function cambiarReceta(menuActual, dia, tipo, objetivo, dietas, tiempo, noGusta 
   const filtro = tipo === "cen" ? (n => isLiviana(n)) : (n => isContundente(n) || !isLiviana(n));
   let candidatos = todas.filter(n => !enMenu.has(n) && filtro(n));
   if (candidatos.length < 3) candidatos = todas.filter(n => !enMenu.has(n));
-  // descarto las que tienen ingredientes prohibidos
   if (noGusta.length > 0) candidatos = candidatos.filter(n => !recetaContiene(n, noGusta));
   const conScore = candidatos.filter(n => n !== recetaActual).map(n => ({ n, s: scoreReceta(n, objetivo, dietas, tiempo, history, noGusta, tiene) + Math.random()*15 })).sort((x,y) => y.s - x.s);
   const nueva = conScore[0]?.n || candidatos[0] || recetaActual;
@@ -539,13 +608,10 @@ function generarHoy(cuantas, tipo, ingredientes, noGusta, dietas, tiempo, objeti
   const objKey = objetivo || "organizar";
   const meta = META[objKey] || META.organizar;
   let candidatos = [...todas];
-  // Filtro duro: descartar recetas con ingredientes prohibidos
   if (noGustaList.length > 0) candidatos = candidatos.filter(n => !recetaContiene(n, noGustaList));
-  // Filtro duro: dieta vegetariana/vegana
   if (dietasArr.includes("vegetariana") || dietasArr.includes("vegana")) {
     candidatos = candidatos.filter(isVegetariana);
   }
-  // Filtro por tipo de comida
   if (tipo === "liviana") candidatos = candidatos.filter(isLiviana);
   else if (tipo === "rapida") candidatos = candidatos.filter(n => parseTime(R[n]?.t) <= 20);
   else if (tipo === "contundente") candidatos = candidatos.filter(isContundente);
@@ -557,30 +623,23 @@ function generarHoy(cuantas, tipo, ingredientes, noGusta, dietas, tiempo, objeti
     const r = R[n];
     const recetaIngs = (r?.i || []).join(" ").toLowerCase() + " " + n.toLowerCase();
     const tagStr = (r?.tags || []).join(" ").toLowerCase();
-    // Objetivo — keywords de META
     meta.kw.forEach(k => { if (tagStr.includes(k)) score += 12; });
-    // Ingredientes que tiene en casa
     if (ings.length > 0) {
       const matches = ings.filter(ing => recetaIngs.includes(ing)).length;
       if (matches === 0) score -= 100;
       else { score += matches * 40; if (matches === ings.length) score += 50; }
     }
-    // Bonus por dieta desinflamatoria
     if (dietasArr.includes("desinflamatoria") && tagStr.includes("desinflamatorio")) score += 15;
-    // Bonus por tags relevantes (keto = bajo en calorias, lowcarb = bajo en calorias)
     if (dietasArr.includes("keto") || dietasArr.includes("lowcarb")) {
       if (tagStr.includes("bajo en calorias") || tagStr.includes("desinflamatorio")) score += 10;
     }
-    // Tiempo
     const mins = parseTime(r?.t);
     if (tiempo === "rapido" && mins <= 15) score += 12;
     else if (tiempo === "rapido" && mins <= 20) score += 6;
     else if (tiempo === "rapido" && mins > 30) score -= 15;
     if (tiempo === "medio" && mins <= 30) score += 5;
     if (tiempo === "libre" && mins >= 30) score += 3;
-    // Economico
     if (tagStr.includes("economico")) score += 5;
-    // History
     const idx = history.findIndex(h => h.n === n);
     if (idx !== -1) {
       const ageDays = (Date.now() - history[idx].t) / (24*60*60*1000);
@@ -629,7 +688,6 @@ function cambiarRecetaHoy(recetaActual, excluir, tipo, ingredientes, noGusta, di
     const r = R[n];
     const recetaIngs = (r?.i || []).join(" ").toLowerCase() + " " + n.toLowerCase();
     const tagStr = (r?.tags || []).join(" ").toLowerCase();
-    // Objetivo
     meta.kw.forEach(k => { if (tagStr.includes(k)) score += 12; });
     if (ings.length > 0) {
       const matches = ings.filter(ing => recetaIngs.includes(ing)).length;
@@ -773,7 +831,6 @@ function ModalReceta({ nombre, onClose, premium = false }) {
     </div>
   );
 
-  // MODO COCINA — solo premium
   if (cookMode && premium) return (
     <div style={{ position:"fixed",inset:0,background:C.ink,zIndex:3000,overflowY:"auto",padding:"0 0 80px" }}>
       <BgGrid dark />
@@ -804,7 +861,6 @@ function ModalReceta({ nombre, onClose, premium = false }) {
           <div style={{ width:40,height:5,background:C.gray3,borderRadius:4 }}/>
         </div>
 
-        {/* Header OSCURO */}
         <div style={{ background:C.ink,padding:"26px 28px 30px",position:"relative",overflow:"hidden" }}>
           <BgGrid dark />
           <Blob pos="tr" color="rgba(59,111,212,0.35)" size={350} />
@@ -826,7 +882,6 @@ function ModalReceta({ nombre, onClose, premium = false }) {
         </div>
 
         <div style={{ padding:"26px 28px 0" }}>
-          {/* INGREDIENTES — siempre visibles */}
           <div style={{ marginBottom:16 }}><Eyebrow>Ingredientes</Eyebrow></div>
           <div style={{ display:"flex",flexDirection:"column",gap:11,marginBottom:30 }}>
             {r.i.map((ing,i) => (
@@ -837,7 +892,6 @@ function ModalReceta({ nombre, onClose, premium = false }) {
             ))}
           </div>
 
-          {/* PREPARACIÓN — solo premium */}
           {premium ? (
             <>
               <div style={{ marginBottom:16 }}><Eyebrow>Preparación</Eyebrow></div>
@@ -854,10 +908,8 @@ function ModalReceta({ nombre, onClose, premium = false }) {
               </button>
             </>
           ) : (
-            /* BLOQUEO FREEMIUM — pasos bloqueados */
             <div style={{ position:"relative", marginBottom:20 }}>
               <div style={{ marginBottom:16 }}><Eyebrow>Preparación</Eyebrow></div>
-              {/* Muestra 1er paso borroso como preview */}
               <div style={{ fontSize:15,lineHeight:1.6,color:C.text,fontFamily:"'Manrope',sans-serif",fontWeight:500,filter:"blur(5px)",userSelect:"none",pointerEvents:"none",marginBottom:8 }}>
                 {r.s[0] || "Paso 1 de la preparación..."}
               </div>
@@ -865,7 +917,6 @@ function ModalReceta({ nombre, onClose, premium = false }) {
                 {r.s[1] || "Paso 2 de la preparación..."}
               </div>
 
-              {/* Overlay de upgrade */}
               <div style={{ background:`linear-gradient(180deg, transparent 0%, ${C.white} 30%)`,padding:"60px 24px 24px",borderRadius:20,marginTop:-40,position:"relative",zIndex:2,textAlign:"center" }}>
                 <div style={{ width:48,height:48,borderRadius:14,background:C.blue,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 14px",boxShadow:sh.blue }}>
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
@@ -876,7 +927,7 @@ function ModalReceta({ nombre, onClose, premium = false }) {
                 <div style={{ fontSize:14,color:C.sub,marginBottom:20,fontWeight:500,lineHeight:1.5 }}>
                   Desbloqueá los pasos completos, modo cocina y chef IA.
                 </div>
-                <a href={CHECKOUT_URL} target="_blank" rel="noopener noreferrer"
+                <a href={CHECKOUT_URL} target="_blank" rel="noopener noreferrer" onClick={() => trackEvent('AddToCart', {value: 20900, currency: 'ARS'})}
                   style={{ display:"flex",alignItems:"center",justifyContent:"center",gap:10,width:"100%",padding:"16px",borderRadius:14,background:C.ink,color:C.white,fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif",boxShadow:sh.ink,textDecoration:"none" }}>
                   Quiero Premium · $20.900 <span style={{ width:26,height:26,borderRadius:"50%",background:C.white,color:C.ink,display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:700 }}>→</span>
                 </a>
@@ -981,13 +1032,14 @@ function MainApp({ onShowAccess }) {
     }
     const result = generarHoy(hoyCuantas, hoyTipo, hoyIngredientes, hoyNoGusta, hoyDieta, hoyTiempo, hoyObjetivo);
     setHoyResult(result);
+    trackEvent('Lead');
     if (!premium) markFreeUsedToday();
   };
 
   const OBJ_IC = { bajar_peso:"⚖️", saludable:"🥗", ahorrar:"💰", masa:"💪", organizar:"📅", desinflamatoria:"🫚" };
 
   // ============================================
-  // SCREEN: HOME (FREEMIUM — gratis primero)
+  // SCREEN: HOME (FREEMIUM — CON TABLA COMPARATIVA)
   // ============================================
   if (screen === "home") return (
     <div ref={scrollRef} style={{ minHeight:"100vh", background:C.bg, fontFamily:"'Manrope',sans-serif", overflowY:"auto", display:"flex", flexDirection:"column", position:"relative", overflow:"hidden" }}>
@@ -1027,7 +1079,6 @@ function MainApp({ onShowAccess }) {
           <img src="https://i.imgur.com/ItvV1e7.jpeg" alt="Kooki app" style={{ width:"100%", maxWidth:300, borderRadius:24, position:"relative", zIndex:1, animation:"floatPhone 3s ease-in-out infinite", boxShadow:`0 30px 60px rgba(10,14,26,0.18), -22px 22px 0 rgba(59,111,212,0.12)` }}/>
         </div>
 
-        {/* CTA GRATIS — primero y principal */}
         <button onClick={() => { setHoyResult(null); setScreen("hoy"); }}
           style={{ width:"100%", background:C.ink, color:C.white, border:"none", borderRadius:18, padding:"20px 28px", fontSize:16, fontWeight:700, cursor:"pointer", boxShadow:sh.ink, fontFamily:"'Inter',sans-serif", marginBottom:12, display:"flex", alignItems:"center", justifyContent:"center", gap:12, transition:"background 0.2s, transform 0.2s" }}
           onMouseEnter={e => { e.currentTarget.style.background = C.blue; e.currentTarget.style.transform = "translateY(-2px)"; }}
@@ -1036,7 +1087,6 @@ function MainApp({ onShowAccess }) {
           <span style={{ width:30, height:30, borderRadius:"50%", background:C.white, color:C.ink, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:16, fontWeight:700 }}>→</span>
         </button>
 
-        {/* CTA PREMIUM — secundario */}
         {premium ? (
           <button onClick={() => { setScreen("onboarding"); setStep(0); setAnswers({}); }}
             style={{ width:"100%", background:C.white, color:C.ink, border:`1.5px solid ${C.line}`, borderRadius:18, padding:"18px", fontSize:16, fontWeight:700, cursor:"pointer", fontFamily:"'Inter',sans-serif", marginBottom:12, transition:"border-color 0.2s" }}
@@ -1051,26 +1101,12 @@ function MainApp({ onShowAccess }) {
           </button>
         )}
 
-        {/* Features list */}
+        {/* TABLA COMPARATIVA GRATIS VS PREMIUM — REEMPLAZA LOS 4 BULLETS */}
         <div style={{ marginBottom:32, marginTop:12 }}>
           <div style={{ display:"flex", justifyContent:"center", marginBottom:18 }}>
-            <Eyebrow center>Premium incluye</Eyebrow>
+            <Eyebrow center>Gratis vs Premium</Eyebrow>
           </div>
-          <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
-            {[
-              "Menú completo de lunes a domingo",
-              "Lista de compras organizada por sección",
-              "Recetas paso a paso con modo cocina",
-              "Chef asistente con IA para tus dudas",
-            ].map((txt,i) => (
-              <div key={i} style={{ display:"flex", alignItems:"center", gap:14 }}>
-                <div style={{ width:24, height:24, borderRadius:"50%", background:C.blue, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                </div>
-                <span style={{ fontSize:15, fontWeight:600, color:C.ink, fontFamily:"'Manrope',sans-serif" }}>{txt}</span>
-              </div>
-            ))}
-          </div>
+          <ComparisonTable />
         </div>
 
         <p style={{ textAlign:"center", fontSize:13, color:C.sub, marginBottom:48, fontFamily:"'Inter',sans-serif", fontWeight:500 }}>
@@ -1106,7 +1142,6 @@ function MainApp({ onShowAccess }) {
             Cuanto más completes, mejor la sugerencia.
           </div>
 
-          {/* CUÁNTAS COMIDAS */}
           <div style={{ marginBottom:24 }}>
             <div style={{ fontSize:14, fontWeight:700, color:C.ink, marginBottom:10, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.015em" }}>¿Cuántas comidas necesitás?</div>
             <div style={{ display:"flex", gap:8 }}>
@@ -1121,7 +1156,6 @@ function MainApp({ onShowAccess }) {
             </div>
           </div>
 
-          {/* OBJETIVO */}
           <div style={{ marginBottom:24 }}>
             <div style={{ fontSize:14, fontWeight:700, color:C.ink, marginBottom:10, fontFamily:"'Epilogue',sans-serif" }}>¿Qué te importa hoy?</div>
             <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
@@ -1134,7 +1168,6 @@ function MainApp({ onShowAccess }) {
             </div>
           </div>
 
-          {/* DIETA */}
           <div style={{ marginBottom:24 }}>
             <div style={{ fontSize:14, fontWeight:700, color:C.ink, marginBottom:10, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.015em" }}>¿Seguís alguna dieta?</div>
             <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
@@ -1163,7 +1196,6 @@ function MainApp({ onShowAccess }) {
             </div>
           </div>
 
-          {/* TIEMPO */}
           <div style={{ marginBottom:24 }}>
             <div style={{ fontSize:14, fontWeight:700, color:C.ink, marginBottom:10, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.015em" }}>¿Cuánto tiempo tenés?</div>
             <div style={{ display:"flex", gap:8 }}>
@@ -1180,7 +1212,6 @@ function MainApp({ onShowAccess }) {
             </div>
           </div>
 
-          {/* PRESUPUESTO */}
           <div style={{ marginBottom:24 }}>
             <div style={{ fontSize:14, fontWeight:700, color:C.ink, marginBottom:10, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.015em" }}>¿Presupuesto?</div>
             <div style={{ display:"flex", gap:8 }}>
@@ -1196,7 +1227,6 @@ function MainApp({ onShowAccess }) {
             </div>
           </div>
 
-          {/* TIPO DE COMIDA */}
           <div style={{ marginBottom:24 }}>
             <div style={{ fontSize:14, fontWeight:700, color:C.ink, marginBottom:10, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.015em" }}>¿Qué tipo de comida querés?</div>
             <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
@@ -1211,7 +1241,6 @@ function MainApp({ onShowAccess }) {
             </div>
           </div>
 
-          {/* QUÉ TENÉS EN CASA */}
           <div style={{ marginBottom:20 }}>
             <div style={{ fontSize:14, fontWeight:700, color:C.ink, marginBottom:6, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.015em" }}>
               ¿Qué tenés en casa? <span style={{ fontWeight:500, color:C.gray4, fontSize:12, fontFamily:"'Manrope',sans-serif" }}>(opcional)</span>
@@ -1221,7 +1250,6 @@ function MainApp({ onShowAccess }) {
               onFocus={e=>e.target.style.borderColor=C.blue} onBlur={e=>e.target.style.borderColor=C.line}/>
           </div>
 
-          {/* QUÉ NO COMÉS */}
           <div style={{ marginBottom:32 }}>
             <div style={{ fontSize:14, fontWeight:700, color:C.ink, marginBottom:6, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.015em" }}>
               ¿Algo que no comas? <span style={{ fontWeight:500, color:C.gray4, fontSize:12, fontFamily:"'Manrope',sans-serif" }}>(opcional)</span>
@@ -1231,7 +1259,6 @@ function MainApp({ onShowAccess }) {
               onFocus={e=>e.target.style.borderColor=C.blue} onBlur={e=>e.target.style.borderColor=C.line}/>
           </div>
 
-          {/* BOTÓN GENERAR */}
           <button onClick={handleHoyGenerar}
             style={{ width:"100%", background:C.ink, color:C.white, border:"none", borderRadius:18, padding:"20px", fontSize:16, fontWeight:700, cursor:"pointer", boxShadow:sh.ink, fontFamily:"'Inter',sans-serif", display:"flex", alignItems:"center", justifyContent:"center", gap:12, transition:"background 0.2s, transform 0.2s", marginBottom:8 }}
             onMouseEnter={e => { e.currentTarget.style.background = C.blue; e.currentTarget.style.transform = "translateY(-2px)"; }}
@@ -1268,7 +1295,7 @@ function MainApp({ onShowAccess }) {
                     </div>
                   </div>
                   <div style={{ display:"flex", gap:10, marginTop:16 }}>
-                    <button onClick={() => setReceta(item.nombre)} style={{ flex:1, background:C.bg, color:C.ink, border:`1px solid ${C.line}`, borderRadius:12, padding:"13px", fontSize:14, fontWeight:700, cursor:"pointer", fontFamily:"'Inter',sans-serif" }}>
+                    <button onClick={() => { setReceta(item.nombre); trackEvent('ViewContent', {content_name: item.nombre}); }} style={{ flex:1, background:C.bg, color:C.ink, border:`1px solid ${C.line}`, borderRadius:12, padding:"13px", fontSize:14, fontWeight:700, cursor:"pointer", fontFamily:"'Inter',sans-serif" }}>
                       Ver receta →
                     </button>
                     <button onClick={() => {
@@ -1284,7 +1311,6 @@ function MainApp({ onShowAccess }) {
             })}
           </div>
 
-          {/* Upsell sutil después del resultado */}
           {!premium && (
             <div style={{ background:C.ink, borderRadius:20, padding:"28px 24px", marginBottom:20, position:"relative", overflow:"hidden" }}>
               <BgGrid dark />
@@ -1295,7 +1321,7 @@ function MainApp({ onShowAccess }) {
                 <div style={{ fontSize:14, color:"rgba(255,255,255,0.6)", marginBottom:18, fontWeight:500, lineHeight:1.5 }}>
                   Menú semanal + lista de compras + recetas completas + chef IA.
                 </div>
-                <a href={CHECKOUT_URL} target="_blank" rel="noopener noreferrer"
+                <a href={CHECKOUT_URL} target="_blank" rel="noopener noreferrer" onClick={() => trackEvent('AddToCart', {value: 20900, currency: 'ARS'})}
                   style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:10, width:"100%", padding:"16px", borderRadius:14, background:C.blue, color:C.white, fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"'Inter',sans-serif", boxShadow:sh.blue, textDecoration:"none" }}>
                   Quiero Premium · $20.900 <span style={{ width:26, height:26, borderRadius:"50%", background:C.white, color:C.blue, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:14, fontWeight:700 }}>→</span>
                 </a>
@@ -1328,8 +1354,7 @@ function MainApp({ onShowAccess }) {
   );
 
   // ============================================
-  // SCREENS: ONBOARDING, LOADING, RESULT — solo premium (sin cambios significativos)
-  // Se mantienen igual que antes pero con premium=true en ModalReceta
+  // SCREENS: ONBOARDING, LOADING, RESULT — solo premium
   // ============================================
 
   if (screen === "onboarding") {
@@ -1695,7 +1720,8 @@ function MainApp({ onShowAccess }) {
 export default function App() {
   const [showAccess, setShowAccess] = useState(false);
 
-  // Exponer función para que UpgradePrompt pueda mostrar AccessScreen
+  useEffect(() => { initPixel(); }, []);
+
   window.__showAccessScreen = () => setShowAccess(true);
 
   if (showAccess) {
