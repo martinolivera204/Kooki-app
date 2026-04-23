@@ -128,8 +128,8 @@ function ComparisonTable() {
     { name: "Lista de compras", free: false, premium: true },
     { name: "Chef asistente IA", free: false, premium: true },
     { name: "Compartir WhatsApp / CSV", free: false, premium: true },
-    { name: "🌿 DeTemporada", free: false, premium: true },
-    { name: "💰 AhorroExpress", free: false, premium: true },
+    { name: "DeTemporada", logo: DETEMPORADA_LOGO, free: false, premium: true },
+    { name: "AhorroExpress", logo: AHORROEXPRESS_LOGO, free: false, premium: true },
   ];
 
   const Check = () => (
@@ -147,8 +147,10 @@ function ComparisonTable() {
         <div style={{ textAlign: "center", fontSize: 11, fontWeight: 700, color: C.blue, fontFamily: "'Inter',sans-serif", textTransform: "uppercase", letterSpacing: "0.08em" }}>Premium</div>
       </div>
       {features.map((f, i) => (
-        <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 72px 80px", padding: "13px 18px", borderBottom: i < features.length - 1 ? `1px solid ${C.line}` : "none", alignItems: "center" }}>
-          <div style={{ fontSize: 13.5, fontWeight: 600, color: C.ink, fontFamily: "'Manrope',sans-serif" }}>{f.name}</div>
+        <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 72px 80px", padding: f.logo ? "10px 18px" : "13px 18px", borderBottom: i < features.length - 1 ? `1px solid ${C.line}` : "none", alignItems: "center" }}>
+          <div style={{ fontSize: 13.5, fontWeight: 600, color: C.ink, fontFamily: "'Manrope',sans-serif" }}>
+            {f.logo ? <img src={f.logo} alt={f.name} style={{ height: 28, objectFit: "contain", display: "block" }} /> : f.name}
+          </div>
           <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
             {f.free === true ? <Check /> : f.free === false ? <Cross /> : (
               <span style={{ fontSize: 10.5, fontWeight: 700, color: C.sub, fontFamily: "'Inter',sans-serif", textAlign: "center", lineHeight: 1.2 }}>{f.free}</span>
