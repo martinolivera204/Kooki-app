@@ -8,7 +8,7 @@ const HISTORY_DAYS = 7;
 const HISTORY_MAX = 20;
 const CHECKOUT_URL = "https://impulsoebooks.online/cart/53627712930158:1";
 const DETEMPORADA_LOGO = "https://cdn.shopify.com/s/files/1/0983/2857/6366/files/DeTempradasi_SINFONDO.png?v=1776909845";
-const AHORROEXPRESS_LOGO = "https://cdn.shopify.com/s/files/1/0983/2857/6366/files/ChatGPT_Image_22_abr_2026_11_47_50_p.m..png?v=1776912494";
+const AHORROEXPRESS_LOGO = "https://cdn.shopify.com/s/files/1/0983/2857/6366/files/AhorroExpresssin_fondo.png?v=1776911049";
 
 // ============================================
 // META PIXEL
@@ -1117,30 +1117,24 @@ function MainApp({ onShowAccess }) {
           <p style={{ fontSize:14, color:C.sub, textAlign:"center", marginBottom:20, fontWeight:500, lineHeight:1.5 }}>
             Herramientas que complementan tu cocina inteligente.
           </p>
-          <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
-            <a href="/detemporada" style={{ background:C.white, borderRadius:20, padding:"20px 22px", border:`1.5px solid ${C.line}`, boxShadow:sh.md, display:"flex", alignItems:"center", gap:16, textDecoration:"none", cursor:"pointer", transition:"all 0.2s" }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = "#2D6A4F"; e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 8px 32px rgba(45,106,79,0.15)"; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = C.line; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = sh.md; }}>
-              <div style={{ width:56, height:56, borderRadius:16, background:"linear-gradient(135deg, #2D6A4F, #1B4332)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, boxShadow:"0 4px 16px rgba(45,106,79,0.25)", overflow:"hidden" }}>
-                <img src={DETEMPORADA_LOGO} alt="DeTemporada" style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e => { e.target.style.display = "none"; }} />
+          <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
+            <a href="/detemporada" style={{ textDecoration:"none", cursor:"pointer" }}
+              onMouseEnter={e => { e.currentTarget.querySelector('.bcard').style.borderColor = "#2D6A4F"; e.currentTarget.querySelector('.bcard').style.transform = "translateY(-2px)"; e.currentTarget.querySelector('.bcard').style.boxShadow = "0 8px 32px rgba(45,106,79,0.15)"; }}
+              onMouseLeave={e => { e.currentTarget.querySelector('.bcard').style.borderColor = C.line; e.currentTarget.querySelector('.bcard').style.transform = "translateY(0)"; e.currentTarget.querySelector('.bcard').style.boxShadow = sh.md; }}>
+              <div className="bcard" style={{ background:C.white, borderRadius:20, border:`1.5px solid ${C.line}`, boxShadow:sh.md, padding:"24px 20px", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.2s", position:"relative" }}>
+                <img src={DETEMPORADA_LOGO} alt="DeTemporada" style={{ height:80, objectFit:"contain" }} />
+                <span style={{ position:"absolute", right:18, top:"50%", transform:"translateY(-50%)", width:32, height:32, borderRadius:"50%", background:C.bg, display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, color:C.ink, fontWeight:700 }}>→</span>
               </div>
-              <div style={{ flex:1, minWidth:0 }}>
-                <div style={{ fontSize:16, fontWeight:800, color:C.ink, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.02em", marginBottom:3 }}>DeTemporada</div>
-                <div style={{ fontSize:13, color:C.sub, fontWeight:500, lineHeight:1.4 }}>Frutas y verduras de estación. Comprá barato, fresco y con más sabor.</div>
-              </div>
-              <span style={{ width:32, height:32, borderRadius:"50%", background:C.bg, display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, color:C.ink, fontWeight:700, flexShrink:0 }}>→</span>
+              <p style={{ fontSize:13, color:C.sub, fontWeight:500, lineHeight:1.4, marginTop:8, textAlign:"center", padding:"0 10px" }}>Frutas y verduras de estación. Comprá barato, fresco y con más sabor.</p>
             </a>
-            <a href="/ahorroexpress" style={{ background:C.white, borderRadius:20, padding:"20px 22px", border:`1.5px solid ${C.line}`, boxShadow:sh.md, display:"flex", alignItems:"center", gap:16, textDecoration:"none", cursor:"pointer", transition:"all 0.2s" }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = "#FFE600"; e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 8px 32px rgba(255,230,0,0.15)"; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = C.line; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = sh.md; }}>
-              <div style={{ width:56, height:56, borderRadius:16, background:"linear-gradient(135deg, #0A0A0F, #1A1A25)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, boxShadow:"0 4px 16px rgba(10,10,15,0.3)", overflow:"hidden" }}>
-                <img src={AHORROEXPRESS_LOGO} alt="AhorroExpress" style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e => { e.target.style.display = "none"; }} />
+            <a href="/ahorroexpress" style={{ textDecoration:"none", cursor:"pointer" }}
+              onMouseEnter={e => { e.currentTarget.querySelector('.bcard2').style.borderColor = "#FFE600"; e.currentTarget.querySelector('.bcard2').style.transform = "translateY(-2px)"; e.currentTarget.querySelector('.bcard2').style.boxShadow = "0 8px 32px rgba(255,230,0,0.15)"; }}
+              onMouseLeave={e => { e.currentTarget.querySelector('.bcard2').style.borderColor = C.line; e.currentTarget.querySelector('.bcard2').style.transform = "translateY(0)"; e.currentTarget.querySelector('.bcard2').style.boxShadow = sh.md; }}>
+              <div className="bcard2" style={{ background:C.white, borderRadius:20, border:`1.5px solid ${C.line}`, boxShadow:sh.md, padding:"24px 20px", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.2s", position:"relative" }}>
+                <img src={AHORROEXPRESS_LOGO} alt="AhorroExpress" style={{ height:80, objectFit:"contain" }} />
+                <span style={{ position:"absolute", right:18, top:"50%", transform:"translateY(-50%)", width:32, height:32, borderRadius:"50%", background:C.bg, display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, color:C.ink, fontWeight:700 }}>→</span>
               </div>
-              <div style={{ flex:1, minWidth:0 }}>
-                <div style={{ fontSize:16, fontWeight:800, color:C.ink, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.02em", marginBottom:3 }}>AhorroExpress</div>
-                <div style={{ fontSize:13, color:C.sub, fontWeight:500, lineHeight:1.4 }}>Controlá tus gastos del hogar. Presupuesto, alertas y tips de ahorro.</div>
-              </div>
-              <span style={{ width:32, height:32, borderRadius:"50%", background:C.bg, display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, color:C.ink, fontWeight:700, flexShrink:0 }}>→</span>
+              <p style={{ fontSize:13, color:C.sub, fontWeight:500, lineHeight:1.4, marginTop:8, textAlign:"center", padding:"0 10px" }}>Controlá tus gastos del hogar. Presupuesto, alertas y tips de ahorro.</p>
             </a>
           </div>
         </div>
