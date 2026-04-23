@@ -1055,7 +1055,7 @@ function MainApp({ onShowAccess }) {
       <Blob pos="bl" color="rgba(0,102,204,0.13)" size={400} />
 
       <nav style={{ padding:"18px 26px", display:"flex", alignItems:"center", justifyContent:"space-between", position:"relative", zIndex:1 }}>
-        <KookiLogo size={22}/>
+        <img src="https://cdn.shopify.com/s/files/1/0983/2857/6366/files/Copia_de_logo_sin_fondo.png?v=1776974240" alt="Kooki" style={{ height:36, objectFit:"contain" }} />
         {premium ? (
           <div style={{ display:"flex", alignItems:"center", gap:7, background:C.white, border:`1px solid ${C.line}`, borderRadius:100, padding:"7px 14px", boxShadow:sh.sm }}>
             <span style={{ width:7, height:7, borderRadius:"50%", background:C.success, display:"inline-block" }}/>
