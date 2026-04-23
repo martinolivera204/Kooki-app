@@ -74,7 +74,7 @@ export default function AhorroExpress() {
       <div style={{ background: "#0A0A0F", minHeight: "100vh", fontFamily: F, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');`}</style>
         <div style={{ textAlign: "center", maxWidth: 400 }}>
-          <img src={AHORROEXPRESS_LOGO} alt="AhorroExpress" style={{ height: 100, objectFit: "contain", marginBottom: 24 }} />
+          <img src={AHORROEXPRESS_LOGO} alt="AhorroExpress" style={{ width: "80%", maxWidth: 300, height: "auto", objectFit: "contain", marginBottom: 24 }} />
           <h2 style={{ fontSize: 22, fontWeight: 800, marginBottom: 10, letterSpacing: "-0.03em" }}>Contenido <span style={{ color: "#FFE600" }}>Premium</span></h2>
           <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, marginBottom: 28 }}>AhorroExpress es exclusivo para usuarios Premium de Kooki. Desbloqueá todas las herramientas con un único pago.</p>
           <a href={CHECKOUT_URL} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "16px 32px", borderRadius: 14, background: "#FFE600", color: "#0A0A0F", fontSize: 16, fontWeight: 700, textDecoration: "none", marginBottom: 16 }}>Quiero Premium · $20.900</a>
@@ -203,9 +203,9 @@ export default function AhorroExpress() {
       </div>
 
       <header style={{ position: "sticky", top: 0, zIndex: 50, background: bg + "ee", backdropFilter: "blur(16px)", borderBottom: "1px solid " + brd }}>
-        <div style={{ maxWidth: 480, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 20px", height: 56 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <img src={AHORROEXPRESS_LOGO} alt="AhorroExpress" style={{ height: 44, objectFit: "contain" }} />
+        <div style={{ maxWidth: 480, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 20px", height: 72 }}>
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <img src={AHORROEXPRESS_LOGO} alt="AhorroExpress" style={{ height: 90, objectFit: "contain" }} />
           </div>
           <span style={{ fontSize: 11, fontWeight: 600, color: mu, letterSpacing: "0.06em", textTransform: "uppercase" }}>{MESES[mesActual]}</span>
         </div>
@@ -430,7 +430,7 @@ export default function AhorroExpress() {
         {/* Footer */}
         <footer style={{ textAlign: "center", padding: "32px 0 16px" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 8 }}>
-            <img src={AHORROEXPRESS_LOGO} alt="AhorroExpress" style={{ height: 40, objectFit: "contain" }} />
+            <img src={AHORROEXPRESS_LOGO} alt="AhorroExpress" style={{ height: 60, objectFit: "contain" }} />
           </div>
           <p style={{ fontSize: 11, color: mu, margin: 0, fontWeight: 500 }}>{"Un bono de Kooki · kookiapp.com"}</p>
         </footer>
