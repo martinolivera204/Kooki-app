@@ -67,6 +67,9 @@ const te = "#8D4D4E", cr = "#FEFAF6", w = "#FFFFFF", ink = "#1B1B1B", tx = "#404
 const li = "#BFC9C1", lL = "#E5E2E1", sL = "#F6F3F2";
 const F = "'Plus Jakarta Sans',sans-serif";
 
+const ACCESS_KEY = "kooki_access_v1";
+const CHECKOUT_URL = "https://impulsoebooks.online/cart/53627712930158:1";
+
 export default function DeTemporada() {
   const mA = new Date().getMonth() + 1;
   const [mes, setMes] = useState(mA);
@@ -76,7 +79,25 @@ export default function DeTemporada() {
   const [mt, setMt] = useState(false);
   const sR = useRef(null);
 
+  const premium = (() => { try { return !!localStorage.getItem(ACCESS_KEY); } catch(e) { return false; } })();
+
   useEffect(() => { setMt(true); }, []);
+
+  if (!premium) {
+    return (
+      <div style={{ background: cr, minHeight: "100vh", fontFamily: F, color: ink, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+        <style>{`@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');`}</style>
+        <div style={{ textAlign: "center", maxWidth: 400 }}>
+          <img src={LOGO} alt="DeTemporada" style={{ height: 80, objectFit: "contain", marginBottom: 20 }} />
+          <h2 style={{ fontSize: 26, fontWeight: 800, marginBottom: 10, letterSpacing: "-0.03em" }}>Contenido <span style={{ color: g }}>Premium</span></h2>
+          <p style={{ fontSize: 15, color: mu, lineHeight: 1.6, marginBottom: 28 }}>DeTemporada es exclusivo para usuarios Premium de Kooki. Desbloqueá todas las herramientas con un único pago.</p>
+          <a href={CHECKOUT_URL} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "16px 32px", borderRadius: 14, background: g, color: "#fff", fontSize: 16, fontWeight: 700, textDecoration: "none", marginBottom: 16 }}>Quiero Premium · $20.900</a>
+          <br />
+          <a href="/" style={{ fontSize: 14, color: mu, fontWeight: 600, textDecoration: "none" }}>← Volver a Kooki</a>
+        </div>
+      </div>
+    );
+  }
   useEffect(() => {
     if (sR.current) {
       const b = sR.current.children[mes - 1];
@@ -127,7 +148,7 @@ export default function DeTemporada() {
       <header style={{ position: "sticky", top: 0, zIndex: 50, background: cr + "ee", backdropFilter: "blur(16px)", borderBottom: "1px solid rgba(45,106,79,0.08)" }}>
         <div style={{ maxWidth: 720, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 20px", height: 56 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <img src={LOGO} alt="DeTemporada" style={{ height: 32, objectFit: "contain" }} onError={e => { e.target.style.display = "none"; e.target.nextSibling.style.display = "flex"; }} />
+            <img src={LOGO} alt="DeTemporada" style={{ height: 44, objectFit: "contain" }} onError={e => { e.target.style.display = "none"; e.target.nextSibling.style.display = "flex"; }} />
             <div style={{ display: "none", width: 28, height: 28, borderRadius: 8, background: "linear-gradient(135deg, " + g + ", " + gD + ")", alignItems: "center", justifyContent: "center", fontSize: 14 }}>{"🌿"}</div>
             <span style={{ fontWeight: 800, fontSize: 18, color: g, letterSpacing: "-0.03em" }}>DeTemporada</span>
           </div>
