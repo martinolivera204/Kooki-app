@@ -88,7 +88,7 @@ export default function DeTemporada() {
       <div style={{ background: cr, minHeight: "100vh", fontFamily: F, color: ink, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');`}</style>
         <div style={{ textAlign: "center", maxWidth: 400 }}>
-          <img src={LOGO} alt="DeTemporada" style={{ height: 100, objectFit: "contain", marginBottom: 24 }} />
+          <img src={LOGO} alt="DeTemporada" style={{ width: "80%", maxWidth: 300, height: "auto", objectFit: "contain", marginBottom: 24 }} />
           <h2 style={{ fontSize: 22, fontWeight: 800, marginBottom: 10, letterSpacing: "-0.03em" }}>Contenido <span style={{ color: g }}>Premium</span></h2>
           <p style={{ fontSize: 15, color: mu, lineHeight: 1.6, marginBottom: 28 }}>DeTemporada es exclusivo para usuarios Premium de Kooki. Desbloqueá todas las herramientas con un único pago.</p>
           <a href={CHECKOUT_URL} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "16px 32px", borderRadius: 14, background: g, color: "#fff", fontSize: 16, fontWeight: 700, textDecoration: "none", marginBottom: 16 }}>Quiero Premium · $20.900</a>
@@ -146,9 +146,9 @@ export default function DeTemporada() {
 
       {/* Header */}
       <header style={{ position: "sticky", top: 0, zIndex: 50, background: cr + "ee", backdropFilter: "blur(16px)", borderBottom: "1px solid rgba(45,106,79,0.08)" }}>
-        <div style={{ maxWidth: 720, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 20px", height: 56 }}>
+        <div style={{ maxWidth: 720, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 20px", height: 72 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <img src={LOGO} alt="DeTemporada" style={{ height: 48, objectFit: "contain" }} onError={e => { e.target.style.display = "none"; e.target.nextSibling.style.display = "flex"; }} />
+            <img src={LOGO} alt="DeTemporada" style={{ height: 96, objectFit: "contain" }} onError={e => { e.target.style.display = "none"; e.target.nextSibling.style.display = "flex"; }} />
             <div style={{ display: "none", width: 28, height: 28, borderRadius: 8, background: "linear-gradient(135deg, " + g + ", " + gD + ")", alignItems: "center", justifyContent: "center", fontSize: 14 }}>{"🌿"}</div>
           </div>
           <span style={{ fontSize: 12, fontWeight: 600, color: mu, letterSpacing: "0.04em" }}>{"Argentina 🇦🇷"}</span>
@@ -419,7 +419,7 @@ export default function DeTemporada() {
 
       {/* Footer */}
       <footer style={{ borderTop: "1px solid rgba(45,106,79,0.08)", padding: "40px 20px", textAlign: "center", background: cr }}>
-        <img src={LOGO} alt="DeTemporada" style={{ height: 44, objectFit: "contain", marginBottom: 10 }} onError={e => { e.target.style.display = "none"; }} />
+        <img src={LOGO} alt="DeTemporada" style={{ height: 70, objectFit: "contain", marginBottom: 10 }} onError={e => { e.target.style.display = "none"; }} />
         <p style={{ fontSize: 11, color: mu, margin: 0, fontWeight: 500 }}>{"Un bono de Kooki · kookiapp.com"}</p>
       </footer>
     </div>
