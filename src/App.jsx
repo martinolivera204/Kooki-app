@@ -128,6 +128,8 @@ function ComparisonTable() {
     { name: "Lista de compras", free: false, premium: true },
     { name: "Chef asistente IA", free: false, premium: true },
     { name: "Compartir WhatsApp / CSV", free: false, premium: true },
+    { name: "🌿 DeTemporada", free: false, premium: true },
+    { name: "💰 AhorroExpress", free: false, premium: true },
   ];
 
   const Check = () => (
@@ -1120,7 +1122,7 @@ function MainApp({ onShowAccess }) {
               onMouseEnter={e => { e.currentTarget.style.borderColor = "#2D6A4F"; e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 8px 32px rgba(45,106,79,0.15)"; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = C.line; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = sh.md; }}>
               <div style={{ width:56, height:56, borderRadius:16, background:"linear-gradient(135deg, #2D6A4F, #1B4332)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, boxShadow:"0 4px 16px rgba(45,106,79,0.25)", overflow:"hidden" }}>
-                <img src={DETEMPORADA_LOGO} alt="DeTemporada" style={{ width:44, height:44, objectFit:"contain" }} onError={e => { e.target.style.display = "none"; }} />
+                <img src={DETEMPORADA_LOGO} alt="DeTemporada" style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e => { e.target.style.display = "none"; }} />
               </div>
               <div style={{ flex:1, minWidth:0 }}>
                 <div style={{ fontSize:16, fontWeight:800, color:C.ink, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.02em", marginBottom:3 }}>DeTemporada</div>
@@ -1132,7 +1134,7 @@ function MainApp({ onShowAccess }) {
               onMouseEnter={e => { e.currentTarget.style.borderColor = "#FFE600"; e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 8px 32px rgba(255,230,0,0.15)"; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = C.line; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = sh.md; }}>
               <div style={{ width:56, height:56, borderRadius:16, background:"linear-gradient(135deg, #0A0A0F, #1A1A25)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, boxShadow:"0 4px 16px rgba(10,10,15,0.3)", overflow:"hidden" }}>
-                <img src={AHORROEXPRESS_LOGO} alt="AhorroExpress" style={{ width:44, height:44, objectFit:"contain" }} onError={e => { e.target.style.display = "none"; }} />
+                <img src={AHORROEXPRESS_LOGO} alt="AhorroExpress" style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e => { e.target.style.display = "none"; }} />
               </div>
               <div style={{ flex:1, minWidth:0 }}>
                 <div style={{ fontSize:16, fontWeight:800, color:C.ink, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.02em", marginBottom:3 }}>AhorroExpress</div>
