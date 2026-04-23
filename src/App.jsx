@@ -1054,8 +1054,7 @@ function MainApp({ onShowAccess }) {
       <Blob pos="tr" />
       <Blob pos="bl" color="rgba(0,102,204,0.13)" size={400} />
 
-      <nav style={{ padding:"18px 26px", display:"flex", alignItems:"center", justifyContent:"space-between", position:"relative", zIndex:1 }}>
-        <img src="https://cdn.shopify.com/s/files/1/0983/2857/6366/files/Copia_de_logo_sin_fondo.png?v=1776974240" alt="Kooki" style={{ height:36, objectFit:"contain" }} />
+      <nav style={{ padding:"18px 26px", display:"flex", alignItems:"center", justifyContent:"flex-end", position:"relative", zIndex:1 }}>
         {premium ? (
           <div style={{ display:"flex", alignItems:"center", gap:7, background:C.white, border:`1px solid ${C.line}`, borderRadius:100, padding:"7px 14px", boxShadow:sh.sm }}>
             <span style={{ width:7, height:7, borderRadius:"50%", background:C.success, display:"inline-block" }}/>
@@ -1069,8 +1068,8 @@ function MainApp({ onShowAccess }) {
       </nav>
 
       <div style={{ flex:1, display:"flex", flexDirection:"column", padding:"12px 26px 0", maxWidth:480, margin:"0 auto", width:"100%", position:"relative", zIndex:1 }}>
-        <div style={{ display:"flex", justifyContent:"center", marginBottom:6 }}>
-          <Eyebrow center>Tu cocina con IA</Eyebrow>
+        <div style={{ display:"flex", justifyContent:"center", marginBottom:16 }}>
+          <img src="https://cdn.shopify.com/s/files/1/0983/2857/6366/files/Copia_de_logo_sin_fondo.png?v=1776974240" alt="Kooki" style={{ height:70, objectFit:"contain" }} />
         </div>
         <h1 style={{ fontSize:"clamp(38px, 9vw, 52px)", fontWeight:900, color:C.ink, lineHeight:0.95, marginBottom:18, marginTop:14, letterSpacing:"-0.045em", textAlign:"center", fontFamily:"'Epilogue',sans-serif" }}>
           Dejá de pensar<br/>
