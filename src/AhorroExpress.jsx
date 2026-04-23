@@ -170,10 +170,10 @@ export default function AhorroExpress() {
   }
 
   const mesAntNom = MESES[mesActual - 1 < 0 ? 11 : mesActual - 1];
-  const bg = "#0A0A0F"; const sf = "#12121A"; const sf2 = "#1A1A25";
-  const brd = "rgba(255,255,255,0.06)"; const w = "#FFFFFF";
-  const mu = "rgba(255,255,255,0.45)"; const mu2 = "rgba(255,255,255,0.6)";
-  const yel = "#FFE600";
+  const bg = "#F5F5F7"; const sf = "#FFFFFF"; const sf2 = "#FAFAFA";
+  const brd = "rgba(0,0,0,0.08)"; const w = "#1B1B1B";
+  const mu = "rgba(0,0,0,0.4)"; const mu2 = "rgba(0,0,0,0.6)";
+  const yel = "#D97706";
 
   const css = `@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
@@ -197,12 +197,12 @@ export default function AhorroExpress() {
       <style>{css}</style>
 
       <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0 }}>
-        <div style={{ position: "absolute", top: -200, right: -200, width: 600, height: 600, background: "radial-gradient(circle, rgba(255,230,0,0.06), transparent 70%)", borderRadius: "50%" }} />
-        <div style={{ position: "absolute", bottom: -100, left: -200, width: 500, height: 500, background: "radial-gradient(circle, rgba(96,165,250,0.04), transparent 70%)", borderRadius: "50%" }} />
-        <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(rgba(255,255,255,0.015) 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
+        <div style={{ position: "absolute", top: -200, right: -200, width: 600, height: 600, background: "radial-gradient(circle, rgba(255,200,0,0.08), transparent 70%)", borderRadius: "50%" }} />
+        <div style={{ position: "absolute", bottom: -100, left: -200, width: 500, height: 500, background: "radial-gradient(circle, rgba(96,165,250,0.06), transparent 70%)", borderRadius: "50%" }} />
+        <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(rgba(0,0,0,0.03) 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
       </div>
 
-      <header style={{ position: "sticky", top: 0, zIndex: 50, background: bg + "ee", backdropFilter: "blur(16px)", borderBottom: "1px solid " + brd }}>
+      <header style={{ position: "sticky", top: 0, zIndex: 50, background: "rgba(245,245,247,0.92)", backdropFilter: "blur(16px)", borderBottom: "1px solid " + brd }}>
         <div style={{ maxWidth: 480, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 20px", height: 64 }}>
           <div style={{ display: "flex", alignItems: "center" }}>
             <img src={AHORROEXPRESS_LOGO} alt="AhorroExpress" style={{ height: 48, objectFit: "contain" }} />
@@ -227,7 +227,7 @@ export default function AhorroExpress() {
               <h2 style={{ fontWeight: 800, fontSize: "clamp(32px, 9vw, 44px)", letterSpacing: "-0.04em", margin: "0 0 4px", lineHeight: 1 }}>{fmt(actual.total)}</h2>
               <p style={{ fontSize: 12, color: mu, margin: 0, fontWeight: 500 }}>{"de " + fmt(presupuesto) + " presupuestado"}</p>
             </div>
-            <div style={{ width: 100, height: 100, borderRadius: "50%", position: "relative", background: "conic-gradient(" + ringColor + " " + ringDeg + "deg, rgba(255,255,255,0.06) " + ringDeg + "deg)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <div style={{ width: 100, height: 100, borderRadius: "50%", position: "relative", background: "conic-gradient(" + ringColor + " " + ringDeg + "deg, rgba(0,0,0,0.06) " + ringDeg + "deg)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <div style={{ width: 80, height: 80, borderRadius: "50%", background: sf, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
                 <span style={{ fontWeight: 800, fontSize: 20, color: pctUsado >= 100 ? "#F87171" : w, letterSpacing: "-0.03em" }}>{pctUsado + "%"}</span>
                 <span style={{ fontSize: 9, color: mu, fontWeight: 600 }}>usado</span>
@@ -239,7 +239,7 @@ export default function AhorroExpress() {
             <span style={{ fontSize: 13, fontWeight: 600, color: restante > 0 ? "#34D399" : "#F87171" }}>
               {restante > 0 ? "Te quedan " + fmt(restante) : "Te pasaste " + fmt(Math.abs(restante))}
             </span>
-            <button onClick={() => { setEditPres(!editPres); setPresInput(String(presupuesto)); }} style={{ background: "rgba(255,255,255,0.06)", border: "none", color: mu2, fontSize: 11, fontWeight: 600, padding: "4px 10px", borderRadius: 8, cursor: "pointer" }}>
+            <button onClick={() => { setEditPres(!editPres); setPresInput(String(presupuesto)); }} style={{ background: "rgba(0,0,0,0.05)", border: "none", color: mu2, fontSize: 11, fontWeight: 600, padding: "4px 10px", borderRadius: 8, cursor: "pointer" }}>
               {editPres ? "Cancelar" : "Editar"}
             </button>
           </div>
@@ -247,7 +247,7 @@ export default function AhorroExpress() {
           {editPres && (
             <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
               <input type="number" value={presInput} onChange={e => setPresInput(e.target.value)} style={{ flex: 1, padding: "10px 14px", fontFamily: F, fontWeight: 700, fontSize: 16, background: sf2, border: "1px solid " + brd, borderRadius: 10, color: w, outline: "none", boxSizing: "border-box" }} />
-              <button onClick={guardarPres} style={{ padding: "10px 18px", background: yel, color: bg, fontWeight: 700, fontSize: 13, borderRadius: 10, border: "none", cursor: "pointer" }}>OK</button>
+              <button onClick={guardarPres} style={{ padding: "10px 18px", background: "#FFD600", color: "#1B1B1B", fontWeight: 700, fontSize: 13, borderRadius: 10, border: "none", cursor: "pointer" }}>OK</button>
             </div>
           )}
 
@@ -281,11 +281,11 @@ export default function AhorroExpress() {
         {/* Add */}
         <section className={mounted ? "fu" : ""} style={{ marginBottom: 16, animationDelay: "120ms" }}>
           <button onClick={() => setShowForm(!showForm)} style={{
-            width: "100%", background: showForm ? sf2 : "linear-gradient(135deg, " + yel + ", #FFC800)",
-            color: showForm ? mu2 : bg, fontWeight: 800, fontSize: 15, padding: "16px 0",
+            width: "100%", background: showForm ? sf2 : "linear-gradient(135deg, #FFD600, #FFC200)",
+            color: showForm ? mu2 : "#1B1B1B", fontWeight: 800, fontSize: 15, padding: "16px 0",
             borderRadius: 14, border: showForm ? "1px solid " + brd : "none", cursor: "pointer",
             display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-            boxShadow: showForm ? "none" : "0 4px 20px rgba(255,230,0,0.2), 0 0 0 1px rgba(255,230,0,0.3)",
+            boxShadow: showForm ? "none" : "0 4px 20px rgba(255,210,0,0.25)",
             transition: "all 0.3s",
           }}>
             <span style={{ fontSize: 18, transition: "transform 0.3s", transform: showForm ? "rotate(45deg)" : "none" }}>{"+"}</span>
@@ -310,7 +310,7 @@ export default function AhorroExpress() {
               </div>
               <input type="text" value={desc} onChange={e => setDesc(e.target.value)} placeholder={"Descripción (opcional)"}
                 style={{ width: "100%", padding: "12px 16px", fontFamily: F, fontSize: 14, background: sf2, border: "1px solid " + brd, borderRadius: 10, color: w, outline: "none", marginBottom: 14, boxSizing: "border-box" }} />
-              <button onClick={agregar} style={{ width: "100%", background: "linear-gradient(135deg, " + yel + ", #FFC800)", color: bg, fontWeight: 800, fontSize: 15, padding: "14px 0", borderRadius: 12, border: "none", cursor: "pointer", boxShadow: "0 4px 16px rgba(255,230,0,0.2)" }}>{"Guardar"}</button>
+              <button onClick={agregar} style={{ width: "100%", background: "linear-gradient(135deg, #FFD600, #FFC200)", color: "#1B1B1B", fontWeight: 800, fontSize: 15, padding: "14px 0", borderRadius: 12, border: "none", cursor: "pointer", boxShadow: "0 4px 16px rgba(255,210,0,0.25)" }}>{"Guardar"}</button>
             </div>
           )}
         </section>
@@ -331,11 +331,11 @@ export default function AhorroExpress() {
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <span style={{ fontSize: 15 }}>{cat.e}</span>
                       <span style={{ fontSize: 13, fontWeight: 600, color: mu2 }}>{cat.l}</span>
-                      <span style={{ fontSize: 10, fontWeight: 600, color: mu, background: "rgba(255,255,255,0.05)", padding: "1px 6px", borderRadius: 4 }}>{pcTotal + "%"}</span>
+                      <span style={{ fontSize: 10, fontWeight: 600, color: mu, background: "rgba(0,0,0,0.04)", padding: "1px 6px", borderRadius: 4 }}>{pcTotal + "%"}</span>
                     </div>
                     <span style={{ fontSize: 14, fontWeight: 700 }}>{fmt(actual.porCat[cat.k])}</span>
                   </div>
-                  <div style={{ height: 6, width: "100%", background: "rgba(255,255,255,0.05)", borderRadius: 100, overflow: "hidden" }}>
+                  <div style={{ height: 6, width: "100%", background: "rgba(0,0,0,0.06)", borderRadius: 100, overflow: "hidden" }}>
                     <div style={{ height: "100%", width: p + "%", background: "linear-gradient(90deg, " + cat.c + ", " + cat.c + "88)", borderRadius: 100, transition: "width 0.6s cubic-bezier(0.4,0,0.2,1)" }} />
                   </div>
                 </div>
@@ -354,7 +354,7 @@ export default function AhorroExpress() {
               return (
                 <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
                   <span style={{ fontSize: 9, fontWeight: 700, color: isA ? yel : mu }}>{(h.total / 1000).toFixed(0) + "k"}</span>
-                  <div style={{ width: "100%", height: barH, borderRadius: 6, background: isA ? "linear-gradient(180deg, " + yel + ", #FFA500)" : "rgba(255,255,255,0.08)", transition: "height 0.5s ease" }} />
+                  <div style={{ width: "100%", height: barH, borderRadius: 6, background: isA ? "linear-gradient(180deg, " + yel + ", #FFA500)" : "rgba(0,0,0,0.07)", transition: "height 0.5s ease" }} />
                   <span style={{ fontSize: 10, fontWeight: 600, color: isA ? yel : mu }}>{h.nombre}</span>
                 </div>
               );
@@ -369,7 +369,7 @@ export default function AhorroExpress() {
             <span style={{ fontSize: 11, color: mu, fontWeight: 500 }}>{actual.gastos.length + " este mes"}</span>
           </div>
           <div className="no-sb" style={{ display: "flex", gap: 6, marginBottom: 14, overflowX: "auto" }}>
-            <button onClick={() => setFiltro("todo")} style={{ padding: "6px 14px", borderRadius: 100, border: "none", flexShrink: 0, background: filtro === "todo" ? "rgba(255,255,255,0.1)" : "transparent", color: filtro === "todo" ? w : mu, fontWeight: 600, fontSize: 12, cursor: "pointer" }}>Todo</button>
+            <button onClick={() => setFiltro("todo")} style={{ padding: "6px 14px", borderRadius: 100, border: "none", flexShrink: 0, background: filtro === "todo" ? "rgba(0,0,0,0.08)" : "transparent", color: filtro === "todo" ? w : mu, fontWeight: 600, fontSize: 12, cursor: "pointer" }}>Todo</button>
             {CATS.map(cat => (
               <button key={cat.k} onClick={() => setFiltro(cat.k)} style={{ padding: "6px 12px", borderRadius: 100, border: "none", flexShrink: 0, background: filtro === cat.k ? cat.cL : "transparent", color: filtro === cat.k ? cat.c : mu, fontWeight: 600, fontSize: 12, cursor: "pointer" }}>{cat.e}</button>
             ))}
@@ -401,7 +401,7 @@ export default function AhorroExpress() {
         <section className={mounted ? "fu" : ""} style={{ background: "linear-gradient(135deg, rgba(255,230,0,0.08), rgba(255,200,0,0.03))", borderRadius: 16, border: "1px solid rgba(255,230,0,0.12)", padding: "18px 20px", marginBottom: 16, animationDelay: "420ms" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
             <div style={{ width: 32, height: 32, borderRadius: 10, background: "linear-gradient(135deg, " + yel + ", #FFA500)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>{"⚡"}</div>
-            <h4 style={{ fontWeight: 700, fontSize: 15, color: yel, margin: 0 }}>{"Tips para vos"}</h4>
+            <h4 style={{ fontWeight: 700, fontSize: 15, color: "#D97706", margin: 0 }}>{"Tips para vos"}</h4>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {tips.map((t, i) => (
@@ -421,7 +421,7 @@ export default function AhorroExpress() {
             <p style={{ fontWeight: 800, fontSize: 20, margin: 0, letterSpacing: "-0.02em" }}>{fmt(actual.total)}</p>
           </div>
           <div style={{ background: sf, borderRadius: 14, border: "1px solid " + brd, padding: "16px 14px", position: "relative", overflow: "hidden" }}>
-            <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "rgba(255,255,255,0.1)" }} />
+            <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "rgba(0,0,0,0.06)" }} />
             <p style={{ fontSize: 11, fontWeight: 600, color: mu, margin: "0 0 6px", textTransform: "uppercase", letterSpacing: "0.06em" }}>{mesAntNom}</p>
             <p style={{ fontWeight: 800, fontSize: 20, margin: 0, color: mu2, letterSpacing: "-0.02em" }}>{fmt(prev.total)}</p>
           </div>
