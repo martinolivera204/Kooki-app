@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 
 const AHORROEXPRESS_LOGO = "https://cdn.shopify.com/s/files/1/0983/2857/6366/files/AhorroExpresssin_fondo.png?v=1776961413";
 
@@ -55,51 +55,51 @@ const CHECKOUT_URL = "https://impulsoebooks.online/cart/53627712930158:1";
 const STORAGE_GASTOS = "ahorro_gastos_v1";
 const STORAGE_PRES = "ahorro_presupuesto_v1";
 
-function loadGastos() {
-  try { const d = localStorage.getItem(STORAGE_GASTOS); if (d) { const parsed = JSON.parse(d); if (Array.isArray(parsed)) return parsed; } } catch(e) {}
-  return [];
-}
-function loadPres() {
-  try { const d = localStorage.getItem(STORAGE_PRES); if (d) { const v = parseInt(d); if (v > 0) return v; } } catch(e) {}
-  return 200000;
-}
-
 export default function AhorroExpress() {
-  const [gastos, setGastos] = useState(loadGastos);
+  const isFirstRender = useRef(true);
+
+  const [gastos, setGastos] = useState(() => {
+    try {
+      const d = localStorage.getItem(STORAGE_GASTOS);
+      if (d) { const p = JSON.parse(d); if (Array.isArray(p)) { nextId = Math.max(nextId, ...p.map(g => (g.id || 0) + 1)); return p; } }
+    } catch(e) {}
+    return [];
+  });
   const [showForm, setShowForm] = useState(false);
   const [monto, setMonto] = useState("");
   const [catSel, setCatSel] = useState("super");
   const [desc, setDesc] = useState("");
   const [filtro, setFiltro] = useState("todo");
-  const [presupuesto, setPresupuesto] = useState(loadPres);
+  const [presupuesto, setPresupuesto] = useState(() => {
+    try { const d = localStorage.getItem(STORAGE_PRES); if (d) { const v = parseInt(d); if (v > 0) return v; } } catch(e) {}
+    return 200000;
+  });
   const [editPres, setEditPres] = useState(false);
-  const [presInput, setPresInput] = useState(() => String(loadPres()));
+  const [presInput, setPresInput] = useState(() => {
+    try { const d = localStorage.getItem(STORAGE_PRES); return d || "200000"; } catch(e) { return "200000"; }
+  });
   const [mounted, setMounted] = useState(false);
   const [dismissed, setDismissed] = useState([]);
-  const [hasHydrated, setHasHydrated] = useState(false);
 
   const premium = (() => { try { return !!localStorage.getItem(ACCESS_KEY); } catch(e) { return false; } })();
 
-  useEffect(() => { setMounted(true); setHasHydrated(true); }, []);
+  useEffect(() => { setMounted(true); }, []);
 
-  // Persistir gastos — solo después del primer render
+  // Persistir gastos — SKIP primer render
   useEffect(() => {
-    if (!hasHydrated) return;
+    if (isFirstRender.current) return;
     try { localStorage.setItem(STORAGE_GASTOS, JSON.stringify(gastos)); } catch(e) {}
-  }, [gastos, hasHydrated]);
+  }, [gastos]);
 
-  // Persistir presupuesto — solo después del primer render
+  // Persistir presupuesto — SKIP primer render
   useEffect(() => {
-    if (!hasHydrated) return;
+    if (isFirstRender.current) return;
     try { localStorage.setItem(STORAGE_PRES, String(presupuesto)); } catch(e) {}
-  }, [presupuesto, hasHydrated]);
+  }, [presupuesto]);
 
-  // Mantener nextId sincronizado con los gastos cargados
+  // Marcar fin del primer render
   useEffect(() => {
-    if (gastos.length > 0) {
-      const maxId = Math.max(...gastos.map(g => g.id || 0));
-      if (maxId >= nextId) nextId = maxId + 1;
-    }
+    isFirstRender.current = false;
   }, []);
 
   if (!premium) {
