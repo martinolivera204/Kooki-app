@@ -52,22 +52,41 @@ const F = "'Plus Jakarta Sans',sans-serif";
 const ACCESS_KEY = "kooki_access_v1";
 const CHECKOUT_URL = "https://impulsoebooks.online/cart/53627712930158:1";
 
+const STORAGE_GASTOS = "ahorro_gastos_v1";
+const STORAGE_PRES = "ahorro_presupuesto_v1";
+
 export default function AhorroExpress() {
-  const [gastos, setGastos] = useState(() => []);
+  const [gastos, setGastos] = useState(() => {
+    try { const d = localStorage.getItem(STORAGE_GASTOS); return d ? JSON.parse(d) : []; } catch(e) { return []; }
+  });
   const [showForm, setShowForm] = useState(false);
   const [monto, setMonto] = useState("");
   const [catSel, setCatSel] = useState("super");
   const [desc, setDesc] = useState("");
   const [filtro, setFiltro] = useState("todo");
-  const [presupuesto, setPresupuesto] = useState(200000);
+  const [presupuesto, setPresupuesto] = useState(() => {
+    try { const d = localStorage.getItem(STORAGE_PRES); return d ? parseInt(d) : 200000; } catch(e) { return 200000; }
+  });
   const [editPres, setEditPres] = useState(false);
-  const [presInput, setPresInput] = useState("200000");
+  const [presInput, setPresInput] = useState(() => {
+    try { const d = localStorage.getItem(STORAGE_PRES); return d || "200000"; } catch(e) { return "200000"; }
+  });
   const [mounted, setMounted] = useState(false);
   const [dismissed, setDismissed] = useState([]);
 
   const premium = (() => { try { return !!localStorage.getItem(ACCESS_KEY); } catch(e) { return false; } })();
 
   useEffect(() => { setMounted(true); }, []);
+
+  // Persistir gastos en localStorage
+  useEffect(() => {
+    try { localStorage.setItem(STORAGE_GASTOS, JSON.stringify(gastos)); } catch(e) {}
+  }, [gastos]);
+
+  // Persistir presupuesto en localStorage
+  useEffect(() => {
+    try { localStorage.setItem(STORAGE_PRES, String(presupuesto)); } catch(e) {}
+  }, [presupuesto]);
 
   if (!premium) {
     return (
