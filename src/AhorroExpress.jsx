@@ -55,38 +55,52 @@ const CHECKOUT_URL = "https://impulsoebooks.online/cart/53627712930158:1";
 const STORAGE_GASTOS = "ahorro_gastos_v1";
 const STORAGE_PRES = "ahorro_presupuesto_v1";
 
+function loadGastos() {
+  try { const d = localStorage.getItem(STORAGE_GASTOS); if (d) { const parsed = JSON.parse(d); if (Array.isArray(parsed)) return parsed; } } catch(e) {}
+  return [];
+}
+function loadPres() {
+  try { const d = localStorage.getItem(STORAGE_PRES); if (d) { const v = parseInt(d); if (v > 0) return v; } } catch(e) {}
+  return 200000;
+}
+
 export default function AhorroExpress() {
-  const [gastos, setGastos] = useState(() => {
-    try { const d = localStorage.getItem(STORAGE_GASTOS); return d ? JSON.parse(d) : []; } catch(e) { return []; }
-  });
+  const [gastos, setGastos] = useState(loadGastos);
   const [showForm, setShowForm] = useState(false);
   const [monto, setMonto] = useState("");
   const [catSel, setCatSel] = useState("super");
   const [desc, setDesc] = useState("");
   const [filtro, setFiltro] = useState("todo");
-  const [presupuesto, setPresupuesto] = useState(() => {
-    try { const d = localStorage.getItem(STORAGE_PRES); return d ? parseInt(d) : 200000; } catch(e) { return 200000; }
-  });
+  const [presupuesto, setPresupuesto] = useState(loadPres);
   const [editPres, setEditPres] = useState(false);
-  const [presInput, setPresInput] = useState(() => {
-    try { const d = localStorage.getItem(STORAGE_PRES); return d || "200000"; } catch(e) { return "200000"; }
-  });
+  const [presInput, setPresInput] = useState(() => String(loadPres()));
   const [mounted, setMounted] = useState(false);
   const [dismissed, setDismissed] = useState([]);
+  const [hasHydrated, setHasHydrated] = useState(false);
 
   const premium = (() => { try { return !!localStorage.getItem(ACCESS_KEY); } catch(e) { return false; } })();
 
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => { setMounted(true); setHasHydrated(true); }, []);
 
-  // Persistir gastos en localStorage
+  // Persistir gastos — solo después del primer render
   useEffect(() => {
+    if (!hasHydrated) return;
     try { localStorage.setItem(STORAGE_GASTOS, JSON.stringify(gastos)); } catch(e) {}
-  }, [gastos]);
+  }, [gastos, hasHydrated]);
 
-  // Persistir presupuesto en localStorage
+  // Persistir presupuesto — solo después del primer render
   useEffect(() => {
+    if (!hasHydrated) return;
     try { localStorage.setItem(STORAGE_PRES, String(presupuesto)); } catch(e) {}
-  }, [presupuesto]);
+  }, [presupuesto, hasHydrated]);
+
+  // Mantener nextId sincronizado con los gastos cargados
+  useEffect(() => {
+    if (gastos.length > 0) {
+      const maxId = Math.max(...gastos.map(g => g.id || 0));
+      if (maxId >= nextId) nextId = maxId + 1;
+    }
+  }, []);
 
   if (!premium) {
     return (
