@@ -3,7 +3,6 @@ import { useState, useEffect, useRef } from "react";
 const VALID_CODES = new Set(['KOOKI-9K2X-W5NR']);
 const ACCESS_KEY = "kooki_access_v1";
 const HISTORY_KEY = "kooki_history_v1";
-const FREE_DAILY_KEY = "kooki_free_today";
 const HISTORY_DAYS = 7;
 const HISTORY_MAX = 20;
 const CHECKOUT_URL = "https://impulsoebooks.online/cart/53627712930158:1";
@@ -32,17 +31,6 @@ function trackEvent(event, data) {
 
 function isPremium() {
   try { return !!localStorage.getItem(ACCESS_KEY); } catch(e) { return false; }
-}
-function hasUsedFreeToday() {
-  try {
-    const stored = localStorage.getItem(FREE_DAILY_KEY);
-    if (!stored) return false;
-    const today = new Date().toDateString();
-    return stored === today;
-  } catch(e) { return false; }
-}
-function markFreeUsedToday() {
-  try { localStorage.setItem(FREE_DAILY_KEY, new Date().toDateString()); } catch(e) {}
 }
 
 // ============================================
@@ -168,42 +156,9 @@ function ComparisonTable() {
 }
 
 // ============================================
-// COMPONENTE: UPGRADE PROMPT (CTA a premium)
+// PANTALLA DE ACCESO — obligatoria, con ecosistema
 // ============================================
-function UpgradePrompt({ title, subtitle, onClose }) {
-  return (
-    <div onClick={onClose} style={{ position:"fixed", inset:0, background:"rgba(10,14,26,0.6)", backdropFilter:"blur(6px)", zIndex:2500, display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
-      <div onClick={e=>e.stopPropagation()} style={{ background:C.white, borderRadius:28, padding:"40px 32px", maxWidth:420, width:"100%", textAlign:"center", boxShadow:"0 30px 80px rgba(10,14,26,0.2)", animation:"fadeIn 0.3s ease" }}>
-        <div style={{ width:64, height:64, borderRadius:18, background:C.blue, display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 20px", boxShadow:sh.blue }}>
-          <ChefHat size={36} />
-        </div>
-        <div style={{ marginBottom:10 }}><Eyebrow center>Premium</Eyebrow></div>
-        <h3 style={{ fontSize:24, fontWeight:900, color:C.ink, marginBottom:10, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.03em", lineHeight:1.05 }}>
-          {title || <>Esto es <span style={{ color:C.blue, fontStyle:"italic" }}>Premium</span>.</>}
-        </h3>
-        <p style={{ fontSize:15, color:C.sub, lineHeight:1.55, marginBottom:28, fontWeight:500 }}>
-          {subtitle || "Desbloqueá el menú semanal, las recetas completas, la lista de compras y el chef IA."}
-        </p>
-        <a href={CHECKOUT_URL} target="_blank" rel="noopener noreferrer" onClick={() => trackEvent('AddToCart', {value: 20900, currency: 'ARS'})}
-          style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:12, width:"100%", padding:"18px", borderRadius:16, border:"none", background:C.ink, color:C.white, fontSize:16, fontWeight:700, cursor:"pointer", fontFamily:"'Inter',sans-serif", boxShadow:sh.ink, textDecoration:"none", marginBottom:12 }}>
-          <span>Quiero Premium · $20.900</span>
-          <span style={{ width:28, height:28, borderRadius:"50%", background:C.white, color:C.ink, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:15, fontWeight:700 }}>→</span>
-        </a>
-        <div style={{ fontSize:13, color:C.sub, fontWeight:600, marginBottom:18 }}>Pago único · Acceso de por vida</div>
-        <div style={{ fontSize:13, color:C.sub, marginBottom:20, lineHeight:1.5 }}>¿Ya tenés código?</div>
-        <button onClick={() => { onClose(); window.__showAccessScreen && window.__showAccessScreen(); }}
-          style={{ background:C.bg, color:C.ink, border:`1.5px solid ${C.line}`, borderRadius:14, padding:"14px 24px", fontSize:14, fontWeight:700, cursor:"pointer", fontFamily:"'Inter',sans-serif", width:"100%" }}>
-          Tengo mi código de acceso
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ============================================
-// PANTALLA DE ACCESO (para activar código premium)
-// ============================================
-function AccessScreen({ onAccess, onBack }) {
+function AccessScreen({ onAccess }) {
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -233,9 +188,24 @@ function AccessScreen({ onAccess, onBack }) {
       <style>{BASE}</style>
       <BgGrid /><Blob pos="tr" /><Blob pos="bl" color="rgba(0,102,204,0.13)" />
       <div style={{ width:"100%", maxWidth:400, animation:"fadeIn 0.4s ease", position:"relative", zIndex:1 }}>
-        <div style={{ textAlign:"center", marginBottom:36 }}>
-          <img src="https://i.imgur.com/IYcv1Vp.jpeg" alt="Kooki" style={{ width:160, marginBottom:12 }}/>
-          <div style={{ display:"flex", justifyContent:"center" }}><Eyebrow>Activar Premium</Eyebrow></div>
+        <div style={{ textAlign:"center", marginBottom:32 }}>
+          <img src="https://i.imgur.com/IYcv1Vp.jpeg" alt="Kooki" style={{ width:140, marginBottom:20 }}/>
+          <div style={{ display:"flex", justifyContent:"center", marginBottom:14 }}><Eyebrow>Ecosistema Kooki</Eyebrow></div>
+          <p style={{ fontSize:15, color:C.sub, fontWeight:500, lineHeight:1.5, marginBottom:20 }}>
+            3 apps con IA para tu cocina y tu bolsillo.
+          </p>
+          {/* 3 logos del ecosistema */}
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:16, marginBottom:8 }}>
+            <div style={{ background:C.white, borderRadius:16, border:`1.5px solid ${C.line}`, padding:"12px 16px", boxShadow:sh.sm, display:"flex", alignItems:"center", justifyContent:"center" }}>
+              <img src="https://cdn.shopify.com/s/files/1/0983/2857/6366/files/Copia_de_logo_sin_fondo.png?v=1776974240" alt="Kooki" style={{ height:32, objectFit:"contain" }} />
+            </div>
+            <div style={{ background:C.white, borderRadius:16, border:`1.5px solid ${C.line}`, padding:"12px 16px", boxShadow:sh.sm, display:"flex", alignItems:"center", justifyContent:"center" }}>
+              <img src={DETEMPORADA_LOGO} alt="DeTemporada" style={{ height:32, objectFit:"contain" }} />
+            </div>
+            <div style={{ background:C.white, borderRadius:16, border:`1.5px solid ${C.line}`, padding:"12px 16px", boxShadow:sh.sm, display:"flex", alignItems:"center", justifyContent:"center" }}>
+              <img src={AHORROEXPRESS_LOGO} alt="AhorroExpress" style={{ height:32, objectFit:"contain" }} />
+            </div>
+          </div>
         </div>
         <div style={{ background:C.white, borderRadius:28, padding:"36px 32px", boxShadow:"0 20px 60px rgba(10,14,26,0.08)", border:`1px solid ${C.line}` }}>
           <h2 style={{ fontSize:28, fontWeight:900, color:C.ink, marginBottom:10, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.035em", lineHeight:1.05 }}>
@@ -251,15 +221,14 @@ function AccessScreen({ onAccess, onBack }) {
             style={{ width:"100%", padding:"20px", borderRadius:16, border:"none", background:loading||!code.trim()?C.gray2:C.ink, color:loading||!code.trim()?C.gray4:C.white, fontSize:16, fontWeight:700, cursor:loading||!code.trim()?"not-allowed":"pointer", fontFamily:"'Inter',sans-serif", boxShadow:!loading&&code.trim()?sh.ink:"none", display:"flex", alignItems:"center", justifyContent:"center", gap:12, transition:"background 0.2s, transform 0.2s" }}
             onMouseEnter={e => { if (!loading && code.trim()) { e.currentTarget.style.background = C.blue; e.currentTarget.style.transform = "translateY(-2px)"; } }}
             onMouseLeave={e => { if (!loading && code.trim()) { e.currentTarget.style.background = C.ink; e.currentTarget.style.transform = "translateY(0)"; } }}>
-            <span>{loading ? "Verificando..." : "Activar Premium"}</span>
+            <span>{loading ? "Verificando..." : "Activar acceso"}</span>
             {!loading && code.trim() && (<span style={{ width:28, height:28, borderRadius:"50%", background:C.white, color:C.ink, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:15, fontWeight:700 }}>→</span>)}
           </button>
         </div>
-        <div style={{ textAlign:"center", marginTop:24, display:"flex", flexDirection:"column", gap:12 }}>
+        <div style={{ textAlign:"center", marginTop:24 }}>
           <div style={{ fontSize:14, color:C.sub, lineHeight:1.6, fontWeight:500 }}>
-            ¿No tenés código?<br/><a href={CHECKOUT_URL} style={{ color:C.blue, fontWeight:700, textDecoration:"none" }}>Conseguilo acá →</a>
+            ¿No tenés código?<br/><a href={CHECKOUT_URL} style={{ color:C.blue, fontWeight:700, textDecoration:"none" }}>Comprá Kooki acá →</a>
           </div>
-          {onBack && <button onClick={onBack} style={{ background:"none", border:"none", color:C.sub, fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"'Inter',sans-serif" }}>← Volver</button>}
         </div>
       </div>
     </div>
@@ -823,9 +792,8 @@ function ChefChat({ result, recetaActual, onClose }) {
 // ============================================
 // MODAL RECETA (FREEMIUM: pasos bloqueados en gratis)
 // ============================================
-function ModalReceta({ nombre, onClose, premium = false }) {
+function ModalReceta({ nombre, onClose }) {
   const [cookMode, setCookMode] = useState(false);
-  const [showUpgrade, setShowUpgrade] = useState(false);
   const r = R[nombre];
   if (!r) return (
     <div onClick={onClose} style={{ position:"fixed",inset:0,background:"rgba(10,14,26,0.7)",zIndex:2000,display:"flex",alignItems:"flex-end",justifyContent:"center",backdropFilter:"blur(6px)" }}>
@@ -837,7 +805,7 @@ function ModalReceta({ nombre, onClose, premium = false }) {
     </div>
   );
 
-  if (cookMode && premium) return (
+  if (cookMode) return (
     <div style={{ position:"fixed",inset:0,background:C.ink,zIndex:3000,overflowY:"auto",padding:"0 0 80px" }}>
       <BgGrid dark />
       <div style={{ padding:"22px 26px",display:"flex",alignItems:"center",justifyContent:"space-between",position:"sticky",top:0,background:C.ink,zIndex:10,borderBottom:`1px solid rgba(255,255,255,0.06)` }}>
@@ -898,9 +866,7 @@ function ModalReceta({ nombre, onClose, premium = false }) {
             ))}
           </div>
 
-          {premium ? (
-            <>
-              <div style={{ marginBottom:16 }}><Eyebrow>Preparación</Eyebrow></div>
+          <div style={{ marginBottom:16 }}><Eyebrow>Preparación</Eyebrow></div>
               <div style={{ display:"flex",flexDirection:"column",gap:18 }}>
                 {r.s.map((paso,i) => (
                   <div key={i} style={{ display:"flex",gap:18,alignItems:"flex-start" }}>
@@ -912,40 +878,10 @@ function ModalReceta({ nombre, onClose, premium = false }) {
               <button onClick={()=>setCookMode(true)} style={{ marginTop:30,width:"100%",background:C.ink,color:C.white,border:"none",borderRadius:16,padding:"18px",fontSize:16,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif",display:"flex",alignItems:"center",justifyContent:"center",gap:10,boxShadow:sh.ink }}>
                 Modo Cocina · pantalla limpia →
               </button>
-            </>
-          ) : (
-            <div style={{ position:"relative", marginBottom:20 }}>
-              <div style={{ marginBottom:16 }}><Eyebrow>Preparación</Eyebrow></div>
-              <div style={{ fontSize:15,lineHeight:1.6,color:C.text,fontFamily:"'Manrope',sans-serif",fontWeight:500,filter:"blur(5px)",userSelect:"none",pointerEvents:"none",marginBottom:8 }}>
-                {r.s[0] || "Paso 1 de la preparación..."}
-              </div>
-              <div style={{ fontSize:15,lineHeight:1.6,color:C.text,fontFamily:"'Manrope',sans-serif",fontWeight:500,filter:"blur(6px)",userSelect:"none",pointerEvents:"none",marginBottom:8 }}>
-                {r.s[1] || "Paso 2 de la preparación..."}
-              </div>
-
-              <div style={{ background:`linear-gradient(180deg, transparent 0%, ${C.white} 30%)`,padding:"60px 24px 24px",borderRadius:20,marginTop:-40,position:"relative",zIndex:2,textAlign:"center" }}>
-                <div style={{ width:48,height:48,borderRadius:14,background:C.blue,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 14px",boxShadow:sh.blue }}>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-                </div>
-                <div style={{ fontSize:18,fontWeight:900,color:C.ink,marginBottom:6,fontFamily:"'Epilogue',sans-serif",letterSpacing:"-0.02em" }}>
-                  Pasos de preparación · <span style={{ color:C.blue,fontStyle:"italic" }}>Premium</span>
-                </div>
-                <div style={{ fontSize:14,color:C.sub,marginBottom:20,fontWeight:500,lineHeight:1.5 }}>
-                  Desbloqueá los pasos completos, modo cocina y chef IA.
-                </div>
-                <a href={CHECKOUT_URL} target="_blank" rel="noopener noreferrer" onClick={() => trackEvent('AddToCart', {value: 20900, currency: 'ARS'})}
-                  style={{ display:"flex",alignItems:"center",justifyContent:"center",gap:10,width:"100%",padding:"16px",borderRadius:14,background:C.ink,color:C.white,fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif",boxShadow:sh.ink,textDecoration:"none" }}>
-                  Quiero Premium · $20.900 <span style={{ width:26,height:26,borderRadius:"50%",background:C.white,color:C.ink,display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:700 }}>→</span>
-                </a>
-                <div style={{ fontSize:12,color:C.sub,marginTop:10,fontWeight:600 }}>Pago único · Acceso de por vida</div>
-              </div>
-            </div>
-          )}
 
           <button onClick={onClose} style={{ marginTop:10,width:"100%",background:C.white,color:C.ink,border:`1.5px solid ${C.line}`,borderRadius:16,padding:"16px",fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif" }}>Cerrar</button>
         </div>
       </div>
-      {showUpgrade && <UpgradePrompt onClose={()=>setShowUpgrade(false)} />}
     </div>
   );
 }
@@ -953,8 +889,7 @@ function ModalReceta({ nombre, onClose, premium = false }) {
 // ============================================
 // MAIN APP (FREEMIUM — home abierto, gratis primero)
 // ============================================
-function MainApp({ onShowAccess }) {
-  const [premium] = useState(() => isPremium());
+function MainApp() {
   const [screen, setScreen] = useState("home");
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState({});
@@ -975,7 +910,6 @@ function MainApp({ onShowAccess }) {
   const [hoyTiempo, setHoyTiempo] = useState("medio");
   const [hoyPresupuesto, setHoyPresupuesto] = useState("medio");
   const [hoyResult, setHoyResult] = useState(null);
-  const [showUpgrade, setShowUpgrade] = useState(false);
   const scrollRef = useRef(null);
 
   const cur = STEPS[step];
@@ -1032,20 +966,15 @@ function MainApp({ onShowAccess }) {
   };
 
   const handleHoyGenerar = () => {
-    if (!premium && hasUsedFreeToday()) {
-      setShowUpgrade(true);
-      return;
-    }
     const result = generarHoy(hoyCuantas, hoyTipo, hoyIngredientes, hoyNoGusta, hoyDieta, hoyTiempo, hoyObjetivo);
     setHoyResult(result);
     trackEvent('Lead');
-    if (!premium) markFreeUsedToday();
   };
 
   const OBJ_IC = { bajar_peso:"⚖️", saludable:"🥗", ahorrar:"💰", masa:"💪", organizar:"📅", desinflamatoria:"🫚" };
 
   // ============================================
-  // SCREEN: HOME (FREEMIUM — CON TABLA COMPARATIVA)
+  // SCREEN: HOME — TODO DESBLOQUEADO
   // ============================================
   if (screen === "home") return (
     <div ref={scrollRef} style={{ minHeight:"100vh", background:C.bg, fontFamily:"'Manrope',sans-serif", overflowY:"auto", display:"flex", flexDirection:"column", position:"relative", overflow:"hidden" }}>
@@ -1055,16 +984,10 @@ function MainApp({ onShowAccess }) {
       <Blob pos="bl" color="rgba(0,102,204,0.13)" size={400} />
 
       <nav style={{ padding:"18px 26px", display:"flex", alignItems:"center", justifyContent:"flex-end", position:"relative", zIndex:1 }}>
-        {premium ? (
-          <div style={{ display:"flex", alignItems:"center", gap:7, background:C.white, border:`1px solid ${C.line}`, borderRadius:100, padding:"7px 14px", boxShadow:sh.sm }}>
-            <span style={{ width:7, height:7, borderRadius:"50%", background:C.success, display:"inline-block" }}/>
-            <span style={{ fontSize:12, fontWeight:700, color:C.ink, fontFamily:"'Inter',sans-serif" }}>Premium activo</span>
-          </div>
-        ) : (
-          <button onClick={onShowAccess} style={{ display:"flex", alignItems:"center", gap:7, background:C.white, border:`1px solid ${C.line}`, borderRadius:100, padding:"7px 14px", boxShadow:sh.sm, cursor:"pointer", fontFamily:"'Inter',sans-serif" }}>
-            <span style={{ fontSize:12, fontWeight:700, color:C.blue }}>Activar código</span>
-          </button>
-        )}
+        <div style={{ display:"flex", alignItems:"center", gap:7, background:C.white, border:`1px solid ${C.line}`, borderRadius:100, padding:"7px 14px", boxShadow:sh.sm }}>
+          <span style={{ width:7, height:7, borderRadius:"50%", background:C.success, display:"inline-block" }}/>
+          <span style={{ fontSize:12, fontWeight:700, color:C.ink, fontFamily:"'Inter',sans-serif" }}>Premium activo</span>
+        </div>
       </nav>
 
       <div style={{ flex:1, display:"flex", flexDirection:"column", padding:"12px 26px 0", maxWidth:480, margin:"0 auto", width:"100%", position:"relative", zIndex:1 }}>
@@ -1076,7 +999,7 @@ function MainApp({ onShowAccess }) {
           <span style={{ color:C.blue, fontStyle:"italic", fontWeight:800 }}>qué cocinar</span>.
         </h1>
         <p style={{ fontSize:16, color:C.sub, lineHeight:1.55, marginBottom:24, textAlign:"center", fontWeight:500 }}>
-          Kooki te sugiere qué cocinar hoy con lo que tenés en casa.
+          Tu semana resuelta con IA. Menú, recetas y lista de compras.
         </p>
 
         <div style={{ position:"relative", marginBottom:32, display:"flex", justifyContent:"center", alignItems:"center" }}>
@@ -1088,24 +1011,16 @@ function MainApp({ onShowAccess }) {
           style={{ width:"100%", background:C.ink, color:C.white, border:"none", borderRadius:18, padding:"20px 28px", fontSize:16, fontWeight:700, cursor:"pointer", boxShadow:sh.ink, fontFamily:"'Inter',sans-serif", marginBottom:12, display:"flex", alignItems:"center", justifyContent:"center", gap:12, transition:"background 0.2s, transform 0.2s" }}
           onMouseEnter={e => { e.currentTarget.style.background = C.blue; e.currentTarget.style.transform = "translateY(-2px)"; }}
           onMouseLeave={e => { e.currentTarget.style.background = C.ink; e.currentTarget.style.transform = "translateY(0)"; }}>
-          <span>¿Qué cocino hoy? · Gratis</span>
+          <span>¿Qué cocino hoy?</span>
           <span style={{ width:30, height:30, borderRadius:"50%", background:C.white, color:C.ink, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:16, fontWeight:700 }}>→</span>
         </button>
 
-        {premium ? (
-          <button onClick={() => { setScreen("onboarding"); setStep(0); setAnswers({}); }}
-            style={{ width:"100%", background:C.white, color:C.ink, border:`1.5px solid ${C.line}`, borderRadius:18, padding:"18px", fontSize:16, fontWeight:700, cursor:"pointer", fontFamily:"'Inter',sans-serif", marginBottom:12, transition:"border-color 0.2s" }}
-            onMouseEnter={e => e.currentTarget.style.borderColor = C.ink}
-            onMouseLeave={e => e.currentTarget.style.borderColor = C.line}>
-            Armar mi semana completa
-          </button>
-        ) : (
-          <button onClick={() => setShowUpgrade(true)}
-            style={{ width:"100%", background:C.white, color:C.blue, border:`1.5px solid ${C.blue}`, borderRadius:18, padding:"18px", fontSize:16, fontWeight:700, cursor:"pointer", fontFamily:"'Inter',sans-serif", marginBottom:12 }}>
-            Armar mi semana · Premium
-          </button>
-        )}
-
+        <button onClick={() => { setScreen("onboarding"); setStep(0); setAnswers({}); }}
+          style={{ width:"100%", background:C.white, color:C.ink, border:`1.5px solid ${C.line}`, borderRadius:18, padding:"18px", fontSize:16, fontWeight:700, cursor:"pointer", fontFamily:"'Inter',sans-serif", marginBottom:12, transition:"border-color 0.2s" }}
+          onMouseEnter={e => e.currentTarget.style.borderColor = C.ink}
+          onMouseLeave={e => e.currentTarget.style.borderColor = C.line}>
+          Armar mi semana completa
+        </button>
 
         {/* ECOSISTEMA KOOKI — BONOS */}
         <div style={{ marginBottom:28, marginTop:20 }}>
@@ -1137,19 +1052,11 @@ function MainApp({ onShowAccess }) {
             </div>
           </div>
         </div>
-        {/* TABLA COMPARATIVA GRATIS VS PREMIUM — REEMPLAZA LOS 4 BULLETS */}
-        <div style={{ marginBottom:32, marginTop:12 }}>
-          <div style={{ display:"flex", justifyContent:"center", marginBottom:18 }}>
-            <Eyebrow center>Gratis vs Premium</Eyebrow>
-          </div>
-          <ComparisonTable />
-        </div>
 
         <p style={{ textAlign:"center", fontSize:13, color:C.sub, marginBottom:48, fontFamily:"'Inter',sans-serif", fontWeight:500 }}>
-          ✓ Probá gratis hoy · ✓ Premium $20.900 pago único
+          Kooki · Tu cocina con IA
         </p>
       </div>
-      {showUpgrade && <UpgradePrompt onClose={()=>setShowUpgrade(false)} title={<>Armar tu semana es <span style={{color:C.blue,fontStyle:"italic"}}>Premium</span>.</>} subtitle="Menú de 7 días, lista de compras, recetas completas y chef IA. Un pago, acceso de por vida." />}
     </div>
   );
 
@@ -1165,7 +1072,6 @@ function MainApp({ onShowAccess }) {
       <div style={{ padding:"16px 22px", display:"flex", alignItems:"center", gap:14, borderBottom:`1px solid ${C.line}`, background:C.bg, position:"relative", zIndex:1 }}>
         <button onClick={() => setScreen("home")} style={{ background:C.white, border:`1px solid ${C.line}`, borderRadius:12, width:40, height:40, cursor:"pointer", fontSize:18, display:"flex", alignItems:"center", justifyContent:"center", color:C.ink, fontWeight:700 }}>←</button>
         <div style={{ fontSize:18, fontWeight:800, color:C.ink, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.025em" }}>¿Qué cocino hoy?</div>
-        {!premium && <div style={{ marginLeft:"auto", fontSize:12, fontWeight:700, color:C.blue, fontFamily:"'Inter',sans-serif", background:C.blueLt, padding:"5px 12px", borderRadius:20 }}>Gratis</div>}
       </div>
 
       {!hoyResult ? (
@@ -1302,7 +1208,7 @@ function MainApp({ onShowAccess }) {
             <span>Sugerir receta</span>
             <span style={{ width:30, height:30, borderRadius:"50%", background:C.white, color:C.ink, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:16, fontWeight:700 }}>→</span>
           </button>
-          {!premium && <p style={{ textAlign:"center", fontSize:12, color:C.sub, marginTop:8, fontWeight:500 }}>1 sugerencia gratuita por día</p>}
+
         </div>
       ) : (
         <div style={{ flex:1, padding:"32px 24px", maxWidth:520, margin:"0 auto", width:"100%", position:"relative", zIndex:1 }}>
@@ -1347,38 +1253,17 @@ function MainApp({ onShowAccess }) {
             })}
           </div>
 
-          {!premium && (
-            <div style={{ background:C.ink, borderRadius:20, padding:"28px 24px", marginBottom:20, position:"relative", overflow:"hidden" }}>
-              <BgGrid dark />
-              <div style={{ position:"relative", zIndex:1 }}>
-                <div style={{ fontSize:18, fontWeight:900, color:C.white, marginBottom:8, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.02em", lineHeight:1.1 }}>
-                  Eso fue <span style={{ color:C.blue, fontStyle:"italic" }}>1 día</span>. ¿Querés los 7?
-                </div>
-                <div style={{ fontSize:14, color:"rgba(255,255,255,0.6)", marginBottom:18, fontWeight:500, lineHeight:1.5 }}>
-                  Menú semanal + lista de compras + recetas completas + chef IA.
-                </div>
-                <a href={CHECKOUT_URL} target="_blank" rel="noopener noreferrer" onClick={() => trackEvent('AddToCart', {value: 20900, currency: 'ARS'})}
-                  style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:10, width:"100%", padding:"16px", borderRadius:14, background:C.blue, color:C.white, fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"'Inter',sans-serif", boxShadow:sh.blue, textDecoration:"none" }}>
-                  Quiero Premium · $20.900 <span style={{ width:26, height:26, borderRadius:"50%", background:C.white, color:C.blue, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:14, fontWeight:700 }}>→</span>
-                </a>
-              </div>
-            </div>
-          )}
-
           <button onClick={() => {
-            if (!premium && hasUsedFreeToday()) { setShowUpgrade(true); return; }
             const r2 = generarHoy(hoyCuantas, hoyTipo, hoyIngredientes, hoyNoGusta, hoyDieta, hoyTiempo, hoyObjetivo);
             setHoyResult(r2);
-            if (!premium) markFreeUsedToday();
           }} style={{ width:"100%", background:C.white, color:C.ink, border:`1.5px solid ${C.line}`, borderRadius:16, padding:"16px", fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"'Inter',sans-serif", marginBottom:12 }}>↺ Otra sugerencia</button>
           <button onClick={() => setHoyResult(null)} style={{ width:"100%", background:"transparent", color:C.sub, border:"none", borderRadius:16, padding:"14px", fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"'Inter',sans-serif" }}>← Volver</button>
         </div>
       )}
 
-      {receta && <ModalReceta nombre={receta} onClose={()=>setReceta(null)} premium={premium} />}
-      {showUpgrade && <UpgradePrompt onClose={()=>setShowUpgrade(false)} title={<>Ya usaste tu sugerencia <span style={{color:C.blue,fontStyle:"italic"}}>gratis</span> de hoy.</>} subtitle="Con Premium tenés sugerencias ilimitadas, menú semanal, lista de compras y chef IA." />}
+      {receta && <ModalReceta nombre={receta} onClose={()=>setReceta(null)} />}
 
-      {premium && hoyResult && (
+      {hoyResult && (
         <div style={{ position:"fixed", bottom:28, right:22, zIndex:100 }}>
           <button onClick={() => setChefOpen(true)} style={{ width:60, height:60, borderRadius:"50%", border:"none", background:C.blue, color:C.white, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:sh.blue, animation:"chefBounce 2s ease infinite" }}>
             <ChefHat size={32}/>
@@ -1741,7 +1626,7 @@ function MainApp({ onShowAccess }) {
             </button>
           </div>
         )}
-        {receta && <ModalReceta nombre={receta} onClose={()=>setReceta(null)} premium={true} />}
+        {receta && <ModalReceta nombre={receta} onClose={()=>setReceta(null)} />}
         {chefOpen && <ChefChat result={result} recetaActual={receta} onClose={()=>setChefOpen(false)}/>}
       </div>
     );
@@ -1751,21 +1636,18 @@ function MainApp({ onShowAccess }) {
 }
 
 // ============================================
-// APP ROOT — ya no pide código obligatorio
+// APP ROOT — sin código no entrás
 // ============================================
 export default function App() {
-  const [showAccess, setShowAccess] = useState(false);
+  const [premium, setPremium] = useState(() => isPremium());
 
   useEffect(() => { initPixel(); }, []);
 
-  window.__showAccessScreen = () => setShowAccess(true);
-
-  if (showAccess) {
+  if (!premium) {
     return <AccessScreen
-      onAccess={() => { setShowAccess(false); window.location.reload(); }}
-      onBack={() => setShowAccess(false)}
+      onAccess={() => { setPremium(true); window.location.reload(); }}
     />;
   }
 
-  return <MainApp onShowAccess={() => setShowAccess(true)} />;
+  return <MainApp />;
 }
