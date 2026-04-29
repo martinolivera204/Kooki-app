@@ -1836,21 +1836,12 @@ function MainApp() {
             <div style={{ fontSize:15, color:"rgba(255,255,255,0.7)", lineHeight:1.55, marginBottom:22, fontWeight:500 }}>
               {result.ahorro ? `${result.ahorro.sharedCount} ingredientes compartidos entre recetas. Comprás menos, tirás menos.` : result.tip}
             </div>
-            {result.lista_total > 0 && (
-              <div style={{ background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:18, padding:"16px 20px", display:"flex", flexDirection:"column", gap:12, backdropFilter:"blur(10px)" }}>
-                <div style={{ display:"flex", alignItems:"center", gap:14 }}>
-                  <div style={{ width:42, height:42, borderRadius:12, background:"rgba(59,111,212,0.2)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:22, flexShrink:0 }}>🛒</div>
-                  <div>
-                    <div style={{ fontSize:11, color:"rgba(255,255,255,0.5)", fontWeight:600, letterSpacing:"0.12em", textTransform:"uppercase", fontFamily:"'Inter',sans-serif" }}>Estimado compras semanales</div>
-                    <div style={{ fontSize:22, fontWeight:900, color:C.white, marginTop:3, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.03em" }}>~${Math.round(result.lista_total/1000)*1000} ARS</div>
-                  </div>
-                </div>
-                <div style={{ display:"flex", alignItems:"center", gap:14, padding:"12px 14px", background:"rgba(16,185,129,0.12)", border:"1px solid rgba(16,185,129,0.25)", borderRadius:12 }}>
-                  <div style={{ width:36, height:36, borderRadius:10, background:"rgba(16,185,129,0.25)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:16, flexShrink:0 }}>↓</div>
-                  <div>
-                    <div style={{ fontSize:11, color:"rgba(16,185,129,0.8)", fontWeight:600, letterSpacing:"0.1em", textTransform:"uppercase", fontFamily:"'Inter',sans-serif" }}>Ahorro estimado vs sin planificar</div>
-                    <div style={{ fontSize:18, fontWeight:900, color:"#34D399", marginTop:2, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.03em" }}>~${Math.round(result.lista_total*0.3/1000)*1000} menos en el súper</div>
-                  </div>
+            {result.precio_estimado && (
+              <div style={{ background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:18, padding:"16px 20px", display:"flex", alignItems:"center", gap:14, backdropFilter:"blur(10px)" }}>
+                <div style={{ width:42, height:42, borderRadius:12, background:"rgba(59,111,212,0.2)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:22, flexShrink:0 }}>🛒</div>
+                <div>
+                  <div style={{ fontSize:11, color:"rgba(255,255,255,0.5)", fontWeight:600, letterSpacing:"0.12em", textTransform:"uppercase", fontFamily:"'Inter',sans-serif" }}>Estimado compras semanales</div>
+                  <div style={{ fontSize:22, fontWeight:900, color:C.white, marginTop:3, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.03em" }}>{result.precio_estimado} ARS</div>
                 </div>
               </div>
             )}
@@ -1901,16 +1892,16 @@ function MainApp() {
               {/* AHORRO BANNER */}
               <div style={{ background:"linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)", borderRadius:20, padding:"20px", marginBottom:14, border:"1px solid #A7F3D0" }}>
                 <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:8 }}>
-                  <div style={{ width:32, height:32, borderRadius:10, background:"#10B981", display:"flex", alignItems:"center", justifyContent:"center", fontSize:16, color:"white", fontWeight:900 }}>↓</div>
+                  <div style={{ width:32, height:32, borderRadius:10, background:"#10B981", display:"flex", alignItems:"center", justifyContent:"center", fontSize:16, color:"white", fontWeight:900 }}>✓</div>
                   <div style={{ fontSize:12, fontWeight:700, color:"#059669", fontFamily:"'Inter',sans-serif", textTransform:"uppercase", letterSpacing:"0.08em" }}>Lista inteligente</div>
                 </div>
                 <div style={{ fontSize:15, color:"#047857", lineHeight:1.5, fontWeight:600, fontFamily:"'Manrope',sans-serif" }}>
-                  {result.ahorro ? `${result.ahorro.sharedCount} ingredientes compartidos entre recetas — comprás ${result.ahorro.uniqueCount} productos, no ${Math.round(result.ahorro.uniqueCount * 1.7)}.` : "Generada desde tus 14 recetas."}
+                  {result.ahorro ? `${result.ahorro.sharedCount} ingredientes compartidos entre recetas. Comprás ${result.ahorro.uniqueCount} productos, no ${Math.round(result.ahorro.uniqueCount * 1.7)}.` : "Generada desde tus 14 recetas."}
                 </div>
-                {result.lista_total > 0 && (
+                {result.precio_estimado && (
                   <div style={{ marginTop:12, padding:"12px 16px", background:"rgba(255,255,255,0.7)", borderRadius:12, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-                    <span style={{ fontSize:13, fontWeight:600, color:"#059669", fontFamily:"'Inter',sans-serif" }}>Estimado total</span>
-                    <span style={{ fontSize:22, fontWeight:900, color:"#047857", fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.03em" }}>~${Math.round(result.lista_total/1000)*1000}</span>
+                    <span style={{ fontSize:13, fontWeight:600, color:"#059669", fontFamily:"'Inter',sans-serif" }}>Estimado semanal</span>
+                    <span style={{ fontSize:18, fontWeight:900, color:"#047857", fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.03em" }}>{result.precio_estimado}</span>
                   </div>
                 )}
               </div>
@@ -1946,13 +1937,8 @@ function MainApp() {
                               color: checkedItems[isCheckedKey] ? C.gray3 : C.text,
                               textDecoration: checkedItems[isCheckedKey] ? "line-through" : "none",
                             }}>
-                              {item.displayLabel || item.label}{item.recetas > 1 ? ` (×${item.recetas} recetas)` : ""}
+                            {item.displayLabel || item.label}{item.recetas > 1 ? ` (×${item.recetas} recetas)` : ""}
                             </span>
-                            {precio > 0 && !isCondimentos && (
-                              <span style={{ fontSize:12, fontWeight:700, color:C.sub, fontFamily:"'Inter',sans-serif", flexShrink:0 }}>
-                                ~${Math.round(precio/100)*100}
-                              </span>
-                            )}
                           </div>
                         );
                       })}
