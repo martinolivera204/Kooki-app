@@ -434,7 +434,80 @@ const META = {
 };
 
 // ============================================
-// LÓGICA DE HISTORIA Y GENERACIÓN (idéntico)
+// LISTA DE COMPRAS DINÁMICA — consolida ingredientes del menú real
+// ============================================
+const ING_CATEGORIES = {
+  "🥩 Carnicería": ["pollo","pechuga","carne","bife","lomo","cerdo","bondiola","costeleta","entraña","vacio","tira","osobuco","peceto","nalga","cuadril","milanesa","chorizo","hamburguesa","panceta","jamon","roast","paleta","escalope"],
+  "🐟 Pescadería": ["salmon","merluza","atun","trucha","tilapia","langostino","mejillon","calamar","marisco","sardina","pescado"],
+  "🥦 Verdulería": ["espinaca","brocoli","tomate","cebolla","zanahoria","papa","batata","zapallo","zapallito","morron","lechuga","rucula","pepino","berenjena","esparrago","palta","champiñon","champinon","ajo","perejil","albahaca","apio","arveja","choclo","limon","naranja","manzana","lima","jengibre","anana"],
+  "🥚 Huevos y Lácteos": ["huevo","clara","ricota","queso","mozzarella","yogur","leche","crema","manteca","cheddar","parmesano","cottage","feta"],
+  "🌾 Almacén": ["arroz","fideos","quinoa","lenteja","garbanzo","harina","pan","tortilla","tapa","polenta","almidon","sesamo","chia","arandano","frutos"],
+  "🧴 Condimentos y Aceites": ["aceite","sal","pimienta","oregano","romero","tomillo","curcuma","comino","pimenton","aji","laurel","nuez moscada","eneldo","soja","vinagre","mostaza","miel","salsa","caldo","cognac","vino"],
+};
+function categorizeIngredient(ing) {
+  const lower = ing.toLowerCase();
+  for (const [cat, keywords] of Object.entries(ING_CATEGORIES)) {
+    if (keywords.some(kw => lower.includes(kw))) return cat;
+  }
+  return "🛒 Otros";
+}
+function buildDynamicList(menu) {
+  const allIngs = {};
+  menu.forEach(d => {
+    [d.alm, d.cen].forEach(nombre => {
+      const r = R[nombre];
+      if (!r || !r.i) return;
+      r.i.forEach(ing => {
+        const key = ing.toLowerCase().replace(/\d+g?\s*/g,'').replace(/x\d+/g,'').replace(/c\/u/g,'').trim();
+        const normalized = key.length > 2 ? key : ing;
+        if (!allIngs[normalized]) {
+          allIngs[normalized] = { display: ing, count: 1, cat: categorizeIngredient(ing) };
+        } else {
+          allIngs[normalized].count += 1;
+        }
+      });
+    });
+  });
+  const grouped = {};
+  Object.values(allIngs).forEach(item => {
+    if (!grouped[item.cat]) grouped[item.cat] = [];
+    const display = item.count > 1 ? `${item.display} (×${item.count} recetas)` : item.display;
+    grouped[item.cat].push(display);
+  });
+  return grouped;
+}
+function countUniqueIngredients(menu) {
+  const all = new Set();
+  menu.forEach(d => {
+    [d.alm, d.cen].forEach(nombre => {
+      const r = R[nombre];
+      if (!r || !r.i) return;
+      r.i.forEach(ing => {
+        const key = ing.toLowerCase().replace(/\d+g?\s*/g,'').replace(/x\d+/g,'').trim();
+        if (key.length > 2) all.add(key);
+      });
+    });
+  });
+  return all.size;
+}
+function countSharedIngredients(menu) {
+  const ingCount = {};
+  menu.forEach(d => {
+    [d.alm, d.cen].forEach(nombre => {
+      const r = R[nombre];
+      if (!r || !r.i) return;
+      const seen = new Set();
+      r.i.forEach(ing => {
+        const key = ing.toLowerCase().replace(/\d+g?\s*/g,'').replace(/x\d+/g,'').trim();
+        if (key.length > 2 && !seen.has(key)) { seen.add(key); ingCount[key] = (ingCount[key] || 0) + 1; }
+      });
+    });
+  });
+  return Object.values(ingCount).filter(c => c >= 2).length;
+}
+
+// ============================================
+// LÓGICA DE HISTORIA Y GENERACIÓN
 // ============================================
 function getHistory() {
   try {
@@ -541,23 +614,83 @@ function generar(a) {
   const candidatosCen = conScore.filter(x => x.liviana).slice(0, 20);
   const almsBase = candidatosAlm.length >= 7 ? candidatosAlm : conScore.slice(0, 25);
   const censBase = candidatosCen.length >= 7 ? candidatosCen : conScore.filter(x => !almsBase.slice(0,7).find(a => a.n === x.n)).slice(0, 20);
+
+  // === INGREDIENT OVERLAP SCORING ===
+  // Score candidates higher if they share ingredients with already-selected recipes
   const usadas = new Set();
+  const selectedIngs = new Set();
   const almsElegidas = [];
-  for (const c of almsBase) { if (almsElegidas.length >= 7) break; if (usadas.has(c.n)) continue; almsElegidas.push(c.n); usadas.add(c.n); }
+
+  function addRecipeIngs(nombre) {
+    const r = R[nombre];
+    if (!r || !r.i) return;
+    r.i.forEach(ing => {
+      const key = ing.toLowerCase().replace(/\d+g?\s*/g,'').replace(/x\d+/g,'').trim();
+      if (key.length > 2) selectedIngs.add(key);
+    });
+  }
+  function overlapBonus(nombre) {
+    if (selectedIngs.size === 0) return 0;
+    const r = R[nombre];
+    if (!r || !r.i) return 0;
+    let matches = 0;
+    r.i.forEach(ing => {
+      const key = ing.toLowerCase().replace(/\d+g?\s*/g,'').replace(/x\d+/g,'').trim();
+      if (key.length > 2 && selectedIngs.has(key)) matches++;
+    });
+    return matches * 4; // bonus per shared ingredient
+  }
+
+  // Select almuerzos with overlap bonus
+  for (const c of almsBase) {
+    if (almsElegidas.length >= 7) break;
+    if (usadas.has(c.n)) continue;
+    almsElegidas.push(c.n);
+    usadas.add(c.n);
+    addRecipeIngs(c.n);
+  }
   while (almsElegidas.length < 7) almsElegidas.push(almsBase[0]?.n || todas[0]);
+
+  // Re-score cenas with overlap from selected almuerzos
+  const censWithOverlap = censBase
+    .filter(x => !usadas.has(x.n))
+    .map(x => ({ ...x, s: x.s + overlapBonus(x.n) }))
+    .sort((a, b) => b.s - a.s);
+
   const censElegidas = [];
-  for (const c of censBase) { if (censElegidas.length >= 7) break; if (usadas.has(c.n)) continue; censElegidas.push(c.n); usadas.add(c.n); }
+  for (const c of censWithOverlap) {
+    if (censElegidas.length >= 7) break;
+    if (usadas.has(c.n)) continue;
+    censElegidas.push(c.n);
+    usadas.add(c.n);
+    addRecipeIngs(c.n);
+  }
   while (censElegidas.length < 7) {
     const fallback = conScore.find(x => !usadas.has(x.n));
     if (!fallback) break; censElegidas.push(fallback.n); usadas.add(fallback.n);
   }
+
   const menu = DIAS.map((dia, i) => ({
     dia, alm: almsElegidas[i], cen: censElegidas[i],
     tag_alm: (R[almsElegidas[i]]?.tags?.[0]) || "⚡ Rendidor",
     tag_cen: (R[censElegidas[i]]?.tags?.[0]) || "🔥 Bajo en calorias",
   }));
   saveToHistory([...almsElegidas, ...censElegidas]);
-  return { ...meta, menu, lista_compras: LISTAS[key] || LISTAS.organizar, objetivo: key, precio_estimado: meta.precio[a.presupuesto || "medio"], answers: a, dietas, noGusta, tiene };
+
+  // Build dynamic shopping list from actual recipes
+  const lista_dinamica = buildDynamicList(menu);
+  const uniqueCount = countUniqueIngredients(menu);
+  const sharedCount = countSharedIngredients(menu);
+
+  return {
+    ...meta, menu,
+    lista_compras: lista_dinamica,
+    lista_generica: LISTAS[key] || LISTAS.organizar,
+    objetivo: key,
+    precio_estimado: meta.precio[a.presupuesto || "medio"],
+    answers: a, dietas, noGusta, tiene,
+    ahorro: { uniqueCount, sharedCount },
+  };
 }
 function cambiarReceta(menuActual, dia, tipo, objetivo, dietas, tiempo, noGusta = [], tiene = []) {
   const history = getHistory();
@@ -1187,8 +1320,22 @@ function MainApp() {
             <div style={{ fontSize:14, fontWeight:700, color:C.ink, marginBottom:6, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.015em" }}>
               ¿Qué tenés en casa? <span style={{ fontWeight:500, color:C.gray4, fontSize:12, fontFamily:"'Manrope',sans-serif" }}>(opcional)</span>
             </div>
-            <textarea value={hoyIngredientes} onChange={e => setHoyIngredientes(e.target.value)} placeholder="Ej: pollo, arroz, huevos..." rows={2}
-              style={{ width:"100%", padding:"14px 16px", borderRadius:12, border:`1.5px solid ${C.line}`, fontSize:14, color:C.text, resize:"none", lineHeight:1.5, background:C.white, fontFamily:"'Manrope',sans-serif", outline:"none", transition:"border 0.2s" }}
+            <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:8 }}>
+              {["pollo","carne picada","huevos","arroz","fideos","papa","cebolla","tomate","queso","atun","lentejas","palta","espinaca","batata","zanahoria","morron"].map(ing => {
+                const sel = hoyIngredientes.toLowerCase().includes(ing);
+                return (
+                  <button key={ing} onClick={() => {
+                    const cur = hoyIngredientes.split(",").map(s=>s.trim()).filter(Boolean);
+                    const next = sel ? cur.filter(x => x.toLowerCase() !== ing) : [...cur, ing];
+                    setHoyIngredientes(next.join(", "));
+                  }} style={{ padding:"7px 12px", borderRadius:10, border:`1.5px solid ${sel?C.blue:C.line}`, background:sel?C.blueLt:C.white, fontSize:12, fontWeight:sel?700:600, color:sel?C.blue:C.text, cursor:"pointer", fontFamily:"'Inter',sans-serif", transition:"all 0.15s" }}>
+                    {ing}
+                  </button>
+                );
+              })}
+            </div>
+            <textarea value={hoyIngredientes} onChange={e => setHoyIngredientes(e.target.value)} placeholder="O escribí otros..." rows={1}
+              style={{ width:"100%", padding:"10px 14px", borderRadius:10, border:`1.5px solid ${C.line}`, fontSize:13, color:C.text, resize:"none", lineHeight:1.5, background:C.bg, fontFamily:"'Manrope',sans-serif", outline:"none", transition:"border 0.2s" }}
               onFocus={e=>e.target.style.borderColor=C.blue} onBlur={e=>e.target.style.borderColor=C.line}/>
           </div>
 
@@ -1404,16 +1551,37 @@ function MainApp() {
 
           {cur.type === "extras" && (
             <div style={{ display:"flex", flexDirection:"column", gap:22 }}>
-              {[{id:"ingredientes",label:"¿Qué tenés en casa ahora?",ph:"Ej: arroz, huevos, pollo..."},{id:"no_gusta",label:"¿Algo que no comas?",ph:"Ej: cebolla cruda, mariscos..."}].map(f2 => (
-                <div key={f2.id}>
-                  <div style={{ fontSize:15, fontWeight:700, color:C.ink, marginBottom:10, display:"flex", alignItems:"center", gap:8, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.015em" }}>
-                    {f2.label} <span style={{ fontWeight:500, color:C.gray4, fontSize:13, fontFamily:"'Manrope',sans-serif" }}>(opcional)</span>
-                  </div>
-                  <textarea value={answers[f2.id]||""} onChange={e=>setAnswers(a=>({...a,[f2.id]:e.target.value}))} placeholder={f2.ph} rows={3}
-                    style={{ width:"100%", padding:"15px 18px", borderRadius:14, border:`1.5px solid ${C.line}`, fontSize:15, color:C.text, resize:"none", lineHeight:1.55, background:C.white, fontFamily:"'Manrope',sans-serif", outline:"none", transition:"border 0.2s" }}
-                    onFocus={e=>e.target.style.borderColor=C.blue} onBlur={e=>e.target.style.borderColor=C.line}/>
+              <div>
+                <div style={{ fontSize:15, fontWeight:700, color:C.ink, marginBottom:10, display:"flex", alignItems:"center", gap:8, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.015em" }}>
+                  ¿Qué tenés en casa ahora? <span style={{ fontWeight:500, color:C.gray4, fontSize:13, fontFamily:"'Manrope',sans-serif" }}>(opcional)</span>
                 </div>
-              ))}
+                <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:8 }}>
+                  {["pollo","carne picada","huevos","arroz","fideos","papa","cebolla","tomate","zanahoria","queso","leche","morron","zapallito","espinaca","atun","lentejas","pan","palta","brocoli","batata","ajo","limon","harina","manteca"].map(ing => {
+                    const current = (answers.ingredientes || "").toLowerCase();
+                    const sel = current.includes(ing);
+                    return (
+                      <button key={ing} onClick={() => {
+                        const cur = (answers.ingredientes || "").split(",").map(s=>s.trim()).filter(Boolean);
+                        const next = sel ? cur.filter(x => x.toLowerCase() !== ing) : [...cur, ing];
+                        setAnswers(a => ({ ...a, ingredientes: next.join(", ") }));
+                      }} style={{ padding:"8px 14px", borderRadius:12, border:`1.5px solid ${sel?C.blue:C.line}`, background:sel?C.blueLt:C.white, fontSize:13, fontWeight:sel?700:600, color:sel?C.blue:C.text, cursor:"pointer", fontFamily:"'Inter',sans-serif", transition:"all 0.15s" }}>
+                        {ing}
+                      </button>
+                    );
+                  })}
+                </div>
+                <textarea value={answers.ingredientes||""} onChange={e=>setAnswers(a=>({...a,ingredientes:e.target.value}))} placeholder="O escribí otros: harina, crema..." rows={2}
+                  style={{ width:"100%", padding:"12px 16px", borderRadius:12, border:`1.5px solid ${C.line}`, fontSize:13, color:C.text, resize:"none", lineHeight:1.5, background:C.bg, fontFamily:"'Manrope',sans-serif", outline:"none", transition:"border 0.2s" }}
+                  onFocus={e=>e.target.style.borderColor=C.blue} onBlur={e=>e.target.style.borderColor=C.line}/>
+              </div>
+              <div>
+                <div style={{ fontSize:15, fontWeight:700, color:C.ink, marginBottom:10, display:"flex", alignItems:"center", gap:8, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.015em" }}>
+                  ¿Algo que no comas? <span style={{ fontWeight:500, color:C.gray4, fontSize:13, fontFamily:"'Manrope',sans-serif" }}>(opcional)</span>
+                </div>
+                <textarea value={answers.no_gusta||""} onChange={e=>setAnswers(a=>({...a,no_gusta:e.target.value}))} placeholder="Ej: mariscos, cebolla cruda..." rows={2}
+                  style={{ width:"100%", padding:"15px 18px", borderRadius:14, border:`1.5px solid ${C.line}`, fontSize:15, color:C.text, resize:"none", lineHeight:1.55, background:C.white, fontFamily:"'Manrope',sans-serif", outline:"none", transition:"border 0.2s" }}
+                  onFocus={e=>e.target.style.borderColor=C.blue} onBlur={e=>e.target.style.borderColor=C.line}/>
+              </div>
             </div>
           )}
 
@@ -1431,7 +1599,7 @@ function MainApp() {
   }
 
   if (screen === "loading") {
-    const MSGS = ["Analizando tu objetivo...","Seleccionando las mejores recetas...","Calculando la lista de compras...","Optimizando el presupuesto...","¡Tu menú está casi listo!"];
+    const MSGS = ["Analizando tu objetivo...","Seleccionando recetas con ingredientes compartidos...","Armando la lista exacta del súper...","Calculando tu ahorro estimado...","¡Tu plan está casi listo!"];
     return (
       <div style={{ minHeight:"100vh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:32, fontFamily:"'Manrope',sans-serif", position:"relative", overflow:"hidden" }}>
         <style>{BASE}</style>
@@ -1476,13 +1644,24 @@ function MainApp() {
             <h1 style={{ fontSize:"clamp(28px, 7vw, 38px)", fontWeight:900, color:C.white, marginBottom:14, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.04em", lineHeight:1.0 }}>
               Tu plan está <span style={{ color:C.blue, fontStyle:"italic", fontWeight:800 }}>listo</span>.
             </h1>
-            <div style={{ fontSize:15, color:"rgba(255,255,255,0.7)", lineHeight:1.55, marginBottom:22, fontWeight:500 }}>{result.tip}</div>
+            <div style={{ fontSize:15, color:"rgba(255,255,255,0.7)", lineHeight:1.55, marginBottom:22, fontWeight:500 }}>
+              {result.ahorro ? `${result.ahorro.sharedCount} ingredientes compartidos entre recetas. Comprás menos, tirás menos.` : result.tip}
+            </div>
             {result.precio_estimado && (
-              <div style={{ background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:18, padding:"16px 20px", display:"flex", alignItems:"center", gap:14, backdropFilter:"blur(10px)" }}>
-                <div style={{ width:42, height:42, borderRadius:12, background:"rgba(59,111,212,0.2)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:22, flexShrink:0 }}>🛒</div>
-                <div>
-                  <div style={{ fontSize:11, color:"rgba(255,255,255,0.5)", fontWeight:600, letterSpacing:"0.12em", textTransform:"uppercase", fontFamily:"'Inter',sans-serif" }}>Estimado compras semanales</div>
-                  <div style={{ fontSize:22, fontWeight:900, color:C.white, marginTop:3, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.03em" }}>{result.precio_estimado} ARS</div>
+              <div style={{ background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:18, padding:"16px 20px", display:"flex", flexDirection:"column", gap:12, backdropFilter:"blur(10px)" }}>
+                <div style={{ display:"flex", alignItems:"center", gap:14 }}>
+                  <div style={{ width:42, height:42, borderRadius:12, background:"rgba(59,111,212,0.2)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:22, flexShrink:0 }}>🛒</div>
+                  <div>
+                    <div style={{ fontSize:11, color:"rgba(255,255,255,0.5)", fontWeight:600, letterSpacing:"0.12em", textTransform:"uppercase", fontFamily:"'Inter',sans-serif" }}>Estimado compras semanales</div>
+                    <div style={{ fontSize:22, fontWeight:900, color:C.white, marginTop:3, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.03em" }}>{result.precio_estimado} ARS</div>
+                  </div>
+                </div>
+                <div style={{ display:"flex", alignItems:"center", gap:14, padding:"12px 14px", background:"rgba(16,185,129,0.12)", border:"1px solid rgba(16,185,129,0.25)", borderRadius:12 }}>
+                  <div style={{ width:36, height:36, borderRadius:10, background:"rgba(16,185,129,0.25)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:16, flexShrink:0 }}>↓</div>
+                  <div>
+                    <div style={{ fontSize:11, color:"rgba(16,185,129,0.8)", fontWeight:600, letterSpacing:"0.1em", textTransform:"uppercase", fontFamily:"'Inter',sans-serif" }}>Ahorro estimado vs sin planificar</div>
+                    <div style={{ fontSize:18, fontWeight:900, color:"#34D399", marginTop:2, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.03em" }}>~30% menos en el súper</div>
+                  </div>
                 </div>
               </div>
             )}
@@ -1529,23 +1708,59 @@ function MainApp() {
           )}
 
           {tab === "lista" && (
-            <div style={{ background:C.white, borderRadius:20, overflow:"hidden", boxShadow:sh.md, border:`1px solid ${C.line}` }}>
-              {Object.entries(result.lista_compras).map(([cat,items],i,arr) => (
-                <div key={i}>
-                  <div style={{ padding:"18px 20px" }}>
-                    <div style={{ fontSize:15, fontWeight:800, color:C.ink, marginBottom:14, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.02em" }}>{cat}</div>
-                    <div style={{ display:"flex", flexDirection:"column", gap:11 }}>
-                      {items.map((item,j) => (
-                        <label key={j} style={{ display:"flex", alignItems:"center", gap:12, cursor:"pointer" }}>
-                          <div style={{ width:22, height:22, borderRadius:7, border:`2px solid ${C.gray3}`, flexShrink:0 }}/>
-                          <span style={{ fontSize:14.5, color:C.text, fontWeight:500, fontFamily:"'Manrope',sans-serif" }}>{item}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                  {i<arr.length-1 && <div style={{ height:1, background:C.line }}/>}
+            <div>
+              {/* AHORRO BANNER */}
+              <div style={{ background:"linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)", borderRadius:20, padding:"22px 22px", marginBottom:14, border:"1px solid #A7F3D0" }}>
+                <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
+                  <div style={{ width:36, height:36, borderRadius:10, background:"#10B981", display:"flex", alignItems:"center", justifyContent:"center", fontSize:18, color:"white", fontWeight:900 }}>↓</div>
+                  <div style={{ fontSize:13, fontWeight:700, color:"#059669", fontFamily:"'Inter',sans-serif", textTransform:"uppercase", letterSpacing:"0.08em" }}>Tu ahorro esta semana</div>
                 </div>
-              ))}
+                <div style={{ fontSize:28, fontWeight:900, color:"#047857", fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.04em", marginBottom:6 }}>
+                  ~$42.000 menos en el súper
+                </div>
+                <div style={{ fontSize:13, color:"#059669", lineHeight:1.5, fontWeight:500, fontFamily:"'Manrope',sans-serif" }}>
+                  {result.ahorro ? `Tu menú comparte ${result.ahorro.sharedCount} ingredientes entre recetas. Comprás ${result.ahorro.uniqueCount} productos en vez de ~${Math.round(result.ahorro.uniqueCount * 1.6)}.` : "Planificando = comprás solo lo que usás."}
+                </div>
+              </div>
+
+              {/* LISTA DINÁMICA */}
+              <div style={{ background:C.white, borderRadius:20, overflow:"hidden", boxShadow:sh.md, border:`1px solid ${C.line}` }}>
+                <div style={{ padding:"14px 20px", borderBottom:`1px solid ${C.line}`, background:C.bg }}>
+                  <div style={{ fontSize:13, fontWeight:700, color:C.blue, fontFamily:"'Inter',sans-serif", textTransform:"uppercase", letterSpacing:"0.08em", display:"flex", alignItems:"center", gap:8 }}>
+                    <span style={{ width:20, height:2, background:C.blue, display:"inline-block" }}/>
+                    Lista generada desde tus recetas
+                  </div>
+                </div>
+                {Object.entries(result.lista_compras).map(([cat,items],i,arr) => (
+                  <div key={i}>
+                    <div style={{ padding:"18px 20px" }}>
+                      <div style={{ fontSize:15, fontWeight:800, color:C.ink, marginBottom:14, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.02em" }}>{cat}</div>
+                      <div style={{ display:"flex", flexDirection:"column", gap:11 }}>
+                        {items.map((item,j) => (
+                          <label key={j} style={{ display:"flex", alignItems:"center", gap:12, cursor:"pointer" }} onClick={e => {
+                            const check = e.currentTarget.querySelector('.k-check');
+                            const text = e.currentTarget.querySelector('.k-item-text');
+                            if (check && text) {
+                              const done = check.style.background === C.blue;
+                              check.style.background = done ? 'transparent' : C.blue;
+                              check.style.borderColor = done ? C.gray3 : C.blue;
+                              check.innerHTML = done ? '' : '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+                              text.style.textDecoration = done ? 'none' : 'line-through';
+                              text.style.color = done ? C.text : C.gray3;
+                            }
+                          }}>
+                            <div className="k-check" style={{ width:22, height:22, borderRadius:7, border:`2px solid ${C.gray3}`, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.15s" }}/>
+                            <span className="k-item-text" style={{ fontSize:14.5, color:C.text, fontWeight:500, fontFamily:"'Manrope',sans-serif", transition:"all 0.15s" }}>
+                              {item}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                    {i<arr.length-1 && <div style={{ height:1, background:C.line }}/>}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
