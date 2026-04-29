@@ -434,76 +434,187 @@ const META = {
 };
 
 // ============================================
-// LISTA DE COMPRAS DINÁMICA — consolida ingredientes del menú real
+// LISTA DE COMPRAS DINÁMICA v2 — consolidación real + precios
 // ============================================
-const ING_CATEGORIES = {
-  "🥩 Carnicería": ["pollo","pechuga","carne","bife","lomo","cerdo","bondiola","costeleta","entraña","vacio","tira","osobuco","peceto","nalga","cuadril","milanesa","chorizo","hamburguesa","panceta","jamon","roast","paleta","escalope"],
-  "🐟 Pescadería": ["salmon","merluza","atun","trucha","tilapia","langostino","mejillon","calamar","marisco","sardina","pescado"],
-  "🥦 Verdulería": ["espinaca","brocoli","tomate","cebolla","zanahoria","papa","batata","zapallo","zapallito","morron","lechuga","rucula","pepino","berenjena","esparrago","palta","champiñon","champinon","ajo","perejil","albahaca","apio","arveja","choclo","limon","naranja","manzana","lima","jengibre","anana"],
-  "🥚 Huevos y Lácteos": ["huevo","clara","ricota","queso","mozzarella","yogur","leche","crema","manteca","cheddar","parmesano","cottage","feta"],
-  "🌾 Almacén": ["arroz","fideos","quinoa","lenteja","garbanzo","harina","pan","tortilla","tapa","polenta","almidon","sesamo","chia","arandano","frutos"],
-  "🧴 Condimentos y Aceites": ["aceite","sal","pimienta","oregano","romero","tomillo","curcuma","comino","pimenton","aji","laurel","nuez moscada","eneldo","soja","vinagre","mostaza","miel","salsa","caldo","cognac","vino"],
+// Precios promedio ARS (abril 2026) — actualizar 1 vez por mes
+const PRECIOS = {
+  pollo:5500, pechuga:4200, carne_picada:5800, bife:7500, lomo:9500, cerdo:5000, bondiola:6500,
+  entraña:8500, vacio:7800, tira:6000, osobuco:4500, peceto:7000, nalga:6800, cuadril:7200,
+  milanesa:5500, costeleta:4800, carre:7500, panceta:4000, hamburguesa:5200, escalope:4500,
+  salmon:8500, merluza:4200, atun_lata:1800, trucha:7000, tilapia:4500, langostino:6500,
+  mejillon:4000, calamar:5000, sardina:1500,
+  huevos:3500, claras:2800, ricota:2800, queso_cremoso:3200, queso_rallado:2500, mozzarella:3500,
+  yogur:1200, leche:1400, crema:2200, manteca:2800, parmesano:3500, cheddar:2800, feta:3200,
+  espinaca:1800, brocoli:2200, tomate:800, cebolla:400, zanahoria:500, papa:600, batata:900,
+  zapallo:800, zapallito:700, morron:1200, lechuga:1000, rucula:1800, pepino:700, berenjena:1000,
+  esparrago:3500, palta:1500, champinon:2800, apio:1000, arveja:1200, limon:300, manzana:800,
+  jengibre:1500, anana:2500, tomate_cherry:1800, cebolla_morada:600, albahaca:800, perejil:500,
+  arroz:1400, arroz_integral:1800, fideos:1200, quinoa:3200, lentejas:1600, garbanzos:1800,
+  harina:900, pan:1500, tortilla:1000, tapa_tarta:1800, polenta:800, almidon:700,
+  aceite_oliva:4500, aceite:2200, caldo_cubos:600, salsa_tomate:1000, soja:1200,
+  vinagre:800, mostaza:900, miel:2200, sesamo:1500, chia:2000, vino:3500,
+  condimentos:0, sal:0, pimienta:0, hierbas:0,
 };
-function categorizeIngredient(ing) {
-  const lower = ing.toLowerCase();
-  for (const [cat, keywords] of Object.entries(ING_CATEGORIES)) {
-    if (keywords.some(kw => lower.includes(kw))) return cat;
-  }
-  return "🛒 Otros";
+
+// Map raw ingredient strings to canonical keys
+function normalizeIng(raw) {
+  const s = raw.toLowerCase().trim();
+  // Proteínas
+  if (/pechuga|presas? de pollo|pollo entero/.test(s)) return { key:"pollo", label:"Pollo", cat:"🥩 Carnicería", price:"pollo" };
+  if (/carne picada/.test(s)) return { key:"carne_picada", label:"Carne picada", cat:"🥩 Carnicería", price:"carne_picada" };
+  if (/carne para guiso|carne magra/.test(s)) return { key:"carne_guiso", label:"Carne para guiso", cat:"🥩 Carnicería", price:"bife" };
+  if (/bife de chorizo/.test(s)) return { key:"bife_chorizo", label:"Bife de chorizo", cat:"🥩 Carnicería", price:"bife" };
+  if (/bife.*(lomo|paleta)/.test(s)) return { key:"bife", label:"Bife", cat:"🥩 Carnicería", price:"bife" };
+  if (/lomo de ternera|lomo\b/.test(s)) return { key:"lomo", label:"Lomo", cat:"🥩 Carnicería", price:"lomo" };
+  if (/bondiola/.test(s)) return { key:"bondiola", label:"Bondiola de cerdo", cat:"🥩 Carnicería", price:"bondiola" };
+  if (/costeleta/.test(s)) return { key:"costeleta", label:"Costeletas de cerdo", cat:"🥩 Carnicería", price:"costeleta" };
+  if (/escalope/.test(s)) return { key:"escalope", label:"Escalopes de cerdo", cat:"🥩 Carnicería", price:"escalope" };
+  if (/carre/.test(s)) return { key:"carre", label:"Carré de cerdo", cat:"🥩 Carnicería", price:"carre" };
+  if (/entraña/.test(s)) return { key:"entraña", label:"Entraña", cat:"🥩 Carnicería", price:"entraña" };
+  if (/vacio/.test(s)) return { key:"vacio", label:"Vacío", cat:"🥩 Carnicería", price:"vacio" };
+  if (/tira de asado|tira\b/.test(s)) return { key:"tira", label:"Tira de asado", cat:"🥩 Carnicería", price:"tira" };
+  if (/osobuco/.test(s)) return { key:"osobuco", label:"Osobuco", cat:"🥩 Carnicería", price:"osobuco" };
+  if (/peceto/.test(s)) return { key:"peceto", label:"Peceto", cat:"🥩 Carnicería", price:"peceto" };
+  if (/nalga|steak.?de nalga/.test(s)) return { key:"nalga", label:"Nalga", cat:"🥩 Carnicería", price:"nalga" };
+  if (/colita|cuadril/.test(s)) return { key:"cuadril", label:"Colita de cuadril", cat:"🥩 Carnicería", price:"cuadril" };
+  if (/milanesa/.test(s)) return { key:"milanesa", label:"Milanesas", cat:"🥩 Carnicería", price:"milanesa" };
+  if (/panceta/.test(s)) return { key:"panceta", label:"Panceta", cat:"🥩 Carnicería", price:"panceta" };
+  if (/hamburguesa|carne picada/.test(s) && !s.includes("pan")) return { key:"carne_picada", label:"Carne picada", cat:"🥩 Carnicería", price:"carne_picada" };
+  // Pescados
+  if (/salmon/.test(s)) return { key:"salmon", label:"Salmón", cat:"🐟 Pescadería", price:"salmon" };
+  if (/merluza/.test(s)) return { key:"merluza", label:"Merluza", cat:"🐟 Pescadería", price:"merluza" };
+  if (/atun fresco/.test(s)) return { key:"atun_fresco", label:"Atún fresco", cat:"🐟 Pescadería", price:"salmon" };
+  if (/atun|lata atun/.test(s)) return { key:"atun_lata", label:"Atún en lata", cat:"🌾 Almacén", price:"atun_lata" };
+  if (/trucha/.test(s)) return { key:"trucha", label:"Trucha", cat:"🐟 Pescadería", price:"trucha" };
+  if (/tilapia/.test(s)) return { key:"tilapia", label:"Tilapia", cat:"🐟 Pescadería", price:"tilapia" };
+  if (/langostino/.test(s)) return { key:"langostino", label:"Langostinos", cat:"🐟 Pescadería", price:"langostino" };
+  if (/mejillon/.test(s)) return { key:"mejillon", label:"Mejillones", cat:"🐟 Pescadería", price:"mejillon" };
+  if (/calamar/.test(s)) return { key:"calamar", label:"Calamares", cat:"🐟 Pescadería", price:"calamar" };
+  if (/sardina/.test(s)) return { key:"sardina", label:"Sardinas", cat:"🌾 Almacén", price:"sardina" };
+  // Huevos y lácteos
+  if (/clara/.test(s) && /huevo/.test(s)) return { key:"huevos", label:"Huevos", cat:"🥚 Lácteos y Huevos", price:"huevos" };
+  if (/clara/.test(s)) return { key:"huevos", label:"Huevos", cat:"🥚 Lácteos y Huevos", price:"huevos" };
+  if (/huevo/.test(s)) return { key:"huevos", label:"Huevos (docena)", cat:"🥚 Lácteos y Huevos", price:"huevos" };
+  if (/ricota/.test(s)) return { key:"ricota", label:"Ricota", cat:"🥚 Lácteos y Huevos", price:"ricota" };
+  if (/queso rallado|queso de rallar/.test(s)) return { key:"queso_rallado", label:"Queso rallado", cat:"🥚 Lácteos y Huevos", price:"queso_rallado" };
+  if (/queso cremoso/.test(s)) return { key:"queso_cremoso", label:"Queso cremoso", cat:"🥚 Lácteos y Huevos", price:"queso_cremoso" };
+  if (/mozzarella/.test(s)) return { key:"mozzarella", label:"Mozzarella", cat:"🥚 Lácteos y Huevos", price:"mozzarella" };
+  if (/parmesano/.test(s)) return { key:"parmesano", label:"Parmesano", cat:"🥚 Lácteos y Huevos", price:"parmesano" };
+  if (/cheddar/.test(s)) return { key:"cheddar", label:"Queso cheddar", cat:"🥚 Lácteos y Huevos", price:"cheddar" };
+  if (/feta/.test(s)) return { key:"feta", label:"Queso feta", cat:"🥚 Lácteos y Huevos", price:"feta" };
+  if (/cottage/.test(s)) return { key:"cottage", label:"Queso cottage", cat:"🥚 Lácteos y Huevos", price:"queso_cremoso" };
+  if (/yogur/.test(s)) return { key:"yogur", label:"Yogur natural", cat:"🥚 Lácteos y Huevos", price:"yogur" };
+  if (/leche de coco/.test(s)) return { key:"leche_coco", label:"Leche de coco", cat:"🌾 Almacén", price:"leche" };
+  if (/leche/.test(s)) return { key:"leche", label:"Leche", cat:"🥚 Lácteos y Huevos", price:"leche" };
+  if (/crema/.test(s)) return { key:"crema", label:"Crema de leche", cat:"🥚 Lácteos y Huevos", price:"crema" };
+  if (/manteca/.test(s)) return { key:"manteca", label:"Manteca", cat:"🥚 Lácteos y Huevos", price:"manteca" };
+  // Verduras
+  if (/espinaca/.test(s)) return { key:"espinaca", label:"Espinaca", cat:"🥦 Verdulería", price:"espinaca" };
+  if (/brocoli/.test(s)) return { key:"brocoli", label:"Brócoli", cat:"🥦 Verdulería", price:"brocoli" };
+  if (/tomate cherry/.test(s)) return { key:"tomate_cherry", label:"Tomate cherry", cat:"🥦 Verdulería", price:"tomate_cherry" };
+  if (/tomate/.test(s) && /lata/.test(s)) return { key:"tomate_lata", label:"Tomates en lata", cat:"🌾 Almacén", price:"salsa_tomate" };
+  if (/tomate/.test(s)) return { key:"tomate", label:"Tomates", cat:"🥦 Verdulería", price:"tomate" };
+  if (/cebolla morada/.test(s)) return { key:"cebolla", label:"Cebolla", cat:"🥦 Verdulería", price:"cebolla" };
+  if (/cebolla/.test(s)) return { key:"cebolla", label:"Cebolla", cat:"🥦 Verdulería", price:"cebolla" };
+  if (/zanahoria/.test(s)) return { key:"zanahoria", label:"Zanahoria", cat:"🥦 Verdulería", price:"zanahoria" };
+  if (/papa/.test(s) && !/paprika/.test(s)) return { key:"papa", label:"Papas", cat:"🥦 Verdulería", price:"papa" };
+  if (/batata/.test(s)) return { key:"batata", label:"Batatas", cat:"🥦 Verdulería", price:"batata" };
+  if (/zapallito/.test(s)) return { key:"zapallito", label:"Zapallito", cat:"🥦 Verdulería", price:"zapallito" };
+  if (/zapallo/.test(s)) return { key:"zapallo", label:"Zapallo", cat:"🥦 Verdulería", price:"zapallo" };
+  if (/morron/.test(s)) return { key:"morron", label:"Morrón", cat:"🥦 Verdulería", price:"morron" };
+  if (/lechuga/.test(s)) return { key:"lechuga", label:"Lechuga", cat:"🥦 Verdulería", price:"lechuga" };
+  if (/rucula/.test(s)) return { key:"rucula", label:"Rúcula", cat:"🥦 Verdulería", price:"rucula" };
+  if (/pepino/.test(s)) return { key:"pepino", label:"Pepino", cat:"🥦 Verdulería", price:"pepino" };
+  if (/berenjena/.test(s)) return { key:"berenjena", label:"Berenjena", cat:"🥦 Verdulería", price:"berenjena" };
+  if (/esparrago/.test(s)) return { key:"esparrago", label:"Espárragos", cat:"🥦 Verdulería", price:"esparrago" };
+  if (/palta/.test(s)) return { key:"palta", label:"Palta", cat:"🥦 Verdulería", price:"palta" };
+  if (/champi/.test(s)) return { key:"champinon", label:"Champiñones", cat:"🥦 Verdulería", price:"champinon" };
+  if (/apio/.test(s)) return { key:"apio", label:"Apio", cat:"🥦 Verdulería", price:"apio" };
+  if (/arveja/.test(s)) return { key:"arveja", label:"Arvejas", cat:"🥦 Verdulería", price:"arveja" };
+  if (/limon/.test(s)) return { key:"limon", label:"Limones", cat:"🥦 Verdulería", price:"limon" };
+  if (/manzana/.test(s)) return { key:"manzana", label:"Manzanas", cat:"🥦 Verdulería", price:"manzana" };
+  if (/jengibre/.test(s)) return { key:"jengibre", label:"Jengibre", cat:"🥦 Verdulería", price:"jengibre" };
+  if (/anana/.test(s)) return { key:"anana", label:"Ananá", cat:"🥦 Verdulería", price:"anana" };
+  // Almacén
+  if (/arroz integral|arroz arborio/.test(s)) return { key:"arroz_int", label:"Arroz integral", cat:"🌾 Almacén", price:"arroz_integral" };
+  if (/arroz/.test(s)) return { key:"arroz", label:"Arroz", cat:"🌾 Almacén", price:"arroz" };
+  if (/fideos int/.test(s)) return { key:"fideos_int", label:"Fideos integrales", cat:"🌾 Almacén", price:"fideos" };
+  if (/fideos/.test(s)) return { key:"fideos", label:"Fideos", cat:"🌾 Almacén", price:"fideos" };
+  if (/quinoa/.test(s)) return { key:"quinoa", label:"Quinoa", cat:"🌾 Almacén", price:"quinoa" };
+  if (/lenteja/.test(s)) return { key:"lentejas", label:"Lentejas", cat:"🌾 Almacén", price:"lentejas" };
+  if (/garbanzo/.test(s)) return { key:"garbanzos", label:"Garbanzos", cat:"🌾 Almacén", price:"garbanzos" };
+  if (/harina/.test(s)) return { key:"harina", label:"Harina", cat:"🌾 Almacén", price:"harina" };
+  if (/pan de hamburguesa/.test(s)) return { key:"pan_hamb", label:"Pan de hamburguesa", cat:"🌾 Almacén", price:"pan" };
+  if (/pan rallado/.test(s)) return { key:"pan_rallado", label:"Pan rallado", cat:"🌾 Almacén", price:"harina" };
+  if (/pan\b/.test(s)) return { key:"pan", label:"Pan", cat:"🌾 Almacén", price:"pan" };
+  if (/tortilla/.test(s)) return { key:"tortilla", label:"Tortillas", cat:"🌾 Almacén", price:"tortilla" };
+  if (/tapa.*tarta|tapa integral/.test(s)) return { key:"tapa_tarta", label:"Tapa de tarta", cat:"🌾 Almacén", price:"tapa_tarta" };
+  if (/almidon/.test(s)) return { key:"almidon", label:"Almidón de maíz", cat:"🌾 Almacén", price:"almidon" };
+  if (/sesamo/.test(s)) return { key:"sesamo", label:"Sésamo", cat:"🌾 Almacén", price:"sesamo" };
+  if (/chia/.test(s)) return { key:"chia", label:"Semillas de chía", cat:"🌾 Almacén", price:"chia" };
+  if (/arandano|frutos rojos/.test(s)) return { key:"frutos_rojos", label:"Frutos rojos", cat:"🌾 Almacén", price:"chia" };
+  if (/aceitunas|oliva/.test(s) && !/aceite/.test(s)) return { key:"aceitunas", label:"Aceitunas", cat:"🌾 Almacén", price:"sardina" };
+  if (/salsa de tomate/.test(s)) return { key:"salsa_tomate", label:"Salsa de tomate", cat:"🌾 Almacén", price:"salsa_tomate" };
+  // Condimentos (no suman precio, los tenés en casa)
+  if (/ajo/.test(s)) return { key:"ajo", label:"Ajo", cat:"🧴 Ya tenés en casa", price:"condimentos" };
+  if (/perejil/.test(s)) return { key:"perejil", label:"Perejil fresco", cat:"🥦 Verdulería", price:"perejil" };
+  if (/albahaca/.test(s)) return { key:"albahaca", label:"Albahaca fresca", cat:"🥦 Verdulería", price:"albahaca" };
+  if (/eneldo/.test(s)) return { key:"eneldo", label:"Eneldo", cat:"🥦 Verdulería", price:"albahaca" };
+  if (/aceite de oliva/.test(s)) return { key:"aceite_oliva", label:"Aceite de oliva", cat:"🧴 Ya tenés en casa", price:"condimentos" };
+  if (/aceite de sesamo/.test(s)) return { key:"aceite_sesamo", label:"Aceite de sésamo", cat:"🧴 Ya tenés en casa", price:"condimentos" };
+  if (/aceite/.test(s)) return { key:"aceite", label:"Aceite", cat:"🧴 Ya tenés en casa", price:"condimentos" };
+  if (/sal|pimienta/.test(s)) return { key:"sal", label:"Sal y pimienta", cat:"🧴 Ya tenés en casa", price:"condimentos" };
+  if (/caldo/.test(s)) return { key:"caldo", label:"Caldo en cubos", cat:"🧴 Ya tenés en casa", price:"condimentos" };
+  if (/oregano|romero|tomillo|laurel|comino|pimenton|aji|curcuma|nuez moscada/.test(s)) return { key:"hierbas", label:"Condimentos y hierbas", cat:"🧴 Ya tenés en casa", price:"condimentos" };
+  if (/soja|salsa de soja/.test(s)) return { key:"soja", label:"Salsa de soja", cat:"🧴 Ya tenés en casa", price:"condimentos" };
+  if (/vinagre/.test(s)) return { key:"vinagre", label:"Vinagre", cat:"🧴 Ya tenés en casa", price:"condimentos" };
+  if (/mostaza/.test(s)) return { key:"mostaza", label:"Mostaza", cat:"🧴 Ya tenés en casa", price:"condimentos" };
+  if (/miel/.test(s)) return { key:"miel", label:"Miel", cat:"🧴 Ya tenés en casa", price:"condimentos" };
+  if (/cognac|vino/.test(s)) return { key:"vino", label:"Vino para cocinar", cat:"🧴 Ya tenés en casa", price:"condimentos" };
+  if (/azucar/.test(s)) return { key:"azucar", label:"Azúcar", cat:"🧴 Ya tenés en casa", price:"condimentos" };
+  if (/mayonesa/.test(s)) return { key:"mayo", label:"Mayonesa", cat:"🧴 Ya tenés en casa", price:"condimentos" };
+  // Fallback
+  return { key:s.substring(0,20), label:raw, cat:"🛒 Otros", price:"condimentos" };
 }
+
 function buildDynamicList(menu) {
-  const allIngs = {};
+  const consolidated = {};
   menu.forEach(d => {
     [d.alm, d.cen].forEach(nombre => {
       const r = R[nombre];
       if (!r || !r.i) return;
-      r.i.forEach(ing => {
-        const key = ing.toLowerCase().replace(/\d+g?\s*/g,'').replace(/x\d+/g,'').replace(/c\/u/g,'').trim();
-        const normalized = key.length > 2 ? key : ing;
-        if (!allIngs[normalized]) {
-          allIngs[normalized] = { display: ing, count: 1, cat: categorizeIngredient(ing) };
+      r.i.forEach(raw => {
+        const n = normalizeIng(raw);
+        if (!consolidated[n.key]) {
+          consolidated[n.key] = { ...n, recetas: 1 };
         } else {
-          allIngs[normalized].count += 1;
+          consolidated[n.key].recetas += 1;
         }
       });
     });
   });
+  // Group by category, skip "Ya tenés en casa" from main list
+  const CAT_ORDER = ["🥩 Carnicería","🐟 Pescadería","🥦 Verdulería","🥚 Lácteos y Huevos","🌾 Almacén","🧴 Ya tenés en casa"];
   const grouped = {};
-  Object.values(allIngs).forEach(item => {
-    if (!grouped[item.cat]) grouped[item.cat] = [];
-    const display = item.count > 1 ? `${item.display} (×${item.count} recetas)` : item.display;
-    grouped[item.cat].push(display);
+  const items = Object.values(consolidated);
+  CAT_ORDER.forEach(cat => {
+    const inCat = items.filter(i => i.cat === cat);
+    if (inCat.length > 0) grouped[cat] = inCat;
   });
-  return grouped;
+  // Any uncategorized
+  const otherItems = items.filter(i => !CAT_ORDER.includes(i.cat));
+  if (otherItems.length > 0) grouped["🛒 Otros"] = otherItems;
+
+  // Calculate total price
+  let total = 0;
+  items.forEach(i => { total += (PRECIOS[i.price] || 0); });
+
+  return { grouped, total, itemCount: items.filter(i => i.cat !== "🧴 Ya tenés en casa").length, sharedCount: items.filter(i => i.recetas >= 2).length };
 }
-function countUniqueIngredients(menu) {
-  const all = new Set();
-  menu.forEach(d => {
-    [d.alm, d.cen].forEach(nombre => {
-      const r = R[nombre];
-      if (!r || !r.i) return;
-      r.i.forEach(ing => {
-        const key = ing.toLowerCase().replace(/\d+g?\s*/g,'').replace(/x\d+/g,'').trim();
-        if (key.length > 2) all.add(key);
-      });
-    });
-  });
-  return all.size;
-}
+
 function countSharedIngredients(menu) {
-  const ingCount = {};
-  menu.forEach(d => {
-    [d.alm, d.cen].forEach(nombre => {
-      const r = R[nombre];
-      if (!r || !r.i) return;
-      const seen = new Set();
-      r.i.forEach(ing => {
-        const key = ing.toLowerCase().replace(/\d+g?\s*/g,'').replace(/x\d+/g,'').trim();
-        if (key.length > 2 && !seen.has(key)) { seen.add(key); ingCount[key] = (ingCount[key] || 0) + 1; }
-      });
-    });
-  });
-  return Object.values(ingCount).filter(c => c >= 2).length;
+  const r = buildDynamicList(menu);
+  return r.sharedCount;
 }
 
 // ============================================
@@ -678,18 +789,19 @@ function generar(a) {
   saveToHistory([...almsElegidas, ...censElegidas]);
 
   // Build dynamic shopping list from actual recipes
-  const lista_dinamica = buildDynamicList(menu);
-  const uniqueCount = countUniqueIngredients(menu);
-  const sharedCount = countSharedIngredients(menu);
+  const listData = buildDynamicList(menu);
 
   return {
     ...meta, menu,
-    lista_compras: lista_dinamica,
+    lista_compras: listData.grouped,
+    lista_total: listData.total,
+    lista_count: listData.itemCount,
+    lista_shared: listData.sharedCount,
     lista_generica: LISTAS[key] || LISTAS.organizar,
     objetivo: key,
     precio_estimado: meta.precio[a.presupuesto || "medio"],
     answers: a, dietas, noGusta, tiene,
-    ahorro: { uniqueCount, sharedCount },
+    ahorro: { uniqueCount: listData.itemCount, sharedCount: listData.sharedCount, totalPrice: listData.total },
   };
 }
 function cambiarReceta(menuActual, dia, tipo, objetivo, dietas, tiempo, noGusta = [], tiene = []) {
@@ -1028,6 +1140,7 @@ function MainApp() {
   const [answers, setAnswers] = useState({});
   const [result, setResult] = useState(null);
   const [tab, setTab] = useState("menu");
+  const [checkedItems, setCheckedItems] = useState({});
   const [receta, setReceta] = useState(null);
   const [cambiando, setCambiando] = useState(null);
   const [loadMsg, setLoadMsg] = useState(0);
@@ -1083,7 +1196,7 @@ function MainApp() {
     else { setAnimKey(k=>k+1); setStep(s=>s+1); }
   };
 
-  const resetAll = () => { setScreen("home"); setResult(null); setStep(0); setAnswers({}); setChefOpen(false); setHoyResult(null); };
+  const resetAll = () => { setScreen("home"); setResult(null); setStep(0); setAnswers({}); setChefOpen(false); setHoyResult(null); setCheckedItems({}); };
 
   const handleCambiar = (dia, tipo) => {
     const key = `${dia}-${tipo}`;
@@ -1710,57 +1823,67 @@ function MainApp() {
           {tab === "lista" && (
             <div>
               {/* AHORRO BANNER */}
-              <div style={{ background:"linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)", borderRadius:20, padding:"22px 22px", marginBottom:14, border:"1px solid #A7F3D0" }}>
-                <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
-                  <div style={{ width:36, height:36, borderRadius:10, background:"#10B981", display:"flex", alignItems:"center", justifyContent:"center", fontSize:18, color:"white", fontWeight:900 }}>↓</div>
-                  <div style={{ fontSize:13, fontWeight:700, color:"#059669", fontFamily:"'Inter',sans-serif", textTransform:"uppercase", letterSpacing:"0.08em" }}>Tu ahorro esta semana</div>
+              <div style={{ background:"linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)", borderRadius:20, padding:"20px", marginBottom:14, border:"1px solid #A7F3D0" }}>
+                <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:8 }}>
+                  <div style={{ width:32, height:32, borderRadius:10, background:"#10B981", display:"flex", alignItems:"center", justifyContent:"center", fontSize:16, color:"white", fontWeight:900 }}>↓</div>
+                  <div style={{ fontSize:12, fontWeight:700, color:"#059669", fontFamily:"'Inter',sans-serif", textTransform:"uppercase", letterSpacing:"0.08em" }}>Lista inteligente</div>
                 </div>
-                <div style={{ fontSize:28, fontWeight:900, color:"#047857", fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.04em", marginBottom:6 }}>
-                  ~$42.000 menos en el súper
+                <div style={{ fontSize:15, color:"#047857", lineHeight:1.5, fontWeight:600, fontFamily:"'Manrope',sans-serif" }}>
+                  {result.ahorro ? `${result.ahorro.sharedCount} ingredientes compartidos entre recetas — comprás ${result.ahorro.uniqueCount} productos, no ${Math.round(result.ahorro.uniqueCount * 1.7)}.` : "Generada desde tus 14 recetas."}
                 </div>
-                <div style={{ fontSize:13, color:"#059669", lineHeight:1.5, fontWeight:500, fontFamily:"'Manrope',sans-serif" }}>
-                  {result.ahorro ? `Tu menú comparte ${result.ahorro.sharedCount} ingredientes entre recetas. Comprás ${result.ahorro.uniqueCount} productos en vez de ~${Math.round(result.ahorro.uniqueCount * 1.6)}.` : "Planificando = comprás solo lo que usás."}
-                </div>
+                {result.lista_total > 0 && (
+                  <div style={{ marginTop:12, padding:"12px 16px", background:"rgba(255,255,255,0.7)", borderRadius:12, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                    <span style={{ fontSize:13, fontWeight:600, color:"#059669", fontFamily:"'Inter',sans-serif" }}>Estimado total</span>
+                    <span style={{ fontSize:22, fontWeight:900, color:"#047857", fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.03em" }}>~${Math.round(result.lista_total/1000)*1000}</span>
+                  </div>
+                )}
               </div>
 
-              {/* LISTA DINÁMICA */}
-              <div style={{ background:C.white, borderRadius:20, overflow:"hidden", boxShadow:sh.md, border:`1px solid ${C.line}` }}>
-                <div style={{ padding:"14px 20px", borderBottom:`1px solid ${C.line}`, background:C.bg }}>
-                  <div style={{ fontSize:13, fontWeight:700, color:C.blue, fontFamily:"'Inter',sans-serif", textTransform:"uppercase", letterSpacing:"0.08em", display:"flex", alignItems:"center", gap:8 }}>
-                    <span style={{ width:20, height:2, background:C.blue, display:"inline-block" }}/>
-                    Lista generada desde tus recetas
-                  </div>
-                </div>
-                {Object.entries(result.lista_compras).map(([cat,items],i,arr) => (
-                  <div key={i}>
-                    <div style={{ padding:"18px 20px" }}>
-                      <div style={{ fontSize:15, fontWeight:800, color:C.ink, marginBottom:14, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.02em" }}>{cat}</div>
-                      <div style={{ display:"flex", flexDirection:"column", gap:11 }}>
-                        {items.map((item,j) => (
-                          <label key={j} style={{ display:"flex", alignItems:"center", gap:12, cursor:"pointer" }} onClick={e => {
-                            const check = e.currentTarget.querySelector('.k-check');
-                            const text = e.currentTarget.querySelector('.k-item-text');
-                            if (check && text) {
-                              const done = check.style.background === C.blue;
-                              check.style.background = done ? 'transparent' : C.blue;
-                              check.style.borderColor = done ? C.gray3 : C.blue;
-                              check.innerHTML = done ? '' : '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
-                              text.style.textDecoration = done ? 'none' : 'line-through';
-                              text.style.color = done ? C.text : C.gray3;
-                            }
-                          }}>
-                            <div className="k-check" style={{ width:22, height:22, borderRadius:7, border:`2px solid ${C.gray3}`, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.15s" }}/>
-                            <span className="k-item-text" style={{ fontSize:14.5, color:C.text, fontWeight:500, fontFamily:"'Manrope',sans-serif", transition:"all 0.15s" }}>
-                              {item}
-                            </span>
-                          </label>
-                        ))}
+              {/* LISTA POR CATEGORÍA */}
+              {Object.entries(result.lista_compras).map(([cat, items], ci) => {
+                const isCondimentos = cat.includes("Ya tenés");
+                return (
+                  <div key={ci} style={{ background:C.white, borderRadius:16, overflow:"hidden", boxShadow:sh.sm, border:`1px solid ${C.line}`, marginBottom:12 }}>
+                    <div style={{ padding:"14px 18px", borderBottom:`1px solid ${C.line}`, background:isCondimentos ? "#FAFAFA" : C.white }}>
+                      <div style={{ fontSize:15, fontWeight:800, color:isCondimentos ? C.sub : C.ink, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.02em" }}>
+                        {cat}
+                        {isCondimentos && <span style={{ fontSize:11, fontWeight:500, color:C.gray4, marginLeft:8, fontFamily:"'Manrope',sans-serif" }}>ya los tenés</span>}
                       </div>
                     </div>
-                    {i<arr.length-1 && <div style={{ height:1, background:C.line }}/>}
+                    <div style={{ padding:"10px 18px 14px" }}>
+                      {items.map((item, j) => {
+                        const precio = PRECIOS[item.price] || 0;
+                        const isCheckedKey = `check_${ci}_${j}`;
+                        return (
+                          <div key={j}
+                            onClick={() => setCheckedItems(prev => ({ ...prev, [isCheckedKey]: !prev[isCheckedKey] }))}
+                            style={{ display:"flex", alignItems:"center", gap:12, padding:"10px 0", borderBottom: j < items.length - 1 ? `1px solid ${C.line}` : "none", cursor:"pointer", opacity: checkedItems[isCheckedKey] ? 0.45 : 1, transition:"opacity 0.15s" }}>
+                            <div style={{
+                              width:22, height:22, borderRadius:7, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.15s",
+                              background: checkedItems[isCheckedKey] ? C.blue : "transparent",
+                              border: `2px solid ${checkedItems[isCheckedKey] ? C.blue : C.gray3}`,
+                            }}>
+                              {checkedItems[isCheckedKey] && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                            </div>
+                            <span style={{
+                              flex:1, fontSize:14, fontWeight:500, fontFamily:"'Manrope',sans-serif",
+                              color: checkedItems[isCheckedKey] ? C.gray3 : C.text,
+                              textDecoration: checkedItems[isCheckedKey] ? "line-through" : "none",
+                            }}>
+                              {item.label}{item.recetas > 1 ? ` (×${item.recetas} recetas)` : ""}
+                            </span>
+                            {precio > 0 && !isCondimentos && (
+                              <span style={{ fontSize:12, fontWeight:700, color:C.sub, fontFamily:"'Inter',sans-serif", flexShrink:0 }}>
+                                ~${Math.round(precio/100)*100}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                ))}
-              </div>
+                );
+              })}
             </div>
           )}
 
