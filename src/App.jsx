@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from "react";
 
 const VALID_CODES = new Set(['KOOKI-9K2X-W5NR']);
 const ACCESS_KEY = "kooki_access_v1";
+const EMAIL_KEY = "kooki_email_v1";
+const SUB_STATUS_KEY = "kooki_sub_status_v1";
 const HISTORY_KEY = "kooki_history_v1";
 const HISTORY_DAYS = 7;
 const HISTORY_MAX = 20;
@@ -30,7 +32,21 @@ function trackEvent(event, data) {
 }
 
 function isPremium() {
-  try { return !!localStorage.getItem(ACCESS_KEY); } catch(e) { return false; }
+  try {
+    // Legacy: código de acceso
+    if (localStorage.getItem(ACCESS_KEY)) return true;
+    // Nuevo: suscripción por email
+    const status = localStorage.getItem(SUB_STATUS_KEY);
+    if (status) {
+      const parsed = JSON.parse(status);
+      if (parsed.active) return true;
+    }
+    return false;
+  } catch(e) { return false; }
+}
+
+function getSavedEmail() {
+  try { return localStorage.getItem(EMAIL_KEY) || ""; } catch(e) { return ""; }
 }
 
 // ============================================
@@ -156,16 +172,109 @@ function ComparisonTable() {
 }
 
 // ============================================
-// PANTALLA DE ACCESO — obligatoria, con ecosistema
+// PANTALLA DE ACCESO — Suscripción o código legacy
 // ============================================
 function AccessScreen({ onAccess }) {
+  const [mode, setMode] = useState("main"); // main | code | loading
+  const [email, setEmail] = useState("");
+  const [plan, setPlan] = useState("anual");
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [shake, setShake] = useState(false);
-  const handleSubmit = () => {
+  const [checking, setChecking] = useState(false);
+
+  // Al montar, si hay email guardado, verificar suscripción
+  useEffect(() => {
+    const saved = getSavedEmail();
+    if (saved) {
+      setEmail(saved);
+      checkSubscription(saved);
+    }
+    // Check URL params for return from MP
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get("status");
+    const savedEmail = getSavedEmail();
+    if (status === "ok" && savedEmail) {
+      setChecking(true);
+      // Dar tiempo a MP para procesar el webhook
+      setTimeout(() => checkSubscription(savedEmail), 2000);
+    }
+  }, []);
+
+  const checkSubscription = async (emailToCheck) => {
+    setChecking(true);
+    try {
+      const res = await fetch("/api/check-subscription", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: emailToCheck }),
+      });
+      const data = await res.json();
+      if (data.active) {
+        localStorage.setItem(SUB_STATUS_KEY, JSON.stringify(data));
+        localStorage.setItem(EMAIL_KEY, emailToCheck);
+        setChecking(false);
+        onAccess();
+        return;
+      }
+    } catch (e) {
+      console.error("Check subscription error:", e);
+    }
+    setChecking(false);
+  };
+
+  const handleSubscribe = async () => {
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail || !cleanEmail.includes("@")) {
+      setError("Ingresá un email válido");
+      return;
+    }
+    setLoading(true);
+    setError("");
+
+    // Primero verificar si ya tiene suscripción
+    try {
+      const checkRes = await fetch("/api/check-subscription", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: cleanEmail }),
+      });
+      const checkData = await checkRes.json();
+      if (checkData.active) {
+        localStorage.setItem(SUB_STATUS_KEY, JSON.stringify(checkData));
+        localStorage.setItem(EMAIL_KEY, cleanEmail);
+        setLoading(false);
+        onAccess();
+        return;
+      }
+    } catch (e) {}
+
+    // No tiene suscripción, crear una
+    try {
+      const res = await fetch("/api/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: cleanEmail, plan }),
+      });
+      const data = await res.json();
+      if (data.init_point) {
+        localStorage.setItem(EMAIL_KEY, cleanEmail);
+        trackEvent('InitiateCheckout', { value: plan === "mensual" ? 3500 : plan === "anual" ? 19900 : 29900, currency: "ARS" });
+        window.location.href = data.init_point;
+      } else {
+        setError("Error al crear la suscripción. Intentá de nuevo.");
+        setLoading(false);
+      }
+    } catch (e) {
+      setError("Error de conexión. Intentá de nuevo.");
+      setLoading(false);
+    }
+  };
+
+  const handleCodeSubmit = () => {
     const clean = code.trim().toUpperCase();
-    if (!clean) { setError("Ingresa tu codigo de acceso"); return; }
+    if (!clean) { setError("Ingresá tu código de acceso"); return; }
     setLoading(true);
     setTimeout(() => {
       if (VALID_CODES.has(clean)) {
@@ -177,58 +286,165 @@ function AccessScreen({ onAccess }) {
         setLoading(false); onAccess();
       } else {
         setLoading(false);
-        setError("Codigo invalido. Revisa el email que recibiste al comprar.");
+        setError("Código inválido.");
         setShake(true); setTimeout(() => setShake(false), 600);
       }
     }, 600);
   };
 
-  return (
+  const plans = [
+    { id: "mensual", label: "Mensual", price: "$3.500", sub: "/mes", desc: "Cancelá cuando quieras" },
+    { id: "anual", label: "Anual", price: "$19.900", sub: "/año", desc: "Ahorrás 53%", badge: "Más popular" },
+    { id: "lifetime", label: "De por vida", price: "$29.900", sub: "pago único", desc: "Acceso para siempre" },
+  ];
+
+  // Loading screen while checking subscription after MP return
+  if (checking) return (
+    <div style={{ minHeight:"100vh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"32px 24px", fontFamily:"'Manrope',sans-serif" }}>
+      <style>{BASE}</style>
+      <div style={{ width:48, height:48, border:`3px solid ${C.line}`, borderTopColor:C.blue, borderRadius:"50%", animation:"spin 0.8s linear infinite", marginBottom:20 }}/>
+      <p style={{ fontSize:16, fontWeight:600, color:C.ink }}>Verificando tu acceso...</p>
+    </div>
+  );
+
+  // Legacy code input mode
+  if (mode === "code") return (
     <div style={{ minHeight:"100vh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"32px 24px", fontFamily:"'Manrope',sans-serif", position:"relative", overflow:"hidden" }}>
       <style>{BASE}</style>
       <BgGrid /><Blob pos="tr" /><Blob pos="bl" color="rgba(0,102,204,0.13)" />
       <div style={{ width:"100%", maxWidth:400, animation:"fadeIn 0.4s ease", position:"relative", zIndex:1 }}>
-        <div style={{ textAlign:"center", marginBottom:32 }}>
-          <img src="https://i.imgur.com/IYcv1Vp.jpeg" alt="Kooki" style={{ width:140, marginBottom:20 }}/>
-          <div style={{ display:"flex", justifyContent:"center", marginBottom:14 }}><Eyebrow>Ecosistema Kooki</Eyebrow></div>
-          <p style={{ fontSize:15, color:C.sub, fontWeight:500, lineHeight:1.5, marginBottom:20 }}>
-            3 apps con IA para tu cocina y tu bolsillo.
-          </p>
-          {/* 3 logos del ecosistema */}
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:16, marginBottom:8 }}>
-            <div style={{ background:C.white, borderRadius:16, border:`1.5px solid ${C.line}`, padding:"12px 16px", boxShadow:sh.sm, display:"flex", alignItems:"center", justifyContent:"center" }}>
-              <img src="https://cdn.shopify.com/s/files/1/0983/2857/6366/files/Copia_de_logo_sin_fondo.png?v=1776974240" alt="Kooki" style={{ height:32, objectFit:"contain" }} />
-            </div>
-            <div style={{ background:C.white, borderRadius:16, border:`1.5px solid ${C.line}`, padding:"12px 16px", boxShadow:sh.sm, display:"flex", alignItems:"center", justifyContent:"center" }}>
-              <img src={DETEMPORADA_LOGO} alt="DeTemporada" style={{ height:32, objectFit:"contain" }} />
-            </div>
-            <div style={{ background:C.white, borderRadius:16, border:`1.5px solid ${C.line}`, padding:"12px 16px", boxShadow:sh.sm, display:"flex", alignItems:"center", justifyContent:"center" }}>
-              <img src={AHORROEXPRESS_LOGO} alt="AhorroExpress" style={{ height:32, objectFit:"contain" }} />
-            </div>
-          </div>
+        <div style={{ textAlign:"center", marginBottom:24 }}>
+          <img src="https://i.imgur.com/IYcv1Vp.jpeg" alt="Kooki" style={{ width:120, marginBottom:16 }}/>
         </div>
         <div style={{ background:C.white, borderRadius:28, padding:"36px 32px", boxShadow:"0 20px 60px rgba(10,14,26,0.08)", border:`1px solid ${C.line}` }}>
-          <h2 style={{ fontSize:28, fontWeight:900, color:C.ink, marginBottom:10, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.035em", lineHeight:1.05 }}>
+          <h2 style={{ fontSize:24, fontWeight:900, color:C.ink, marginBottom:8, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.035em" }}>
             Ingresá tu <span style={{ color:C.blue, fontStyle:"italic", fontWeight:800 }}>código</span>.
           </h2>
-          <div style={{ fontSize:15, color:C.sub, lineHeight:1.55, marginBottom:28, fontWeight:500 }}>Lo recibiste por email después de tu compra.</div>
+          <div style={{ fontSize:14, color:C.sub, lineHeight:1.55, marginBottom:24, fontWeight:500 }}>Lo recibiste por email después de tu compra.</div>
           <div style={{ marginBottom:18, animation:shake?"shake 0.5s ease":"none" }}>
-            <input type="text" value={code} onChange={e => { setCode(e.target.value.toUpperCase()); setError(""); }} onKeyDown={e => e.key === "Enter" && handleSubmit()} placeholder="KOOKI-XXXX-XXXX-XXXX"
-              style={{ width:"100%", padding:"18px", borderRadius:14, fontSize:16, fontWeight:700, border:`2px solid ${error?C.danger:code?C.blue:C.line}`, background:error?C.dangerLt:C.bg, color:C.ink, fontFamily:"'Inter',sans-serif", letterSpacing:"1.5px", textAlign:"center", outline:"none", transition:"border-color 0.2s, background 0.2s" }}/>
+            <input type="text" value={code} onChange={e => { setCode(e.target.value.toUpperCase()); setError(""); }} onKeyDown={e => e.key === "Enter" && handleCodeSubmit()} placeholder="KOOKI-XXXX-XXXX"
+              style={{ width:"100%", padding:"16px", borderRadius:14, fontSize:16, fontWeight:700, border:`2px solid ${error?C.danger:code?C.blue:C.line}`, background:error?C.dangerLt:C.bg, color:C.ink, fontFamily:"'Inter',sans-serif", letterSpacing:"1.5px", textAlign:"center", outline:"none" }}/>
             {error && <div style={{ fontSize:13, color:C.danger, marginTop:10, textAlign:"center", fontWeight:600 }}>{error}</div>}
           </div>
-          <button onClick={handleSubmit} disabled={loading || !code.trim()}
-            style={{ width:"100%", padding:"20px", borderRadius:16, border:"none", background:loading||!code.trim()?C.gray2:C.ink, color:loading||!code.trim()?C.gray4:C.white, fontSize:16, fontWeight:700, cursor:loading||!code.trim()?"not-allowed":"pointer", fontFamily:"'Inter',sans-serif", boxShadow:!loading&&code.trim()?sh.ink:"none", display:"flex", alignItems:"center", justifyContent:"center", gap:12, transition:"background 0.2s, transform 0.2s" }}
-            onMouseEnter={e => { if (!loading && code.trim()) { e.currentTarget.style.background = C.blue; e.currentTarget.style.transform = "translateY(-2px)"; } }}
-            onMouseLeave={e => { if (!loading && code.trim()) { e.currentTarget.style.background = C.ink; e.currentTarget.style.transform = "translateY(0)"; } }}>
-            <span>{loading ? "Verificando..." : "Activar acceso"}</span>
-            {!loading && code.trim() && (<span style={{ width:28, height:28, borderRadius:"50%", background:C.white, color:C.ink, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:15, fontWeight:700 }}>→</span>)}
+          <button onClick={handleCodeSubmit} disabled={loading || !code.trim()}
+            style={{ width:"100%", padding:"18px", borderRadius:16, border:"none", background:loading||!code.trim()?C.gray2:C.ink, color:loading||!code.trim()?C.gray4:C.white, fontSize:16, fontWeight:700, cursor:loading||!code.trim()?"not-allowed":"pointer", fontFamily:"'Inter',sans-serif", boxShadow:!loading&&code.trim()?sh.ink:"none" }}>
+            {loading ? "Verificando..." : "Activar acceso"}
           </button>
         </div>
-        <div style={{ textAlign:"center", marginTop:24 }}>
-          <div style={{ fontSize:14, color:C.sub, lineHeight:1.6, fontWeight:500 }}>
-            ¿No tenés código?<br/><a href={CHECKOUT_URL} style={{ color:C.blue, fontWeight:700, textDecoration:"none" }}>Comprá Kooki acá →</a>
+        <button onClick={() => { setMode("main"); setError(""); }} style={{ display:"block", margin:"20px auto 0", background:"none", border:"none", color:C.blue, fontSize:14, fontWeight:700, cursor:"pointer", fontFamily:"'Inter',sans-serif" }}>
+          ← Volver a planes
+        </button>
+      </div>
+    </div>
+  );
+
+  // MAIN: Pricing + email
+  return (
+    <div style={{ minHeight:"100vh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"32px 20px", fontFamily:"'Manrope',sans-serif", position:"relative", overflow:"hidden" }}>
+      <style>{BASE}</style>
+      <BgGrid /><Blob pos="tr" /><Blob pos="bl" color="rgba(0,102,204,0.13)" />
+      <div style={{ width:"100%", maxWidth:420, animation:"fadeIn 0.4s ease", position:"relative", zIndex:1 }}>
+
+        {/* Header */}
+        <div style={{ textAlign:"center", marginBottom:28 }}>
+          <img src="https://i.imgur.com/IYcv1Vp.jpeg" alt="Kooki" style={{ width:120, marginBottom:16 }}/>
+          <h1 style={{ fontSize:"clamp(30px, 7.5vw, 42px)", fontWeight:900, color:C.ink, lineHeight:1, marginBottom:10, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.04em" }}>
+            Organizá tu semana<br/>y empezá a <span style={{ color:C.blue, fontStyle:"italic", fontWeight:800 }}>ahorrar</span>.
+          </h1>
+          <p style={{ fontSize:15, color:C.sub, fontWeight:500, lineHeight:1.5 }}>
+            Menú semanal con IA en 2 minutos, lista de compras exacta y recetas paso a paso.
+          </p>
+        </div>
+
+        {/* Plan cards */}
+        <div style={{ display:"flex", flexDirection:"column", gap:10, marginBottom:24 }}>
+          {plans.map(p => (
+            <button key={p.id} onClick={() => setPlan(p.id)}
+              style={{
+                width:"100%", background:C.white, border:plan===p.id?`2.5px solid ${C.blue}`:`1.5px solid ${C.line}`,
+                borderRadius:18, padding:"18px 20px", cursor:"pointer", textAlign:"left",
+                display:"flex", alignItems:"center", gap:14, transition:"all 0.2s",
+                boxShadow: plan===p.id ? "0 4px 20px rgba(59,111,212,0.15)" : sh.sm,
+                position:"relative", overflow:"hidden",
+              }}>
+              {/* Radio */}
+              <div style={{ width:22, height:22, borderRadius:"50%", border:plan===p.id?`2px solid ${C.blue}`:`2px solid ${C.gray3}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                {plan===p.id && <div style={{ width:12, height:12, borderRadius:"50%", background:C.blue }}/>}
+              </div>
+              {/* Info */}
+              <div style={{ flex:1 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:2 }}>
+                  <span style={{ fontSize:15, fontWeight:800, color:C.ink, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.02em" }}>{p.label}</span>
+                  {p.badge && <span style={{ background:C.blue, color:C.white, fontSize:10, fontWeight:700, padding:"2px 8px", borderRadius:20, fontFamily:"'Inter',sans-serif", textTransform:"uppercase", letterSpacing:"0.05em" }}>{p.badge}</span>}
+                </div>
+                <span style={{ fontSize:12, color:C.sub, fontWeight:500, fontFamily:"'Manrope',sans-serif" }}>{p.desc}</span>
+              </div>
+              {/* Price */}
+              <div style={{ textAlign:"right", flexShrink:0 }}>
+                <span style={{ fontSize:22, fontWeight:900, color:plan===p.id?C.blue:C.ink, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.03em" }}>{p.price}</span>
+                <span style={{ fontSize:12, color:C.sub, fontWeight:500, fontFamily:"'Inter',sans-serif" }}>{p.sub}</span>
+              </div>
+            </button>
+          ))}
+        </div>
+
+        {/* Email + CTA */}
+        <div style={{ background:C.white, borderRadius:24, padding:"28px 24px", boxShadow:"0 12px 40px rgba(10,14,26,0.06)", border:`1px solid ${C.line}`, marginBottom:16 }}>
+          <div style={{ marginBottom:16 }}>
+            <label style={{ fontSize:12, fontWeight:700, color:C.sub, fontFamily:"'Inter',sans-serif", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6, display:"block" }}>Tu email</label>
+            <input type="email" value={email} onChange={e => { setEmail(e.target.value); setError(""); }} onKeyDown={e => e.key === "Enter" && handleSubscribe()} placeholder="tu@email.com"
+              style={{ width:"100%", padding:"16px", borderRadius:14, fontSize:16, fontWeight:600, border:`2px solid ${error?C.danger:email?C.blue:C.line}`, background:error?C.dangerLt:C.bg, color:C.ink, fontFamily:"'Manrope',sans-serif", outline:"none", transition:"border-color 0.2s" }}/>
+            {error && <div style={{ fontSize:13, color:C.danger, marginTop:8, fontWeight:600 }}>{error}</div>}
           </div>
+
+          <button onClick={handleSubscribe} disabled={loading || !email.trim()}
+            style={{
+              width:"100%", padding:"20px", borderRadius:16, border:"none",
+              background: loading||!email.trim() ? C.gray2 : C.ink,
+              color: loading||!email.trim() ? C.gray4 : C.white,
+              fontSize:16, fontWeight:700, cursor: loading||!email.trim() ? "not-allowed" : "pointer",
+              fontFamily:"'Inter',sans-serif", boxShadow: !loading&&email.trim() ? sh.ink : "none",
+              display:"flex", alignItems:"center", justifyContent:"center", gap:12, transition:"background 0.2s, transform 0.2s"
+            }}
+            onMouseEnter={e => { if (!loading && email.trim()) { e.currentTarget.style.background = C.blue; e.currentTarget.style.transform = "translateY(-2px)"; } }}
+            onMouseLeave={e => { if (!loading && email.trim()) { e.currentTarget.style.background = C.ink; e.currentTarget.style.transform = "translateY(0)"; } }}>
+            <span>{loading ? "Redirigiendo a Mercado Pago..." : plan === "lifetime" ? "Comprar acceso de por vida" : "Suscribirme a Kooki"}</span>
+            {!loading && email.trim() && (<span style={{ width:28, height:28, borderRadius:"50%", background:C.white, color:C.ink, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:15, fontWeight:700 }}>→</span>)}
+          </button>
+
+          <p style={{ fontSize:12, color:C.sub, textAlign:"center", marginTop:14, lineHeight:1.5, fontWeight:500 }}>
+            {plan === "mensual" ? "Se renueva automáticamente. Cancelás cuando quieras." :
+             plan === "anual" ? "Se renueva en 12 meses. Cancelás cuando quieras." :
+             "Pago único. Acceso para siempre."}
+          </p>
+        </div>
+
+        {/* Features list */}
+        <div style={{ background:C.white, borderRadius:20, padding:"20px 22px", border:`1px solid ${C.line}`, marginBottom:16, boxShadow:sh.sm }}>
+          <div style={{ marginBottom:14 }}><Eyebrow>Todo incluido</Eyebrow></div>
+          {["Menú semanal personalizado con IA","Lista de compras exacta","Recetas ilimitadas con pasos detallados","Modo Cocina paso a paso","Chef asistente IA 24/7","DeTemporada — frutas y verduras de estación","AhorroExpress — controlá tus gastos del hogar","Compartir por WhatsApp y CSV"].map((f,i) => (
+            <div key={i} style={{ display:"flex", alignItems:"center", gap:10, padding:"8px 0", borderBottom: i < 7 ? `1px solid ${C.line}` : "none" }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={C.blue} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <span style={{ fontSize:14, fontWeight:600, color:C.ink, fontFamily:"'Manrope',sans-serif" }}>{f}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Legacy code + already subscribed */}
+        <div style={{ textAlign:"center", marginBottom:40 }}>
+          <button onClick={() => { setMode("code"); setError(""); }} style={{ background:"none", border:"none", color:C.sub, fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"'Inter',sans-serif", marginBottom:8, display:"block", margin:"0 auto 8px" }}>
+            ¿Ya tenés un código de acceso? →
+          </button>
+          <button onClick={() => {
+            const savedEmail = email.trim().toLowerCase();
+            if (savedEmail && savedEmail.includes("@")) {
+              checkSubscription(savedEmail);
+            } else {
+              setError("Ingresá tu email primero para verificar");
+            }
+          }} style={{ background:"none", border:"none", color:C.blue, fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"'Inter',sans-serif" }}>
+            ¿Ya sos suscriptor? Verificar acceso
+          </button>
         </div>
       </div>
     </div>
