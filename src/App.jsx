@@ -456,9 +456,45 @@ const PRECIOS = {
   condimentos:0, sal:0, pimienta:0, hierbas:0,
 };
 
-// Map raw ingredient strings to canonical keys
+// Parse quantity from ingredient string
+function parseQty(s) {
+  let m;
+  m = s.match(/^(\d+)\/(\d+)\s/);
+  if (m) return { qty: parseInt(m[1])/parseInt(m[2]), unit:"u" };
+  m = s.match(/^(\d+)\s*g\b/);
+  if (m) return { qty: parseInt(m[1]), unit:"g" };
+  m = s.match(/^(\d+)\s*ml\b/);
+  if (m) return { qty: parseInt(m[1]), unit:"ml" };
+  m = s.match(/^([\d.]+)\s*kg\b/);
+  if (m) return { qty: parseFloat(m[1])*1000, unit:"g" };
+  m = s.match(/x(\d+)$/);
+  if (m) return { qty: parseInt(m[1]), unit:"u" };
+  m = s.match(/^(\d+)\s*tazas?\b/);
+  if (m) return { qty: parseInt(m[1]), unit:"taza" };
+  m = s.match(/^(\d+)\s+\w/);
+  if (m) return { qty: parseInt(m[1]), unit:"u" };
+  return { qty: 1, unit:"u" };
+}
+function fmtQty(qty, unit) {
+  if (unit === "g" && qty >= 1000) return `${(qty/1000).toFixed(1).replace('.0','')} kg`;
+  if (unit === "g") return `${Math.round(qty)}g`;
+  if (unit === "ml" && qty >= 1000) return `${(qty/1000).toFixed(1).replace('.0','')} L`;
+  if (unit === "ml") return `${Math.round(qty)}ml`;
+  if (unit === "taza") return qty <= 1 ? "1 taza" : `${Math.ceil(qty)} tazas`;
+  if (unit === "lata") return qty <= 1 ? "1 lata" : `${Math.ceil(qty)} latas`;
+  if (unit === "atado") return qty <= 1 ? "1 atado" : `${Math.ceil(qty)} atados`;
+  if (unit === "paq") return qty <= 1 ? "1 paq" : `${Math.ceil(qty)} paq`;
+  if (unit === "frasco") return "1 frasco";
+  if (unit === "docena") return qty <= 1 ? "1 docena" : `${Math.ceil(qty)} doc`;
+  if (qty === 0.5) return "½";
+  if (qty === Math.floor(qty)) return `${Math.ceil(qty)}`;
+  return `${Math.ceil(qty)}`;
+}
+
+// Map raw ingredient → canonical key + qty
 function normalizeIng(raw) {
   const s = raw.toLowerCase().trim();
+  const q = parseQty(s);
   // Proteínas
   if (/pechuga|presas? de pollo|pollo entero/.test(s)) return { key:"pollo", label:"Pollo", cat:"🥩 Carnicería", price:"pollo" };
   if (/carne picada/.test(s)) return { key:"carne_picada", label:"Carne picada", cat:"🥩 Carnicería", price:"carne_picada" };
@@ -585,15 +621,55 @@ function buildDynamicList(menu) {
       if (!r || !r.i) return;
       r.i.forEach(raw => {
         const n = normalizeIng(raw);
+        const q = parseQty(raw.toLowerCase().trim());
         if (!consolidated[n.key]) {
-          consolidated[n.key] = { ...n, recetas: 1 };
+          consolidated[n.key] = { ...n, recetas: 1, rawQtys: [{ raw, ...q }] };
         } else {
           consolidated[n.key].recetas += 1;
+          consolidated[n.key].rawQtys.push({ raw, ...q });
         }
       });
     });
   });
-  // Group by category, skip "Ya tenés en casa" from main list
+
+  // Calculate smart quantities per item
+  Object.values(consolidated).forEach(item => {
+    if (item.cat === "🧴 Ya tenés en casa") {
+      item.displayLabel = item.label;
+      return;
+    }
+    // Sum quantities from raw entries
+    const qtys = item.rawQtys || [];
+    // Determine dominant unit
+    const unitCounts = {};
+    qtys.forEach(q => { unitCounts[q.unit] = (unitCounts[q.unit]||0) + 1; });
+    const mainUnit = Object.entries(unitCounts).sort((a,b) => b[1]-a[1])[0]?.[0] || "u";
+    
+    let total = 0;
+    qtys.forEach(q => {
+      if (q.unit === mainUnit) total += q.qty;
+      else if (q.unit === "g" && mainUnit === "u") total += Math.ceil(q.qty / 200);
+      else if (q.unit === "u" && mainUnit === "g") total += q.qty * 200;
+      else total += q.qty;
+    });
+
+    // Smart display
+    const key = item.key;
+    let label = item.label;
+    // Override with practical shopping quantities
+    if (mainUnit === "g" && total >= 1000) label += ` — ${(total/1000).toFixed(1).replace('.0','')} kg`;
+    else if (mainUnit === "g") label += ` — ${Math.round(total/50)*50}g`;
+    else if (mainUnit === "ml" && total >= 1000) label += ` — ${(total/1000).toFixed(1).replace('.0','')} L`;
+    else if (mainUnit === "ml") label += ` — ${Math.round(total/50)*50}ml`;
+    else if (mainUnit === "taza") label += ` — ${Math.ceil(total)} ${total>1?"tazas":"taza"}`;
+    else if (mainUnit === "lata") label += total > 1 ? ` — ${Math.ceil(total)} latas` : "";
+    else if (mainUnit === "u" && total > 1) label += ` — ${Math.ceil(total)}`;
+    else if (mainUnit === "atado" && total > 1) label += ` — ${Math.ceil(total)} atados`;
+
+    item.displayLabel = label;
+    delete item.rawQtys;
+  });
+
   const CAT_ORDER = ["🥩 Carnicería","🐟 Pescadería","🥦 Verdulería","🥚 Lácteos y Huevos","🌾 Almacén","🧴 Ya tenés en casa"];
   const grouped = {};
   const items = Object.values(consolidated);
@@ -601,11 +677,9 @@ function buildDynamicList(menu) {
     const inCat = items.filter(i => i.cat === cat);
     if (inCat.length > 0) grouped[cat] = inCat;
   });
-  // Any uncategorized
   const otherItems = items.filter(i => !CAT_ORDER.includes(i.cat));
   if (otherItems.length > 0) grouped["🛒 Otros"] = otherItems;
 
-  // Calculate total price
   let total = 0;
   items.forEach(i => { total += (PRECIOS[i.price] || 0); });
 
@@ -1870,7 +1944,7 @@ function MainApp() {
                               color: checkedItems[isCheckedKey] ? C.gray3 : C.text,
                               textDecoration: checkedItems[isCheckedKey] ? "line-through" : "none",
                             }}>
-                              {item.label}{item.recetas > 1 ? ` (×${item.recetas} recetas)` : ""}
+                              {item.displayLabel || item.label}{item.recetas > 1 ? ` (×${item.recetas} recetas)` : ""}
                             </span>
                             {precio > 0 && !isCondimentos && (
                               <span style={{ fontSize:12, fontWeight:700, color:C.sub, fontFamily:"'Inter',sans-serif", flexShrink:0 }}>
