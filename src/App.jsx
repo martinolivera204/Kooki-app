@@ -623,51 +623,52 @@ function buildDynamicList(menu) {
         const n = normalizeIng(raw);
         const q = parseQty(raw.toLowerCase().trim());
         if (!consolidated[n.key]) {
-          consolidated[n.key] = { ...n, recetas: 1, rawQtys: [{ raw, ...q }] };
+          consolidated[n.key] = { ...n, recetas: 1, rawStrs: [raw], grams: 0, units: 0, mls: 0, tazas: 0, latas: 0 };
         } else {
           consolidated[n.key].recetas += 1;
-          consolidated[n.key].rawQtys.push({ raw, ...q });
+          consolidated[n.key].rawStrs.push(raw);
         }
+        // Accumulate by unit type
+        const c = consolidated[n.key];
+        if (q.unit === "g") c.grams += q.qty;
+        else if (q.unit === "ml") c.mls += q.qty;
+        else if (q.unit === "taza") c.tazas += q.qty;
+        else if (q.unit === "lata") c.latas += q.qty;
+        else c.units += q.qty;
       });
     });
   });
 
-  // Calculate smart quantities per item
+  // Build display labels with real quantities
   Object.values(consolidated).forEach(item => {
-    if (item.cat === "🧴 Ya tenés en casa") {
-      item.displayLabel = item.label;
-      return;
+    if (item.cat === "🧴 Ya tenés en casa") { item.displayLabel = item.label; return; }
+
+    let qtyStr = "";
+    // Pick the most meaningful accumulated quantity
+    if (item.grams > 0 && item.grams >= item.units * 100) {
+      // Weight is more meaningful
+      qtyStr = item.grams >= 1000 ? `${(item.grams/1000).toFixed(1).replace('.0','')} kg` : `${Math.round(item.grams/50)*50}g`;
+    } else if (item.mls > 0) {
+      qtyStr = item.mls >= 1000 ? `${(item.mls/1000).toFixed(1).replace('.0','')} L` : `${Math.round(item.mls/50)*50}ml`;
+    } else if (item.tazas > 0) {
+      const t = Math.ceil(item.tazas);
+      qtyStr = t === 1 ? "1 taza" : `${t} tazas`;
+    } else if (item.latas > 0) {
+      const l = Math.ceil(item.latas);
+      qtyStr = l === 1 ? "1 lata" : `${l} latas`;
+    } else if (item.units > 1) {
+      qtyStr = `${Math.ceil(item.units)}`;
+    } else if (item.recetas === 1) {
+      // Single appearance — show original raw string for context
+      const raw = item.rawStrs[0];
+      // Extract just the quantity part from raw (e.g. "200g" from "200g espinaca")
+      const m = raw.match(/^(\d[\d./]*\s*(?:g|kg|ml|L|taza|lata|cdas?|cdita|u|x\d+)?)/i);
+      if (m && m[1].trim()) qtyStr = m[1].trim();
     }
-    // Sum quantities from raw entries
-    const qtys = item.rawQtys || [];
-    // Determine dominant unit
-    const unitCounts = {};
-    qtys.forEach(q => { unitCounts[q.unit] = (unitCounts[q.unit]||0) + 1; });
-    const mainUnit = Object.entries(unitCounts).sort((a,b) => b[1]-a[1])[0]?.[0] || "u";
-    
-    let total = 0;
-    qtys.forEach(q => {
-      if (q.unit === mainUnit) total += q.qty;
-      else if (q.unit === "g" && mainUnit === "u") total += Math.ceil(q.qty / 200);
-      else if (q.unit === "u" && mainUnit === "g") total += q.qty * 200;
-      else total += q.qty;
-    });
 
-    // Smart display
-    const key = item.key;
-    let label = item.label;
-    // Override with practical shopping quantities
-    if (mainUnit === "g" && total >= 1000) label += ` — ${(total/1000).toFixed(1).replace('.0','')} kg`;
-    else if (mainUnit === "g") label += ` — ${Math.round(total/50)*50}g`;
-    else if (mainUnit === "ml" && total >= 1000) label += ` — ${(total/1000).toFixed(1).replace('.0','')} L`;
-    else if (mainUnit === "ml") label += ` — ${Math.round(total/50)*50}ml`;
-    else if (mainUnit === "taza") label += ` — ${Math.ceil(total)} ${total>1?"tazas":"taza"}`;
-    else if (mainUnit === "lata") label += total > 1 ? ` — ${Math.ceil(total)} latas` : "";
-    else if (mainUnit === "u" && total > 1) label += ` — ${Math.ceil(total)}`;
-    else if (mainUnit === "atado" && total > 1) label += ` — ${Math.ceil(total)} atados`;
-
-    item.displayLabel = label;
-    delete item.rawQtys;
+    item.displayLabel = qtyStr ? `${item.label} · ${qtyStr}` : item.label;
+    // Cleanup temp fields
+    delete item.rawStrs; delete item.grams; delete item.units; delete item.mls; delete item.tazas; delete item.latas;
   });
 
   const CAT_ORDER = ["🥩 Carnicería","🐟 Pescadería","🥦 Verdulería","🥚 Lácteos y Huevos","🌾 Almacén","🧴 Ya tenés en casa"];
@@ -680,8 +681,9 @@ function buildDynamicList(menu) {
   const otherItems = items.filter(i => !CAT_ORDER.includes(i.cat));
   if (otherItems.length > 0) grouped["🛒 Otros"] = otherItems;
 
+  // Price: sum unique ingredient prices (not per-receta)
   let total = 0;
-  items.forEach(i => { total += (PRECIOS[i.price] || 0); });
+  items.filter(i => i.cat !== "🧴 Ya tenés en casa").forEach(i => { total += (PRECIOS[i.price] || 0); });
 
   return { grouped, total, itemCount: items.filter(i => i.cat !== "🧴 Ya tenés en casa").length, sharedCount: items.filter(i => i.recetas >= 2).length };
 }
@@ -1834,20 +1836,20 @@ function MainApp() {
             <div style={{ fontSize:15, color:"rgba(255,255,255,0.7)", lineHeight:1.55, marginBottom:22, fontWeight:500 }}>
               {result.ahorro ? `${result.ahorro.sharedCount} ingredientes compartidos entre recetas. Comprás menos, tirás menos.` : result.tip}
             </div>
-            {result.precio_estimado && (
+            {result.lista_total > 0 && (
               <div style={{ background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:18, padding:"16px 20px", display:"flex", flexDirection:"column", gap:12, backdropFilter:"blur(10px)" }}>
                 <div style={{ display:"flex", alignItems:"center", gap:14 }}>
                   <div style={{ width:42, height:42, borderRadius:12, background:"rgba(59,111,212,0.2)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:22, flexShrink:0 }}>🛒</div>
                   <div>
                     <div style={{ fontSize:11, color:"rgba(255,255,255,0.5)", fontWeight:600, letterSpacing:"0.12em", textTransform:"uppercase", fontFamily:"'Inter',sans-serif" }}>Estimado compras semanales</div>
-                    <div style={{ fontSize:22, fontWeight:900, color:C.white, marginTop:3, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.03em" }}>{result.precio_estimado} ARS</div>
+                    <div style={{ fontSize:22, fontWeight:900, color:C.white, marginTop:3, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.03em" }}>~${Math.round(result.lista_total/1000)*1000} ARS</div>
                   </div>
                 </div>
                 <div style={{ display:"flex", alignItems:"center", gap:14, padding:"12px 14px", background:"rgba(16,185,129,0.12)", border:"1px solid rgba(16,185,129,0.25)", borderRadius:12 }}>
                   <div style={{ width:36, height:36, borderRadius:10, background:"rgba(16,185,129,0.25)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:16, flexShrink:0 }}>↓</div>
                   <div>
                     <div style={{ fontSize:11, color:"rgba(16,185,129,0.8)", fontWeight:600, letterSpacing:"0.1em", textTransform:"uppercase", fontFamily:"'Inter',sans-serif" }}>Ahorro estimado vs sin planificar</div>
-                    <div style={{ fontSize:18, fontWeight:900, color:"#34D399", marginTop:2, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.03em" }}>~30% menos en el súper</div>
+                    <div style={{ fontSize:18, fontWeight:900, color:"#34D399", marginTop:2, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.03em" }}>~${Math.round(result.lista_total*0.3/1000)*1000} menos en el súper</div>
                   </div>
                 </div>
               </div>
