@@ -314,7 +314,7 @@ function AccessScreen({ onAccess }) {
       <BgGrid /><Blob pos="tr" /><Blob pos="bl" color="rgba(0,102,204,0.13)" />
       <div style={{ width:"100%", maxWidth:400, animation:"fadeIn 0.4s ease", position:"relative", zIndex:1 }}>
         <div style={{ textAlign:"center", marginBottom:24 }}>
-          <img src="https://i.imgur.com/IYcv1Vp.jpeg" alt="Kooki" style={{ width:120, marginBottom:16 }}/>
+          <img src="https://cdn.shopify.com/s/files/1/0983/2857/6366/files/logo_sin_fondo.png?v=1776210195" alt="Kooki" style={{ width:120, marginBottom:16 }}/>
         </div>
         <div style={{ background:C.white, borderRadius:28, padding:"36px 32px", boxShadow:"0 20px 60px rgba(10,14,26,0.08)", border:`1px solid ${C.line}` }}>
           <h2 style={{ fontSize:24, fontWeight:900, color:C.ink, marginBottom:8, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.035em" }}>
@@ -347,7 +347,7 @@ function AccessScreen({ onAccess }) {
 
         {/* Header */}
         <div style={{ textAlign:"center", marginBottom:28 }}>
-          <img src="https://i.imgur.com/IYcv1Vp.jpeg" alt="Kooki" style={{ width:120, marginBottom:16 }}/>
+          <img src="https://cdn.shopify.com/s/files/1/0983/2857/6366/files/logo_sin_fondo.png?v=1776210195" alt="Kooki" style={{ width:120, marginBottom:16 }}/>
           <h1 style={{ fontSize:"clamp(30px, 7.5vw, 42px)", fontWeight:900, color:C.ink, lineHeight:1, marginBottom:10, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.04em" }}>
             Organizá tu semana<br/>y empezá a <span style={{ color:C.blue, fontStyle:"italic", fontWeight:800 }}>ahorrar</span>.
           </h1>
