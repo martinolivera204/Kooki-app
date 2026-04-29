@@ -614,6 +614,10 @@ function normalizeIng(raw) {
 }
 
 function buildDynamicList(menu) {
+  // Default weights when raw string has no number (grams)
+  const DEFAULT_G = { pollo:300, carne_picada:500, carne_guiso:500, bife_chorizo:500, bife:400, lomo:400, bondiola:1500, costeleta:800, escalope:600, carre:1000, entraña:500, vacio:1000, tira:1000, osobuco:800, peceto:1000, nalga:400, cuadril:800, milanesa:600, panceta:150, salmon:400, merluza:500, atun_fresco:400, trucha:500, tilapia:500, langostino:200, mejillon:200, calamar:200 };
+  const DEFAULT_U = { huevos:4, tomate:2, cebolla:1, zanahoria:1, papa:2, morron:1, zapallito:1, batata:1, pepino:1, berenjena:1, limon:1, manzana:2, apio:2, tomate_cherry:200, espinaca:200, brocoli:300, champinon:200, zapallo:800, rucula:150, palta:1, esparrago:200, arveja:200, anana:200, jengibre:1 };
+
   const consolidated = {};
   menu.forEach(d => {
     [d.alm, d.cen].forEach(nombre => {
@@ -623,52 +627,71 @@ function buildDynamicList(menu) {
         const n = normalizeIng(raw);
         const q = parseQty(raw.toLowerCase().trim());
         if (!consolidated[n.key]) {
-          consolidated[n.key] = { ...n, recetas: 1, rawStrs: [raw], grams: 0, units: 0, mls: 0, tazas: 0, latas: 0 };
-        } else {
-          consolidated[n.key].recetas += 1;
-          consolidated[n.key].rawStrs.push(raw);
+          consolidated[n.key] = { ...n, recetas: 0, totalG: 0, totalMl: 0, totalU: 0, totalTaza: 0, totalLata: 0 };
         }
-        // Accumulate by unit type
         const c = consolidated[n.key];
-        if (q.unit === "g") c.grams += q.qty;
-        else if (q.unit === "ml") c.mls += q.qty;
-        else if (q.unit === "taza") c.tazas += q.qty;
-        else if (q.unit === "lata") c.latas += q.qty;
-        else c.units += q.qty;
+        c.recetas += 1;
+
+        // Determine what to add based on parsed qty and category
+        const isProtein = c.cat === "🥩 Carnicería" || c.cat === "🐟 Pescadería";
+
+        if (q.unit === "g") {
+          c.totalG += q.qty;
+        } else if (q.unit === "ml") {
+          c.totalMl += q.qty;
+        } else if (q.unit === "taza") {
+          c.totalTaza += q.qty;
+        } else if (q.unit === "lata") {
+          c.totalLata += q.qty;
+        } else if (isProtein) {
+          // For proteins, convert units to grams using defaults
+          const perUnit = (DEFAULT_G[n.key] || 300);
+          c.totalG += q.qty * perUnit;
+        } else {
+          // Vegetables/other: count units, but use defaults for items with qty=1 and no explicit number
+          if (q.qty === 1 && !/^\d/.test(raw.trim())) {
+            // No number in raw string — use default
+            const defG = DEFAULT_U[n.key];
+            if (defG && (n.key === "espinaca" || n.key === "brocoli" || n.key === "champinon" || n.key === "zapallo" || n.key === "rucula" || n.key === "esparrago" || n.key === "arveja" || n.key === "anana" || n.key === "tomate_cherry")) {
+              c.totalG += defG; // these are weight-based
+            } else {
+              c.totalU += (defG || 1);
+            }
+          } else {
+            c.totalU += q.qty;
+          }
+        }
       });
     });
   });
 
-  // Build display labels with real quantities
+  // Build display labels
   Object.values(consolidated).forEach(item => {
     if (item.cat === "🧴 Ya tenés en casa") { item.displayLabel = item.label; return; }
 
     let qtyStr = "";
-    // Pick the most meaningful accumulated quantity
-    if (item.grams > 0 && item.grams >= item.units * 100) {
-      // Weight is more meaningful
-      qtyStr = item.grams >= 1000 ? `${(item.grams/1000).toFixed(1).replace('.0','')} kg` : `${Math.round(item.grams/50)*50}g`;
-    } else if (item.mls > 0) {
-      qtyStr = item.mls >= 1000 ? `${(item.mls/1000).toFixed(1).replace('.0','')} L` : `${Math.round(item.mls/50)*50}ml`;
-    } else if (item.tazas > 0) {
-      const t = Math.ceil(item.tazas);
+    const isProtein = item.cat === "🥩 Carnicería" || item.cat === "🐟 Pescadería";
+
+    if (isProtein && item.totalG > 0) {
+      // Always show proteins in kg/g
+      qtyStr = item.totalG >= 1000 ? `${(item.totalG/1000).toFixed(1).replace('.0','')} kg` : `${Math.round(item.totalG/50)*50}g`;
+    } else if (item.totalG > 0 && item.totalU === 0) {
+      qtyStr = item.totalG >= 1000 ? `${(item.totalG/1000).toFixed(1).replace('.0','')} kg` : `${Math.round(item.totalG/50)*50}g`;
+    } else if (item.totalMl > 0) {
+      qtyStr = item.totalMl >= 1000 ? `${(item.totalMl/1000).toFixed(1).replace('.0','')} L` : `${Math.round(item.totalMl/50)*50}ml`;
+    } else if (item.totalTaza > 0) {
+      const t = Math.ceil(item.totalTaza);
       qtyStr = t === 1 ? "1 taza" : `${t} tazas`;
-    } else if (item.latas > 0) {
-      const l = Math.ceil(item.latas);
+    } else if (item.totalLata > 0) {
+      const l = Math.ceil(item.totalLata);
       qtyStr = l === 1 ? "1 lata" : `${l} latas`;
-    } else if (item.units > 1) {
-      qtyStr = `${Math.ceil(item.units)}`;
-    } else if (item.recetas === 1) {
-      // Single appearance — show original raw string for context
-      const raw = item.rawStrs[0];
-      // Extract just the quantity part from raw (e.g. "200g" from "200g espinaca")
-      const m = raw.match(/^(\d[\d./]*\s*(?:g|kg|ml|L|taza|lata|cdas?|cdita|u|x\d+)?)/i);
-      if (m && m[1].trim()) qtyStr = m[1].trim();
+    } else if (item.totalU > 0) {
+      qtyStr = `${Math.ceil(item.totalU)}`;
     }
 
     item.displayLabel = qtyStr ? `${item.label} · ${qtyStr}` : item.label;
-    // Cleanup temp fields
-    delete item.rawStrs; delete item.grams; delete item.units; delete item.mls; delete item.tazas; delete item.latas;
+    // Cleanup
+    delete item.totalG; delete item.totalMl; delete item.totalU; delete item.totalTaza; delete item.totalLata;
   });
 
   const CAT_ORDER = ["🥩 Carnicería","🐟 Pescadería","🥦 Verdulería","🥚 Lácteos y Huevos","🌾 Almacén","🧴 Ya tenés en casa"];
@@ -681,7 +704,6 @@ function buildDynamicList(menu) {
   const otherItems = items.filter(i => !CAT_ORDER.includes(i.cat));
   if (otherItems.length > 0) grouped["🛒 Otros"] = otherItems;
 
-  // Price: sum unique ingredient prices (not per-receta)
   let total = 0;
   items.filter(i => i.cat !== "🧴 Ya tenés en casa").forEach(i => { total += (PRECIOS[i.price] || 0); });
 
