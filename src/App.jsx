@@ -1317,11 +1317,11 @@ function MainApp() {
           <img src="https://cdn.shopify.com/s/files/1/0983/2857/6366/files/Copia_de_logo_sin_fondo.png?v=1776974240" alt="Kooki" style={{ height:70, objectFit:"contain" }} />
         </div>
         <h1 style={{ fontSize:"clamp(38px, 9vw, 52px)", fontWeight:900, color:C.ink, lineHeight:0.95, marginBottom:18, marginTop:14, letterSpacing:"-0.045em", textAlign:"center", fontFamily:"'Epilogue',sans-serif" }}>
-          Dejá de pensar<br/>
-          <span style={{ color:C.blue, fontStyle:"italic", fontWeight:800 }}>qué cocinar</span>.
+          Empezá a <span style={{ color:C.blue, fontStyle:"italic", fontWeight:800 }}>ahorrar</span><br/>
+          en el súper.
         </h1>
         <p style={{ fontSize:16, color:C.sub, lineHeight:1.55, marginBottom:24, textAlign:"center", fontWeight:500 }}>
-          Tu semana resuelta con IA. Menú, recetas y lista de compras.
+          Menú semanal, lista exacta y productos de estación. Comprá solo lo que vas a usar.
         </p>
 
         <div style={{ position:"relative", marginBottom:32, display:"flex", justifyContent:"center", alignItems:"center" }}>
@@ -1350,10 +1350,10 @@ function MainApp() {
             <Eyebrow center>Ecosistema Kooki</Eyebrow>
           </div>
           <h3 style={{ fontSize:22, fontWeight:900, color:C.ink, textAlign:"center", marginBottom:6, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.03em", lineHeight:1.05 }}>
-            Todo en <span style={{ color:C.blue, fontStyle:"italic", fontWeight:800 }}>un solo lugar</span>.
+            Todo tu <span style={{ color:C.blue, fontStyle:"italic", fontWeight:800 }}>ahorro</span> en un lugar.
           </h3>
           <p style={{ fontSize:14, color:C.sub, textAlign:"center", marginBottom:20, fontWeight:500, lineHeight:1.5 }}>
-            Herramientas que complementan tu cocina inteligente.
+            Herramientas para gastar menos en comida cada semana.
           </p>
           <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
             <div>
@@ -1376,7 +1376,7 @@ function MainApp() {
         </div>
 
         <p style={{ textAlign:"center", fontSize:13, color:C.sub, marginBottom:48, fontFamily:"'Inter',sans-serif", fontWeight:500 }}>
-          Kooki · Tu cocina con IA
+          Kooki · Ahorrá en el súper con IA
         </p>
       </div>
     </div>
