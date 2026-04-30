@@ -2026,7 +2026,7 @@ function MainApp() {
   }
 
   if (screen === "loading") {
-    const MSGS = ["Analizando tu objetivo...","Seleccionando recetas con ingredientes compartidos...","Armando la lista exacta del súper...","Calculando tu ahorro estimado...","¡Tu plan está casi listo!"];
+    const MSGS = ["Analizando tu objetivo...","Seleccionando recetas con ingredientes compartidos...","Armando la lista exacta del súper...","Optimizando tu lista de compras...","¡Tu plan está casi listo!"];
     return (
       <div style={{ minHeight:"100vh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:32, fontFamily:"'Manrope',sans-serif", position:"relative", overflow:"hidden" }}>
         <style>{BASE}</style>
@@ -2074,12 +2074,12 @@ function MainApp() {
             <div style={{ fontSize:15, color:"rgba(255,255,255,0.7)", lineHeight:1.55, marginBottom:22, fontWeight:500 }}>
               {result.ahorro ? `${result.ahorro.sharedCount} ingredientes compartidos entre recetas. Comprás menos, tirás menos.` : result.tip}
             </div>
-            {result.precio_estimado && (
+            {result.ahorro && (
               <div style={{ background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:18, padding:"16px 20px", display:"flex", alignItems:"center", gap:14, backdropFilter:"blur(10px)" }}>
                 <div style={{ width:42, height:42, borderRadius:12, background:"rgba(59,111,212,0.2)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:22, flexShrink:0 }}>🛒</div>
                 <div>
-                  <div style={{ fontSize:11, color:"rgba(255,255,255,0.5)", fontWeight:600, letterSpacing:"0.12em", textTransform:"uppercase", fontFamily:"'Inter',sans-serif" }}>Estimado compras semanales</div>
-                  <div style={{ fontSize:22, fontWeight:900, color:C.white, marginTop:3, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.03em" }}>{result.precio_estimado} ARS</div>
+                  <div style={{ fontSize:11, color:"rgba(255,255,255,0.5)", fontWeight:600, letterSpacing:"0.12em", textTransform:"uppercase", fontFamily:"'Inter',sans-serif" }}>Lista optimizada</div>
+                  <div style={{ fontSize:18, fontWeight:800, color:C.white, marginTop:3, fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.03em" }}>Comprás {result.ahorro.uniqueCount} productos, no {Math.round(result.ahorro.uniqueCount * 1.7)}</div>
                 </div>
               </div>
             )}
@@ -2136,12 +2136,6 @@ function MainApp() {
                 <div style={{ fontSize:15, color:"#047857", lineHeight:1.5, fontWeight:600, fontFamily:"'Manrope',sans-serif" }}>
                   {result.ahorro ? `${result.ahorro.sharedCount} ingredientes compartidos entre recetas. Comprás ${result.ahorro.uniqueCount} productos, no ${Math.round(result.ahorro.uniqueCount * 1.7)}.` : "Generada desde tus 14 recetas."}
                 </div>
-                {result.precio_estimado && (
-                  <div style={{ marginTop:12, padding:"12px 16px", background:"rgba(255,255,255,0.7)", borderRadius:12, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-                    <span style={{ fontSize:13, fontWeight:600, color:"#059669", fontFamily:"'Inter',sans-serif" }}>Estimado semanal</span>
-                    <span style={{ fontSize:18, fontWeight:900, color:"#047857", fontFamily:"'Epilogue',sans-serif", letterSpacing:"-0.03em" }}>{result.precio_estimado}</span>
-                  </div>
-                )}
               </div>
 
               {/* LISTA POR CATEGORÍA */}
