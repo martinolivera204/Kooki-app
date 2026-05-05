@@ -50,8 +50,9 @@ if (MANUAL_ACCESS.includes(normalizedEmail)) {
     }
 
     // 2. Buscar pagos aprobados de lifetime
+    // 2. Buscar pagos aprobados de lifetime
     const payResponse = await fetch(
-      `https://api.mercadopago.com/v1/payments/search?payer.email=${encodeURIComponent(normalizedEmail)}&status=approved&external_reference=lifetime_`,
+      `https://api.mercadopago.com/v1/payments/search?payer.email=${encodeURIComponent(normalizedEmail)}&status=approved`,
       {
         headers: {
           "Authorization": `Bearer ${process.env.MP_ACCESS_TOKEN}`,
