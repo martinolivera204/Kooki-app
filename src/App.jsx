@@ -212,12 +212,19 @@ function AccessScreen({ onAccess }) {
       });
       const data = await res.json();
       if (data.active) {
-        localStorage.setItem(SUB_STATUS_KEY, JSON.stringify(data));
-        localStorage.setItem(EMAIL_KEY, emailToCheck);
-        setChecking(false);
-        onAccess();
-        return;
-      }
+  localStorage.setItem(SUB_STATUS_KEY, JSON.stringify(data));
+  localStorage.setItem(EMAIL_KEY, emailToCheck);
+  // Trackear Purchase si viene de MP (primera vez)
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("status") === "ok" && !localStorage.getItem("kooki_purchase_tracked")) {
+    const value = data.plan === "anual" ? 19900 : data.plan === "lifetime" ? 29900 : 3500;
+    trackEvent('Purchase', { value, currency: 'ARS', content_name: 'Kooki Premium ' + data.plan });
+    localStorage.setItem("kooki_purchase_tracked", "1");
+  }
+  setChecking(false);
+  onAccess();
+  return;
+}
     } catch (e) {
       console.error("Check subscription error:", e);
     }
