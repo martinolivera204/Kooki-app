@@ -18,7 +18,15 @@ export default async function handler(req, res) {
     }
 
     const normalizedEmail = email.trim().toLowerCase();
-
+// Acceso manual para usuarios verificados en MP
+const MANUAL_ACCESS = ['kevinzarriello@gmail.com'];
+if (MANUAL_ACCESS.includes(normalizedEmail)) {
+  return res.status(200).json({
+    active: true,
+    type: "lifetime",
+    plan: "lifetime",
+  });
+}
     // 1. Buscar suscripciones activas (mensual/anual)
     const subResponse = await fetch(
       `https://api.mercadopago.com/preapproval/search?payer_email=${encodeURIComponent(normalizedEmail)}&status=authorized`,
