@@ -13,7 +13,7 @@ export default async function handler(req, res) {
     const normalizedEmail = email.trim().toLowerCase();
 
     // 0. Acceso manual para usuarios verificados
-    const MANUAL_ACCESS = ['kevinzarriello@gmail.com'];
+    const MANUAL_ACCESS = [];
     if (MANUAL_ACCESS.includes(normalizedEmail)) {
       return res.status(200).json({ active: true, type: "lifetime", plan: "lifetime" });
     }
